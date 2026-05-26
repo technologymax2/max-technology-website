@@ -6,11 +6,16 @@ require('dotenv').config();
 
 const app = express();
 
-// 1. Middleware
+// 1. Middleware ከቪርሴል የሚመጣውን ጥያቄ በይፋ ለመፍቀድ
 app.use(express.json());
-app.use(cors()); // ማሳሰቢያ፡ ፍሮንትኤንዱን deploy ካደረግክ በኋላ cors(origin: 'የአንተ_vercel_ሊንክ') ብታደርገው ለደህንነት ይመረጣል።
+app.use(cors({
+  origin: ['https://max-technology-website.vercel.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// 2. MongoDB Connection (ከ .env ፋይል ያነባል)
+// 2. MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ MongoDB በስኬት ተገናኝቷል!'))
@@ -26,9 +31,12 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-// 4. Nodemailer Transporter Configuration (ከ .env ፋይል ያነባል)
+// 4. Nodemailer Transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -40,11 +48,11 @@ app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    // ሀ. መረጃውን ዳታቤዝ ውስጥ ሴቭ ማድረግ
+    // ሀ. ዳታቤዝ ውስጥ ማስቀመጥ
     const newContact = new Contact({ name, email, message });
     await newContact.save();
 
-    // ለ. የኢሜይል ይዘት ዝግጅት
+    // ለ. የኢሜይል ውቅር
     const mailOptions = {
       from: process.env.EMAIL_USER, 
       to: process.env.EMAIL_USER,   
@@ -52,25 +60,25 @@ app.post('/api/contact', async (req, res) => {
       text: `አዲስ ደንበኛ መልዕክት ልኮልሃል፡\n\nስም፡ ${name}\nኢሜይል፡ ${email}\nመልዕክት፡\n${message}`
     };
 
-    // ሐ. ኢሜይሉን መላክ
+    // ሐ. መላክ
     await transporter.sendMail(mailOptions);
 
-    res.status(201).json({ 
+    return res.status(201).json({ 
       success: true, 
       message: 'መልዕክትዎ በስኬት ተልኳል! በቅርቡ እናገኝዎታለን።' 
     });
 
   } catch (error) {
     console.error('Error Details:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       error: 'መልዕክቱን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።' 
     });
   }
 });
 
-// 6. Server Port
+// 6. Render አስተማማኝ ፖርት አወሳሰድ
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 ሰርቨሩ በፖርት ${PORT} ላይ ስራ ጀምሯል!`);
 });
