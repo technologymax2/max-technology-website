@@ -113,21 +113,25 @@ const handleImageUpload = async (e) => {
     alert('ምስል መጫን አልተቻለም፡ ' + err.message);
   }
 };
+// ይህ ፋንክሽን በ AdminDashboard.js ውስጥ ነው ያለው
 const handleProjectSubmit = async (e) => {
   e.preventDefault();
   if (!projectForm.imageUrl) return alert('እባክዎ መጀመሪያ ምስል ይምረጡ!');
+  
   try {
     const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(projectForm)
     });
+    
     if (res.ok) {
-      alert('🎯 ሲስተም ተመዝግቧል!');
+      alert('🎯 ፕሮጀክቱ/ምስሉ ተመዝግቧል እና ለሁሉም ሰው ይታያል!');
       setProjectForm({ title: '', link: '', imageUrl: '' });
-      // fetchProjects(); // ይህን በኋላ መፍጠር አለብህ
     }
-  } catch (err) { alert('ስህተት ተፈጥሯል'); }
+  } catch (err) { 
+    alert('ስህተት ተፈጥሯል፡ ወደ ዳታቤዝ መላክ አልተቻለም'); 
+  }
 };
 
 // ... ከዚህ በታች ሌላ ፋንክሽን (ለምሳሌ handleProjectSubmit) ይቀጥላል
@@ -267,6 +271,7 @@ const handleProjectSubmit = async (e) => {
       {uploading ? 'በመጫን ላይ...' : 'መዝግብ'}
     </button>
   </div>
+  
 )}
       {/* 1️⃣ ታብ 1፦ የቴሌግራም ቻት መልዕክቶች */}
       {activeTab === 'messages' && (
