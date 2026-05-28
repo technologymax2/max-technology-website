@@ -32,12 +32,17 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-// 4. Nodemailer Transporter Configuration (ከ .env ፋይል ያነባል)
+// 4. Nodemailer Transporter Configuration (Render ላይ የ IPv6 Timeout ችግርን ለመፍታት የተስተካከለ)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',   // በባዶ 'service' ፈንታ ቀጥታ የ Gmail IPv4 ሰርቨርን መጥራት
+  port: 587,                // በ Render በነጻ አካውንት ላይ የማይዘጋው የ TLS ፖርት
+  secure: false,            // ለፖርት 587 ሁልጊዜ false መሆን አለበት
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false // የደህንነት ማረጋገጫው ግንኙነቱን እንዳያቋርጠው ይረዳል
   }
 });
 
