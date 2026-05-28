@@ -88,28 +88,51 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
         {/* 1️⃣ የግራ ክፍል፦ አዲስ ማዘዣ ፎርም */}
         <div className="order-form-wrapper">
           <div className="order-card-form">
-            <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
-            <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶ프트ዌር ዝርዝር እዚህ ያስገቡ</p>
+            <h2 className="order-form-title">🛒 አዲስ የሶፍትዌር ማዘዣ</h2>
+            <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶፍትዌር ዝርዝር እዚህ ያስገቡ</p>
             
-            <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
-              <div className="input-group-fixed">
-                <label>የድርጅትዎ ስም</label>
-                <input type="text" name="name" placeholder="ለምሳሌ፦ አቢሲኒያ ቴክ" value={formData.name} onChange={handleContactChange} required className="input-field" />
-              </div>
+          <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
+  
+  {/* 👤 ስም (አይቀየርም - አካውንት ሲከፍት የተመዘገበበት ስም ቀጥታ ይገባል) */}
+  <div className="input-group-fixed">
+    <label>የደንበኛ ስም </label>
+    <input 
+      type="text" 
+      name="name" 
+      value={formData.name = user.name} // 👈 እዚህ ጋር ከተጠቃሚው አካውንት ስሙን ቀጥታ ይወስዳል
+      disabled 
+      className="input-field order-disabled-input" 
+    />
+  </div>
 
-              <div className="input-group-fixed">
-                <label>ኢሜይል (አይቀየርም)</label>
-                <input type="email" name="email" value={formData.email = user.email} disabled className="input-field order-disabled-input" />
-              </div>
+  {/* 📧 ኢሜይል (አይቀየርም) */}
+  <div className="input-group-fixed">
+    <label>ኢሜይል </label>
+    <input 
+      type="email" 
+      name="email" 
+      value={formData.email = user.email} 
+      disabled 
+      className="input-field order-disabled-input" 
+    />
+  </div>
 
-              <div className="input-group-fixed">
-                <label>የስራው ዝርዝር መግለጫ</label>
-                <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ወይም ሲስተም በዝርዝር ይጻፉ..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
-              </div>
+  {/* 📝 የላኪው መልዕክት */}
+  <div className="input-group-fixed">
+    <label>የስራው ዝርዝር መግለጫ</label>
+    <textarea 
+      name="message" 
+      placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ወይም ሲስተም በዝርዝር ይጻፉ..." 
+      value={formData.message} 
+      onChange={handleContactChange} 
+      required 
+      className="textarea-field order-textarea"
+    ></textarea>
+  </div>
 
-              <button type="submit" className="submit-btn order-submit-btn-fixed">🚀 ትዕዛዝ ያስገቡ</button>
-              {status && <p className="order-success-msg">✨ {status}</p>}
-            </form>
+  <button type="submit" className="submit-btn order-submit-btn-fixed">🚀 ትዕዛዝ ያስገቡ</button>
+  {status && <p className="order-success-msg">✨ {status}</p>}
+</form>
           </div>
         </div>
 

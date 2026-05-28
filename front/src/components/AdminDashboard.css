@@ -1,381 +1,505 @@
 /* ==========================================================================
-   🚀 ለአድሚን ሰሌዳ እና ሰንጠረዦች የተዘጋጀ ልዩ ስታይል (AdminDashboard.css)
+   💎 MAX TECHNOLOGY PREMIUM ADMIN DASHBOARD - MODERN DARK THEME
    ========================================================================== */
 
-.admin-dashboard-container {
-  padding: 40px 5%;
-  animation: fadeInUp 0.6s ease-out;
+:root {
+  --bg-main: #0d0f12;
+  --bg-card: #161b22;
+  --bg-sidebar: #12161c;
+  --primary-gold: #ffd700;
+  --primary-glow: rgba(255, 215, 0, 0.15);
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --border-color: #30363d;
+  --active-blue: #1f6feb;
+  --success-green: #238636;
+  --danger-red: #da3633;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 🧱 ዋናው አካል */
+.admin-dashboard-container {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding: 30px;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* 🔝 የላይኛው ራስጌ (Header) */
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--dark-bg, #111111);
-  color: white;
-  padding: 20px 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  margin-bottom: 35px;
-}
-
-/* ሰንጠረዥ */
-.custom-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white, #ffffff);
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  margin-top: 20px;
-  border: none;
-}
-
-.custom-table th {
-  background-color: var(--accent-dark, #222222);
-  color: var(--primary-color, gold);
-  padding: 18px;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 14px;
-  text-align: center;
-}
-
-.custom-table td {
-  padding: 18px;
-  border-bottom: 1px solid #edf2f7;
-  text-align: center;
-  font-size: 15px;
-  color: #4a5568;
-}
-
-.custom-table tr:hover {
-  background-color: #f7fafc;
-}
-
-/* ቁልፎች */
-.btn-action {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition, all 0.4s ease);
-}
-
-.btn-edit { background-color: #3182ce; color: white; }
-.btn-edit:hover { background-color: #2b6cb0; transform: translateY(-2px); }
-
-.btn-delete { background-color: #e53e3e; color: white; }
-.btn-delete:hover { background-color: #c53030; transform: translateY(-2px); }
-
-.btn-reply { background-color: #38a169; color: white; }
-.btn-reply:hover { background-color: #2f855a; transform: translateY(-2px); }
-
-/* ሞዳል ፎርም */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(5px);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 2000;
-}
-
-.modal-content {
-  background: white;
-  padding: 35px;
-  border-radius: 20px;
-  width: 360px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}
-
-.admin-grid-gap { margin-top: 20px; align-items: flex-start; }
-.admin-form-card { width: 100% !important; flex: 1; min-width: 300px; padding: 25px; }
-.admin-table-card { width: 100% !important; flex: 2; min-width: 300px; padding: 25px; }
-.admin-form-top { margin-top: 15px; }
-.admin-input-bottom { margin-bottom: 10px; }
-.admin-input-large-bottom { margin-bottom: 15px; }
-
-.admin-inline-flex { display: flex; gap: 8px; justify-content: center; }
-.admin-wrap-fix { flex-wrap: wrap; }
-.admin-table-input { padding: 6px !important; width: 130px; margin-bottom: 0 !important; flex: 1; }
-.btn-padding-fix { padding: 6px 12px !important; }
-.btn-flex-one { flex: 1; padding: 12px !important; }
-.admin-section-heading { margin-top: 50px; margin-bottom: 15px; color: #fff; font-size: 22px; text-align: left; border-left: 4px solid gold; padding-left: 10px;}
-.admin-empty-text { text-align: center; margin-top: 30px; color: #777; }
-
-.admin-welcome-text {
-  font-size: 18px;
-  color: var(--light-text, #eeeeee);
-  background-color: var(--accent-dark, #222222);
-  padding: 10px 20px;
-  border-radius: 8px;
-  margin-top: 15px;
-  display: inline-block;
-  border-left: 4px solid var(--primary-color, gold);
-}
-.admin-welcome-text strong { color: var(--primary-color, gold); }
-
-/* 💬 TELEGRAM CHAT STYLE FOR ADMIN DASHBOARD */
-.admin-chat-container {
-  max-width: 900px;
-  margin: 20px auto 50px auto;
-}
-
-.admin-chat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.admin-chat-card {
-  background: #1a1a1a;
-  border: 1px solid #2b2b2b;
+  background: linear-gradient(135deg, var(--bg-card), #1f242c);
+  padding: 20px 30px;
   border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin-bottom: 30px;
 }
 
-.admin-chat-card:hover {
-  border-color: var(--primary-color, gold);
-}
-
-.admin-chat-card-header {
+.admin-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #2b2b2b;
+  gap: 12px;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* 🗂️ ታብ ማውጫ (Tab Navigation) */
+.admin-tabs-nav {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 12px;
 }
 
-.admin-chat-user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-}
-
-.admin-avatar {
-  background: #333;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  font-size: 20px;
-}
-
-.admin-chat-user-info h4 { margin: 0; color: #ffffff; font-size: 16px; }
-.admin-chat-email { font-size: 13px; color: #888; }
-.admin-chat-date { font-size: 12px; color: #666; }
-.admin-chat-body { display: flex; flex-direction: column; gap: 15px; }
-
-.admin-user-msg-bubble {
-  background: #252d35;
-  color: #eeeeee;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border-top-left-radius: 2px;
-  align-self: flex-start;
-  max-width: 85%;
-  text-align: left;
-}
-.admin-user-msg-bubble p { margin: 0; line-height: 1.5; }
-
-.admin-reply-msg-bubble {
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  color: #ffffff;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border-top-right-radius: 2px;
-  align-self: flex-end;
-  max-width: 85%;
-  text-align: left;
-}
-.admin-reply-msg-bubble p { margin: 0; line-height: 1.5; }
-.reply-label { display: block; font-size: 11px; color: var(--primary-color, gold); margin-bottom: 3px; font-weight: bold;}
-
-.admin-chat-input-area { display: flex; gap: 10px; width: 100%; margin-top: 5px; }
-.admin-chat-input { margin: 0 !important; flex: 1; background: #111 !important; }
-.admin-chat-send-btn { padding: 0 25px !important; }
-.admin-chat-footer { display: flex; justify-content: flex-end; border-top: 1px solid #2b2b2b; padding-top: 10px; }
-.btn-sm { padding: 6px 12px !important; font-size: 13px; }
-
-/* 📱 ሬስፖንሲቭ ፎርማት ለረዳት አድሚኖች ዝርዝር */
-@media screen and (max-width: 850px) {
-  .responsive-table, .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr { display: block; }
-  .responsive-table thead { display: none; }
-  .responsive-table tr { margin-bottom: 20px; border: 1px solid #333; border-radius: 12px; padding: 10px; background: #1a1a1a; }
-  .responsive-table td { text-align: right !important; padding: 12px 10px; border-bottom: 1px dashed #333; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; color: #eee; }
-  .responsive-table td:last-child { border-bottom: none; }
-  .responsive-table td::before { content: attr(data-label); font-weight: 700; color: gold; font-size: 13px; }
-  .admin-inline-flex { width: 100%; margin-top: 5px; }
-}
-/* 👥 TELEGRAM SPLIT LAYOUT FOR ADMIN */
-.telegram-admin-layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  background: #14171a;
-  border: 1px solid #2b2b2b;
-  border-radius: 16px;
-  height: 600px;
-  overflow: hidden;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-}
-
-/* የግራ ሳይድባር */
-.telegram-sidebar {
-  border-right: 1px solid #2b2b2b;
-  display: flex;
-  flex-direction: column;
-  background: #1a1a1a;
-}
-.sidebar-header {
-  padding: 15px;
-  font-weight: bold;
-  background: #222;
-  border-bottom: 1px solid #2b2b2b;
-  color: gold;
-  text-align: left;
-}
-.sidebar-users-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.sidebar-user-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 15px;
-  cursor: pointer;
-  border-bottom: 1px solid #222;
-  transition: background 0.2s;
-  text-align: left;
-}
-.sidebar-user-item:hover { background: #252d35; }
-.active-chat-user { background: #2b6cb0 !important; color: white !important; }
-.sidebar-avatar { font-size: 20px; background: #333; width: 35px; height: 35px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
-.sidebar-user-details h4 { margin: 0; font-size: 14px; color: #fff; }
-.sidebar-user-details p { margin: 0; font-size: 11px; color: #888; }
-.active-chat-user .sidebar-user-details p { color: #ddd; }
-
-/* የቀኝ ቻት ቦክስ */
-.telegram-chat-window {
-  display: flex;
-  flex-direction: column;
-  background: #111;
-}
-.chat-window-header {
-  padding: 15px;
-  background: #1a1a1a;
-  border-bottom: 1px solid #2b2b2b;
-  text-align: left;
-  color: #fff;
-}
-.chat-window-body {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.admin-chat-block {
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px dashed #222;
-  padding-bottom: 15px;
-}
-.chat-block-time { font-size: 10px; color: #666; display: block; margin-top: 4px; text-align: right; }
-.admin-msg-delete-row { display: flex; justify-content: flex-end; margin-top: 5px; }
-.admin-delete-msg-btn { background: transparent; border: none; color: #e53e3e; cursor: pointer; font-size: 12px; }
-.select-chat-placeholder { margin: auto; color: #555; font-size: 16px; }
-
-@media screen and (max-width: 768px) {
-  .telegram-admin-layout { grid-template-columns: 1fr; height: auto; }
-  .telegram-sidebar { height: 200px; }
-}
-/* 🗂️ TAB NAVIGATION DESIGN */
-.admin-tabs-nav {
-  display: flex;
-  gap: 10px;
-  margin: 25px 0;
-  border-bottom: 2px solid #2b2b2b;
-  padding-bottom: 10px;
-}
-
 .tab-nav-btn {
-  background: #1a1a1a;
-  color: #888;
-  border: 1px solid #2b2b2b;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
   font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .tab-nav-btn:hover {
-  color: #fff;
-  border-color: #ffd700;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
-.active-tab {
-  background: #ffd700 !important;
-  color: #111 !important;
-  border-color: #ffd700 !important;
+.tab-nav-btn.active-tab {
+  color: var(--bg-main);
+  background: linear-gradient(135deg, var(--primary-gold), #e6c200);
+  font-weight: 700;
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* 👤 USER MANAGEMENT BADGES & BUTTONS */
-.admin-full-width-card {
-  width: 100% !important;
+/* 📣 የክፍል አርዕስት */
+.admin-section-heading {
+  font-size: 20px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   💬 🛩️ የቴሌግራም ስታይል ስንጥቅ እይታ (TELEGRAM SPLIT MODE)
+   ========================================================================== */
+.telegram-admin-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  background-color: var(--bg-sidebar);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  height: 680px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* 👥 የግራ ሳይድባር */
+.telegram-sidebar {
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  background-color: #11151a;
+}
+
+.sidebar-header {
+  padding: 20px;
+  font-weight: 700;
+  font-size: 16px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-gold);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-users-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-user-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+  transition: var(--transition-smooth);
+}
+
+.sidebar-user-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-user-item.active-chat-user {
+  background: linear-gradient(90deg, rgba(31, 111, 235, 0.15), transparent);
+  border-left: 4px solid var(--active-blue);
+}
+
+.sidebar-avatar {
+  background: linear-gradient(135deg, #233044, #1f2d3d);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  border: 1px solid var(--border-color);
+}
+
+.sidebar-user-details h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.sidebar-user-details p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ✉️ የቀኝ ክፍል ቻት መክፈቻ */
+.telegram-chat-window {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-card);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.chat-window-header {
+  padding: 20px 25px;
+  background-color: rgba(22, 27, 34, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.chat-window-body {
+  flex: 1;
   padding: 25px;
-  background: #1a1a1a;
-  border: 1px solid #2b2b2b;
-  border-radius: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
+/* 💬 የቻት ባብሎች (Chat Bubbles) */
+.admin-chat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.admin-user-msg-bubble {
+  background-color: #21262d;
+  padding: 16px 20px;
+  border-radius: 4px 18px 18px 18px;
+  align-self: flex-start;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-user-msg-bubble p {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #f0f6fc;
+}
+
+.chat-block-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.admin-reply-msg-bubble {
+  background: linear-gradient(135deg, #1f4275, #162f55);
+  padding: 16px 20px;
+  border-radius: 18px 4px 18px 18px;
+  align-self: flex-end;
+  margin-left: auto;
+  border: 1px solid #2f5a94;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+}
+
+.reply-label {
   font-size: 12px;
-  font-weight: bold;
+  color: var(--primary-gold);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.admin-reply-msg-bubble p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* 🗑️ የመልዕክት ማጥፊያ */
+.admin-msg-delete-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: -4px;
+}
+
+.admin-delete-msg-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.admin-delete-msg-btn:hover {
+  color: var(--danger-red);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   📊 ካርዶች እና ፎርሞች (CARDS & FORMS)
+   ========================================================================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #ffffff;
+  border-left: 4px solid var(--primary-gold);
+  padding-left: 10px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: var(--transition-smooth);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.admin-input-bottom {
+  margin-bottom: 15px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--primary-gold), #e6c200);
+  color: var(--bg-main);
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* ==========================================================================
+   📋 ዘመናዊ ሰንጠረዦች (MODERN TABLES)
+   ========================================================================== */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.custom-table th {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--primary-gold);
+  padding: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.custom-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.custom-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* 🏷️ ባጆች (Status Badges) */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
 }
 
 .badge-active {
-  background: rgba(46, 204, 113, 0.15);
-  color: #2ecc71;
-  border: 1px solid rgba(46, 204, 113, 0.3);
+  background-color: rgba(35, 134, 54, 0.15);
+  color: #56d364;
+  border: 1px solid rgba(53, 222, 87, 0.3);
 }
 
 .badge-blocked {
-  background: rgba(229, 62, 62, 0.15);
-  color: #e53e3e;
-  border: 1px solid rgba(229, 62, 62, 0.3);
+  background-color: rgba(218, 54, 51, 0.15);
+  color: #ff7b72;
+  border: 1px solid rgba(248, 81, 73, 0.3);
 }
 
-/* የብሎክ እርምጃ ቁልፎች */
+/* 🔘 የተግባር ቁልፎች (Action Buttons) */
+.admin-inline-flex {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-action {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-logout {
+  background-color: transparent;
+  color: #ff7b72;
+  border: 1px solid var(--danger-red);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-logout:hover {
+  background-color: var(--danger-red);
+  color: #ffffff;
+}
+
 .btn-block-action {
-  background-color: #d69e2e !important; /* ብርቱካናማ ለብሎክ */
+  background-color: rgba(218, 54, 51, 0.2);
+  color: #ff7b72;
+  border: 1px solid var(--danger-red);
+}
+
+.btn-block-action:hover {
+  background-color: var(--danger-red);
   color: white;
 }
-.btn-block-action:hover { background-color: #b7791f !important; }
 
 .btn-unblock {
-  background-color: #38a169 !important; /* አረንጓዴ ለአንብሎክ */
+  background-color: rgba(35, 134, 54, 0.2);
+  color: #56d364;
+  border: 1px solid var(--success-green);
+}
+
+.btn-unblock:hover {
+  background-color: var(--success-green);
   color: white;
 }
-.btn-unblock:hover { background-color: #2f855a !important; }
 
-/* የታገደ ሰው ሙሉ መስመር በትንሹ ጥቁር እንዲል */
-.blocked-user-row {
-  background: rgba(229, 62, 62, 0.03) !important;
-  opacity: 0.85;
+.btn-delete {
+  background-color: #21262d;
+  color: #f0f6fc;
+  border: 1px solid var(--border-color);
+}
+
+.btn-delete:hover {
+  background-color: var(--danger-red);
+  border-color: var(--danger-red);
+  color: white;
+}
+
+/* ==========================================================================
+   🔲 ሞዳል ወይም ፖፕአፕ (MODAL OVERLAY)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 30px;
+  border-radius: 16px;
+  width: 400px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* 📱 ምላሽ ሰጪ አካል (Responsive Media Queries) */
+@media (max-width: 900px) {
+  .telegram-admin-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .telegram-sidebar {
+    height: 250px;
+  }
+  .admin-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
 }
