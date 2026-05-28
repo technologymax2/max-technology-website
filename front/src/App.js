@@ -121,10 +121,10 @@ function App() {
         <header style={{ textAlign: 'center', padding: '100px 20px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
           <h1 style={{ fontSize: '42px', color: '#2c3e50', marginBottom: '20px' }}>እንኳን ወደ Max Technology በሰላም መጡ!</h1>
           <p style={{ fontSize: '18px', color: '#7f8c8d', maxWidth: '600px', margin: '0 auto 30px auto', lineHeight: '1.6' }}>
-            እኛ የድርጅትዎን ስራ የሚያቀልጡ ድንቅ ድህረ-ገጾችን (Websites) እና ዘመናዊ ሲስተሞችን በጥራት እንሰራለን።
+            እኛ የድርጅትዎን ስራ የሚያቀል ድንቅ ድህረ-ገጾችን (Websites) እና ዘመናዊ ሲስተሞችን በጥራት እንሰራለን።
           </p>
           <button onClick={() => setCurrentScreen('login')} style={{ padding: '12px 30px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-            አሁኑኑ ስራ ያዙ!
+            አሁኑኑ ይዘዙን!
           </button>
         </header>
 

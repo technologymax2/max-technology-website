@@ -43,7 +43,7 @@ function Footer() {
         {/* የቀኝ ክፍል፦ የባለቤትነት መብት ማረጋገጫ */}
         <div className="footer-copyright-box">
           <p>© {new Date().getFullYear()} <span>MAX TECHNOLOGY</span>. All Rights Reserved.</p>
-          <p className="footer-version">Version 2.1.0 (Premium)</p>
+          
         </div>
 
       </div>

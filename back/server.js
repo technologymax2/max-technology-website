@@ -71,7 +71,33 @@ async function seedFirstAdmin() {
     console.error('ዋናውን አድሚን መፍጠር አልተቻለም:', error);
   }
 }
+// አዲስ የፕሮጀክት ስኪማ
+const projectSchema = new mongoose.Schema({
+  title: String,
+  link: String,
+  imageUrl: String,
+  date: { type: Date, default: Date.now }
+});
+const Project = mongoose.model('Project', projectSchema);
 
+// አዲስ ሲስተም መመዝገቢያ (POST)
+app.post('/api/admin/projects', async (req, res) => {
+  const newProject = new Project(req.body);
+  await newProject.save();
+  res.json({ success: true });
+});
+
+// ሲስተሞችን ማምጫ (GET)
+app.get('/api/projects', async (req, res) => {
+  const projects = await Project.find().sort({ date: -1 });
+  res.json({ success: true, projects });
+});
+
+// ሲስተሞችን ማጥፊያ (DELETE)
+app.delete('/api/admin/projects/:id', async (req, res) => {
+  await Project.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+});
 // ==========================================
 // 3. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
 // ==========================================

@@ -503,3 +503,30 @@
     text-align: center;
   }
 }
+/* 🚀 የፖርትፎሊዮ ካርድ ስታይል */
+.portfolio-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.portfolio-item {
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+}
+
+.portfolio-item:hover {
+  border-color: var(--primary-gold);
+}
+
+.portfolio-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}

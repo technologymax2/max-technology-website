@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './AdminDashboard.css';
 import Footer from './Footer';
+import { uploadImageToImgBB } from './imageUploading';
 
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage }) {
   const [replyText, setReplyText] = useState({});
@@ -15,6 +16,9 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
   // 👥 ለአድሚን የደንበኛ መምረጫ ስቴት (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
+  // እነዚህን ስቴቶች መግለጽህን እርግጠኛ ሁን
+const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
+const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -95,6 +99,38 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       alert('መልዕክቱን መላክ አልተቻለም፡ የባክኤንድ ስህተት');
     }
   };
+  // ... ሌሎች ፋንክሽኖችህ (ለምሳሌ fetchAdmins, handleUpdateAdmin ወዘተ) ከላይ አሉ
+
+// 📸 አዲሱ የምስል አፕሎድ ፋንክሽን እዚህ ጋር ይጨመራል
+const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  try {
+    // ፋይሉን ወደ ፋንክሽኑ እንልካለን፣ እሱ ሊንኩን ይዞ ይመጣል
+    const imageUrl = await uploadImageToImgBB(file, setUploading);
+    setProjectForm(prev => ({ ...prev, imageUrl: imageUrl }));
+    alert('📸 ምስሉ በስኬት ተጭኗል!');
+  } catch (err) {
+    alert('ምስል መጫን አልተቻለም፡ ' + err.message);
+  }
+};
+const handleProjectSubmit = async (e) => {
+  e.preventDefault();
+  if (!projectForm.imageUrl) return alert('እባክዎ መጀመሪያ ምስል ይምረጡ!');
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(projectForm)
+    });
+    if (res.ok) {
+      alert('🎯 ሲስተም ተመዝግቧል!');
+      setProjectForm({ title: '', link: '', imageUrl: '' });
+      // fetchProjects(); // ይህን በኋላ መፍጠር አለብህ
+    }
+  } catch (err) { alert('ስህተት ተፈጥሯል'); }
+};
+
+// ... ከዚህ በታች ሌላ ፋንክሽን (ለምሳሌ handleProjectSubmit) ይቀጥላል
 
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
@@ -180,18 +216,58 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
   return (
     <div className="admin-dashboard-container">
+      
       <div className="admin-header">
         <h2>👑 የባለሙያ መቆጣጠሪያ ሰሌዳ (Admin Panel)</h2>
         <button onClick={handleLogout} className="btn-logout">ውጣ (Logout)</button>
       </div>
 
-      {/* 🗂️ ታብ መምረጫ ቁልፎች (Tab Navigation) */}
-      <div className="admin-tabs-nav">
-        <button className={`tab-nav-btn ${activeTab === 'messages' ? 'active-tab' : ''}`} onClick={() => setActiveTab('messages')}>💬 መልዕክቶች እና ቻት</button>
-        <button className={`tab-nav-btn ${activeTab === 'admins' ? 'active-tab' : ''}`} onClick={() => setActiveTab('admins')}>👥 አድሚኖች ማስተዳደሪያ</button>
-        <button className={`tab-nav-btn ${activeTab === 'users' ? 'active-tab' : ''}`} onClick={() => setActiveTab('users')}>👤 ደንበኞች ማስተዳደሪያ</button>
-      </div>
-
+  {/* 🗂️ ታብ መምረጫ ቁልፎች (አንድ ላይ ብቻ ተጠቀም) */}
+<div className="admin-tabs-nav">
+  <button 
+    className={`tab-nav-btn ${activeTab === 'messages' ? 'active-tab' : ''}`} 
+    onClick={() => setActiveTab('messages')}>💬 መልዕክቶች</button>
+  <button 
+    className={`tab-nav-btn ${activeTab === 'projects' ? 'active-tab' : ''}`} 
+    onClick={() => setActiveTab('projects')}>🚀 ፖርትፎሊዮ</button>
+  <button 
+    className={`tab-nav-btn ${activeTab === 'admins' ? 'active-tab' : ''}`} 
+    onClick={() => setActiveTab('admins')}>👥 አድሚኖች</button>
+  <button 
+    className={`tab-nav-btn ${activeTab === 'users' ? 'active-tab' : ''}`} 
+    onClick={() => setActiveTab('users')}>👤 ደንበኞች</button>
+</div>
+{activeTab === 'projects' && (
+  <div className="card">
+    <h3>🚀 ፖርትፎሊዮ ማስተዳደሪያ</h3>
+    <input 
+      type="text" 
+      placeholder="ስም" 
+      value={projectForm.title} 
+      onChange={(e) => setProjectForm({...projectForm, title: e.target.value})} 
+      className="input-field" 
+    />
+    <input 
+      type="url" 
+      placeholder="ሊንክ" 
+      value={projectForm.link} 
+      onChange={(e) => setProjectForm({...projectForm, link: e.target.value})} 
+      className="input-field" 
+    />
+    <input 
+      type="file" 
+      onChange={handleImageUpload} // ይህ ፋንክሽን ጥቅም ላይ ዋለ
+      className="input-field" 
+    />
+    <button 
+      onClick={handleProjectSubmit} // ይህ ፋንክሽን ጥቅም ላይ ዋለ
+      className="btn-action"
+      disabled={uploading} // ይህ ስቴት ጥቅም ላይ ዋለ
+    >
+      {uploading ? 'በመጫን ላይ...' : 'መዝግብ'}
+    </button>
+  </div>
+)}
       {/* 1️⃣ ታብ 1፦ የቴሌግራም ቻት መልዕክቶች */}
       {activeTab === 'messages' && (
         <>
@@ -392,6 +468,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           </div>
         </div>
       )}
+   
       <Footer />
     </div>
   );
