@@ -1,0 +1,101 @@
+/* ==========================================================================
+   🚀 ለሎግኢን እና ምዝገባ ገጽ የተዘጋጀ ልዩ ስታይል (Login.css)
+   ========================================================================== */
+
+.auth-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--dark-bg, #222831);
+  padding: 20px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 30px;
+  background: var(--accent-dark, #393e46);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.auth-box h2 {
+  color: var(--white, #ffffff);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.auth-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 2px solid var(--primary-color, gold);
+  transition: var(--transition, all 0.4s ease);
+}
+
+.auth-logo:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.auth-form-gap {
+  gap: 15px !important;
+}
+
+.auth-submit-btn {
+  background-color: var(--primary-color, gold) !important;
+  color: #111111 !important;
+  margin-top: 10px;
+}
+
+.auth-submit-btn:hover {
+  background-color: transparent !important;
+  color: var(--primary-color, gold) !important;
+  border: 2px solid var(--primary-color, gold);
+}
+
+.auth-error-msg {
+  color: #e53e3e;
+  font-weight: 700;
+  margin-top: 15px;
+  background: rgba(229, 62, 62, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.auth-toggle-text {
+  margin-top: 25px;
+  cursor: pointer;
+  color: var(--primary-color, gold);
+  font-weight: 600;
+  font-size: 15px;
+  transition: var(--transition, all 0.3s ease);
+  display: inline-block;
+}
+
+.auth-toggle-text:hover {
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
+
+/* ለስላሳ አኒሜሽን እንዲኖረው */
+.fade-in {
+  animation: authFadeIn 0.6s ease-out forwards;
+}
+
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

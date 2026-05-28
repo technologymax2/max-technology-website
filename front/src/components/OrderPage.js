@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import './OrderPage.css'; // 👈 አዲሱ የስታይል ፋይል ማገናኛ
 
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
 
-  // የድሮውን useEffect አጥፍተው በዚህ ይተኩት
   useEffect(() => {
-    // 1. ገጹ መጀመሪያ ሲከፈት የደንበኛውን የድሮ ማዘዣዎች ወዲያው ያመጣል
     fetchMyOrders();
 
-    // 2. በየ 5 ሰከንዱ (5000ms) በጀርባ ሆኖ ከአድሚን የተሰጠ አዲስ መልስ ካለ ይፈትሻል
     const interval = setInterval(() => {
       fetchMyOrders();
     }, 5000);
 
-    // 3. ደንበኛው ገጹን ሲዘጋ ወይም ሎግአውት ሲያደርግ ፍተሻውን ያቆማል
     return () => clearInterval(interval);
-    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -30,49 +26,52 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
   };
 
   return (
-    <div className="container" style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', background: '#f8f9fa', borderRadius: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img src={logoImg} alt="Logo" style={{ width: '40px', borderRadius: '50%' }} />
-          <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>Max Technology</span>
+    <div className="order-page-container">
+      {/* የላይኛው መገናኛ ባር (Navbar) */}
+      <nav className="navbar order-navbar">
+        <div className="logo-container">
+          <img src={logoImg} alt="Logo" className="logo-image order-logo-fix" />
+          <span className="logo-text">Max Technology</span>
         </div>
-        <div>
-          <span style={{ color: '#28a745', fontWeight: 'bold', marginRight: '15px' }}>👤 {user.name}</span>
-          <button onClick={handleLogout} style={{ padding: '6px 12px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}>ውጣ</button>
+        <div className="nav-links order-user-actions">
+          <span className="order-user-badge">👤 {user.name}</span>
+          <button onClick={handleLogout} className="btn-logout order-logout-btn">ውጣ</button>
         </div>
       </nav>
 
       {/* ማዘዣ ፎርም */}
-      <section style={{ maxWidth: '600px', margin: '30px auto', padding: '20px', border: '1px solid #eee', borderRadius: '10px' }}>
-        <h2 style={{ textAlign: 'center', color: '#007bff' }}>🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
-        <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input type="text" name="name" placeholder="የድርጅትዎ ስም" value={formData.name} onChange={handleContactChange} required style={{ padding: '12px' }} />
-          <input type="email" name="email" value={formData.email = user.email} disabled style={{ padding: '12px', background: '#eee' }} />
-          <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ዝርዝር..." value={formData.message} onChange={handleContactChange} required style={{ padding: '12px', height: '100px' }}></textarea>
-          <button type="submit" style={{ padding: '12px', background: '#28a745', color: 'white', fontWeight: 'bold', border: 'none' }}>ትዕዛዝ ያስገቡ</button>
-          {status && <p style={{ textAlign: 'center', color: 'green' }}>{status}</p>}
+      <section className="contact-form order-form-container">
+        <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
+        <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
+          <input type="text" name="name" placeholder="የድርጅትዎ ስም" value={formData.name} onChange={handleContactChange} required className="input-field" />
+          <input type="email" name="email" value={formData.email = user.email} disabled className="input-field order-disabled-input" />
+          <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ዝርዝር..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
+          <button type="submit" className="submit-btn">ትዕዛዝ ያስገቡ</button>
+          {status && <p className="status-msg order-success-msg">{status}</p>}
         </form>
       </section>
 
-      {/* የላኳቸው ማዘዣዎች እና የተሰጡ ምላሾች ሰሌዳ (የተጨመረ አዲስ ክፍል) */}
-      <section style={{ marginTop: '40px' }}>
-        <h3>📋 የላኳቸው ማዘዣዎች እና ከአድሚን የተሰጡ ምላሾች</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      {/* የላኳቸው ማዘዣዎች እና የተሰጡ ምላሾች ሰሌዳ */}
+      <section className="order-list-section">
+        <h3 className="order-section-title">📋 የላኳቸው ማዘዣዎች እና ከአድሚን የተሰጡ ምላሾች</h3>
+        <div className="order-cards-list">
           {myOrders.map((order) => (
-            <div key={order._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#fff' }}>
-              <p><strong>የእርስዎ ማዘዣ፦</strong> {order.message}</p>
-              <p>
+            <div key={order._id} className="card order-status-card zoom-in">
+              <p className="order-msg-text"><strong>የእርስዎ ማዘዣ፦</strong> {order.message}</p>
+              <p className="order-status-text">
                 <strong>ሁኔታ (Status)፦</strong>{' '}
-                <span style={{ color: order.status === 'ምላሽ ተሰጥቷል' ? 'green' : 'orange', fontWeight: 'bold' }}>{order.status}</span>
+                <span className={order.status === 'ምላሽ ተሰጥቷል' ? 'status-replied-tag' : 'status-pending-tag'}>
+                  {order.status}
+                </span>
               </p>
               {order.reply && (
-                <div style={{ background: '#e6f4ea', padding: '10px', borderRadius: '5px', marginTop: '10px', borderLeft: '5px solid green' }}>
-                  <p style={{ margin: 0, color: '#137333' }}><strong>👑 የአድሚን ምላሽ፦</strong> {order.reply}</p>
+                <div className="reply-box order-reply-box-fix">
+                  <p className="order-reply-inner"><strong>👑 የአድሚን ምላሽ፦</strong> {order.reply}</p>
                 </div>
               )}
             </div>
           ))}
-          {myOrders.length === 0 && <p>እስካሁን ምንም ያስገቡት ትዕዛዝ የለም።</p>}
+          {myOrders.length === 0 && <p className="order-empty-text">እስካሁን ምንም ያስገቡት ትዕዛዝ የለም።</p>}
         </div>
       </section>
     </div>
