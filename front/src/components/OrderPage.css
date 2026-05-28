@@ -147,3 +147,36 @@
   .order-main-grid { grid-template-columns: 1fr; gap: 30px; }
   .order-navbar { padding: 12px 4%; }
 }
+/* ✏ ቻት ማስተካከያ ፎርም ስታይል */
+.user-bubble-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  padding-top: 4px;
+}
+.bubble-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+.action-icon-btn {
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.action-icon-btn:hover { opacity: 1; }
+.chat-edit-inline-form {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+.chat-edit-input {
+  background: #fff !important;
+  color: #000 !important;
+  padding: 5px !important;
+  font-size: 14px !important;
+}
+.chat-edit-save-btn { background: #2ecc71; border:none; color:white; padding: 5px 10px; border-radius:4px; cursor:pointer;}
+.chat-edit-cancel-btn { background: #e53e3e; border:none; color:white; padding: 5px 10px; border-radius:4px; cursor:pointer;}

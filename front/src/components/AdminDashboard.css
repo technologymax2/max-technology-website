@@ -217,3 +217,87 @@
   .responsive-table td::before { content: attr(data-label); font-weight: 700; color: gold; font-size: 13px; }
   .admin-inline-flex { width: 100%; margin-top: 5px; }
 }
+/* 👥 TELEGRAM SPLIT LAYOUT FOR ADMIN */
+.telegram-admin-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  background: #14171a;
+  border: 1px solid #2b2b2b;
+  border-radius: 16px;
+  height: 600px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+/* የግራ ሳይድባር */
+.telegram-sidebar {
+  border-right: 1px solid #2b2b2b;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+}
+.sidebar-header {
+  padding: 15px;
+  font-weight: bold;
+  background: #222;
+  border-bottom: 1px solid #2b2b2b;
+  color: gold;
+  text-align: left;
+}
+.sidebar-users-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.sidebar-user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #222;
+  transition: background 0.2s;
+  text-align: left;
+}
+.sidebar-user-item:hover { background: #252d35; }
+.active-chat-user { background: #2b6cb0 !important; color: white !important; }
+.sidebar-avatar { font-size: 20px; background: #333; width: 35px; height: 35px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+.sidebar-user-details h4 { margin: 0; font-size: 14px; color: #fff; }
+.sidebar-user-details p { margin: 0; font-size: 11px; color: #888; }
+.active-chat-user .sidebar-user-details p { color: #ddd; }
+
+/* የቀኝ ቻት ቦክስ */
+.telegram-chat-window {
+  display: flex;
+  flex-direction: column;
+  background: #111;
+}
+.chat-window-header {
+  padding: 15px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2b2b2b;
+  text-align: left;
+  color: #fff;
+}
+.chat-window-body {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.admin-chat-block {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px dashed #222;
+  padding-bottom: 15px;
+}
+.chat-block-time { font-size: 10px; color: #666; display: block; margin-top: 4px; text-align: right; }
+.admin-msg-delete-row { display: flex; justify-content: flex-end; margin-top: 5px; }
+.admin-delete-msg-btn { background: transparent; border: none; color: #e53e3e; cursor: pointer; font-size: 12px; }
+.select-chat-placeholder { margin: auto; color: #555; font-size: 16px; }
+
+@media screen and (max-width: 768px) {
+  .telegram-admin-layout { grid-template-columns: 1fr; height: auto; }
+  .telegram-sidebar { height: 200px; }
+}
