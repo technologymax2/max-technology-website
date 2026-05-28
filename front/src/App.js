@@ -10,11 +10,11 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('በመላክ ላይ...');
     
-    // በ Render ላይ የሚሰጥህን የባክኤንድ ሊንክ ይጠቀማል፣ ከሌለ ወደ localhost ይቀይራል
+    // በ Render ላይ የሚሰጥዎትን የባክኤንድ ሊንክ ይጠቀማል
     const API_BASE_URL = 'https://max-tech-backend.onrender.com';
 
     try {
@@ -23,19 +23,25 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      if (response.ok) {
-        setStatus('መልዕክትዎ በስኬት ተልኳል!');
-        setFormData({ name: '', email: '', message: '' });
+      
+      const data = await response.json(); // ከባክኤንድ የተመለሰውን የ JSON መረጃ ማንበቢያ
+
+      if (response.ok && data.success) {
+        setStatus(data.message || 'መልዕክትዎ በስኬት ተልኳል!');
+        setFormData({ name: '', email: '', message: '' }); // ፎርሙን ባዶ ማድረጊያ
       } else {
-        setStatus('ችግር ተፈጥሯል!');
+        // ከባክኤንድ የመጣውን ትክክለኛ የስህተት መልዕክት ያሳያል
+        setStatus(data.error || 'ችግር ተፈጥሯል!');
       }
     } catch (error) {
+      console.error('Fetch Error:', error);
       setStatus('ከሰርቨር ጋር መገናኘት አልተቻለም።');
     }
   };
 
   return (
     <div className="container">
+      {/* Navigation */}
       <nav className="navbar">
         <div className="logo-container slide-in-left">
           <img src={logoImg} alt="Max Technology Logo" className="logo-image" />
@@ -49,23 +55,25 @@ function App() {
         </div>
       </nav>
 
+      {/* Hero Section */}
       <header id="home" className="hero">
         <div className="hero-content zoom-in">
           <h1 className="hero-title">Building Scalable MERN Stack Solutions</h1>
-          <p className="hero-title">ለድርጅትዎ ዘመናዊ፣ ፈጣን እና አስተማማኝ የዌብሳይት እና የሶፍትዌር መተግበሪያዎችን እንገነባለን።</p>
+          <p className="hero-subtitle">ለድርጅትዎ ዘመናዊ፣ ፈጣን እና አስተማማኝ የዌብሳይት እና የሶፍትዌር መተግበሪያዎችን እንገነባለን።</p>
           <a href="#contact" className="cta-btn pulse">
-  እንስራልዎት? እንግዲዉስ ይግቡ <span className="arrow"> <strong>→</strong></span>
-</a>
+            እንስራልዎት? እንግዲዉስ ይግቡ <span className="arrow"><strong>→</strong></span>
+          </a>
         </div>
       </header>
 
+      {/* Services Section */}
       <section id="services" className="section">
         <h2 className="section-title">አገልግሎቶቻችን</h2>
         <div className="grid">
           <div className="card hover-up">
             <div className="icon">💻</div>
             <h3>Full-Stack Web Dev</h3>
-            <p>ከፊት ገጽ እስከ ጀርባ ገጽ የተሟላ የዌብሳይት ልማት።</p>
+            <p>ከፊት ገጽ እስከ ጀርባ ገጽ የተሟላ የዌብሳይት ልማት。</p>
           </div>
           <div className="card hover-up">
             <div className="icon">⚙️</div>
@@ -79,22 +87,24 @@ function App() {
           </div>
         </div>
       </section>
-      {/* Tech Stack Section */}
-<section id="tech" className="section fade-in">
-  <h2 className="section-title">የምንጠቀምባቸው ቴክኖሎጂዎች</h2>
-  <p style={{ marginBottom: '30px', color: '#666' }}>
-    ለእርስዎ ስራ ጥራት ያላቸውን እና ዘመናዊ የ MERN Stack ቴክኖሎጂዎችን እንጠቀማለን።
-  </p>
-  <div className="tech-grid">
-    <span className="tech-badge">MongoDB</span>
-    <span className="tech-badge">Express.js</span>
-    <span className="tech-badge">React.js</span>
-    <span className="tech-badge">Node.js</span>
-  </div>
-</section>
 
+      {/* Tech Stack Section */}
+      <section id="tech" className="section fade-in">
+        <h2 className="section-title">የምንጠቀምባቸው ቴክኖሎጂዎች</h2>
+        <p style={{ marginBottom: '30px', color: '#666' }}>
+          ለእርስዎ ስራ ጥራት ያላቸውን እና ዘመናዊ የ MERN Stack ቴክኖሎጂዎችን እንጠቀማለን።
+        </p>
+        <div className="tech-grid">
+          <span className="tech-badge">MongoDB</span>
+          <span className="tech-badge">Express.js</span>
+          <span className="tech-badge">React.js</span>
+          <span className="tech-badge">Node.js</span>
+        </div>
+      </section>
+
+      {/* Contact Section */}
       <section id="contact" className="section contact-bg">
-        <h4 className="section-title">ያግኙን</h4>
+        <h2 className="section-title">ያግኙን</h2>
         <div className="contact-info fade-in">
           <p className="phone-text">📞 ማግኘት ከፈለጉ ስልክ: <strong>+251989860376</strong></p>
           <p className="sub-contact-text">ወይም መልዕክትዎን ከታች ያስቀምጡልን</p>
@@ -108,6 +118,7 @@ function App() {
         </form>
       </section>
 
+      {/* Footer */}
       <footer className="footer">
         <p>&copy; {new Date().getFullYear()} Max Technology. All rights reserved.</p>
       </footer>
