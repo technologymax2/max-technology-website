@@ -32,14 +32,24 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-import { Resend } from 'resend';
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-await resend.emails.send({
-  from: 'onboarding@resend.dev',
-  to: 'you@example.com',
-  subject: 'Hello World',
-  html: '<p>It works!</p>'
+// 4. Nodemailer Transporter Configuration (ፖርት 465 እና IPv4 አስገዳጅ በመጠቀም)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,        // ⚠️ ከ 587 ወደ 465 ተቀይሯል
+  secure: true,     // ⚠️ ለፖርት 465 እውነት (true) መሆን አለበት
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 15000, // የ15 ሰከንድ መጠበቂያ ጊዜ
+  greetingTimeout: 15000,
+  // ይህ መስመር ኖድሜይለር የ Renderን IPv6 ትቶ IPv4 ብቻ እንዲጠቀም ያስገድደዋል
+  dnsLookup: (hostname, options, callback) => {
+    require('dns').lookup(hostname, { family: 4 }, callback);
+  }
 });
 // 5. API Route
 app.post('/api/contact', async (req, res) => {
