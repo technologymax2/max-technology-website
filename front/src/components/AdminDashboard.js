@@ -4,7 +4,7 @@ import './AdminDashboard.css';
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage }) {
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
-  const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የተጠቃሚዎች ዝርዝር
+  const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የደንበኞች ዝርዝር
   const [activeTab, setActiveTab] = useState('messages'); // messages, admins, users
 
   // 📝 ለአድሚን መረጃ ማስተካከያ ስቴቶች
@@ -24,7 +24,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // የ uniqueUsers ማጣሪያ (ከመልዕክቶች ተነስተው የሚመጡ ንቁ ቻቶች)
+  // 🔄 የ uniqueUsers ማጣሪያ (ከመልዕክቶች ተነስተው የሚመጡ ንቁ ቻቶች)
   const uniqueUsers = useMemo(() => {
     const users = [];
     const seenEmails = new Set();
@@ -56,7 +56,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🔄 ሁሉንም ተጠቃሚዎች (Regular Users) ማምጫ
+  // 🔄 ሁሉንም ቻት ያደረጉ እና የተመዘገቡ ደንበኞችን ማምጫ
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/users`);
@@ -67,24 +67,31 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🚀 ምላሽ የመላኪያ ፋንክሽን
-  const handleReplySubmit = async (id) => {
-    const currentReplyText = replyText[id];
-    if (!currentReplyText || !currentReplyText.trim()) return alert('እባክዎ መጀመሪያ መልስ ይጻፉ!');
+  // 🚀 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት (ወይም ምላሽ) የሚልክበት ዋና ፋንክሽን
+  const handleSendAdminMessage = async () => {
+    const txt = replyText['global_admin_chat'];
+    if (!txt || !txt.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
+
+    const activeUser = uniqueUsers.find(u => u.email === selectedUserEmail);
+    if (!activeUser) return alert('እባክዎ መጀመሪያ ደንበኛ ይምረጡ!');
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/reply/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/send-new-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reply: currentReplyText })
+        body: JSON.stringify({ 
+          name: activeUser.name, 
+          email: selectedUserEmail, 
+          message: txt 
+        })
       });
       const data = await res.json();
       if (data.success) {
-        alert('ምላሽ በተሳካ ሁኔታ ተልኳል!');
-        setReplyText(prev => ({ ...prev, [id]: '' })); // የጻፍነውን ማጽዳት
-        fetchMessages();
+        setReplyText(prev => ({ ...prev, 'global_admin_chat': '' })); // መጻፊያውን ማጽዳት
+        fetchMessages(); // ቻቱን ወዲያው ለማደስ
       }
     } catch (err) {
-      alert('ስህተት ገጥሟል');
+      alert('መልዕክቱን መላክ አልተቻለም፡ የባክኤንድ ስህተት');
     }
   };
 
@@ -136,7 +143,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🚫 ተጠቃሚን ብሎክ/አንብሎክ ለማድረግ (Block/Unblock User)
+  // 🚫 ተጠቃሚን ብሎክ / አንብሎክ ለማድረግ (Block/Unblock User)
   const handleToggleBlockUser = async (id, isBlocked) => {
     const actionText = isBlocked ? "ከእገዳ ማንሳት" : "ማገድ (Block)";
     if (!window.confirm(`ይህንን ተጠቃሚ በእርግጥ ${actionText} ይፈልጋሉ?`)) return;
@@ -155,7 +162,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🗑️ ተጠቃሚን ሙሉ በሙሉ ለማጥፋት (Delete User Account)
+  // 🗑️ ተጠቃሚን ወይም ቻት ያደረገን ሰው ሙሉ በሙሉ ለማጥፋት (Delete User)
   const handleDeleteUser = async (id) => {
     if (!window.confirm("ይህንን ተጠቃሚ አካውንት ሙሉ በሙሉ ማጥፋት ይፈልጋሉ? ይህ ድርጊት አይመለስም!")) return;
     try {
@@ -163,6 +170,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       if (res.ok) {
         alert('ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!');
         fetchUsers();
+        fetchMessages(); // የግራውን ሳይድባር ጭምር ለማጽዳት
       }
     } catch (err) {
       alert('ተጠቃሚውን ማጥፋት አልተቻለም');
@@ -215,51 +223,58 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
               {selectedUserEmail ? (
                 <>
                   <div className="chat-window-header">
-                    💬 የ <strong>{uniqueUsers.find(u => u.email === selectedUserEmail)?.name}</strong> የትዕዛዝ መልዕክቶች
+                    💬 የ <strong>{uniqueUsers.find(u => u.email === selectedUserEmail)?.name}</strong> የቻት መልዕክቶች
                   </div>
+                  
+                  {/* የቻት ታሪክ ማሳያ ክፍል */}
                   <div className="chat-window-body">
                     {filteredMessages.map((msg) => (
                       <div key={msg._id} className="admin-chat-block">
-                        <div className="admin-user-msg-bubble">
-                          <p>{msg.message}</p>
-                          <span className="chat-block-time">📅 {new Date(msg.date).toLocaleDateString()}</span>
-                        </div>
-                        
-                        {msg.reply ? (
-                          <div className="admin-reply-msg-bubble">
-                            <span className="reply-label">የእርስዎ ምላሽ፦</span>
-                            <p>{msg.reply}</p>
-                          </div>
-                        ) : (
-                          /* 🚀 ምላሽ መጻፊያ እና መላኪያ ቁልፍ የተስተካከለው ክፍል */
-                          <div className="admin-chat-input-area" style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                            <input 
-                              type="text" 
-                              placeholder="እዚህ ምላሽ ይጻፉ..." 
-                              value={replyText[msg._id] || ''}
-                              onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })} 
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleReplySubmit(msg._id);
-                                }
-                              }}
-                              className="input-field admin-chat-input"
-                              style={{ flex: 1, padding: '12px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '8px' }}
-                            />
-                            <button 
-                              onClick={() => handleReplySubmit(msg._id)} 
-                              className="btn-action btn-reply"
-                              style={{ background: '#ffd700', color: '#111', padding: '0 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-                            >
-                              🚀 ላክ
-                            </button>
+                        {/* የደንበኛው መልዕክት (አድሚኑ ራሱ የጻፈው ካልሆነ ብቻ ያሳያል) */}
+                        {!msg.message.startsWith('[የባለሙያ መልዕክት]') && (
+                          <div className="admin-user-msg-bubble">
+                            <p>{msg.message}</p>
+                            <span className="chat-block-time">📅 {new Date(msg.date).toLocaleDateString()}</span>
                           </div>
                         )}
+                        
+                        {/* የአድሚን ምላሽ (ሰማያዊ ባብል) */}
+                        {msg.reply && (
+                          <div className="admin-reply-msg-bubble">
+                            <span className="reply-label">የእርስዎ መልዕክት፦</span>
+                            <p>{msg.reply}</p>
+                          </div>
+                        )}
+                        
                         <div className="admin-msg-delete-row">
                           <button onClick={() => handleDeleteMessage(msg._id)} className="admin-delete-msg-btn">🗑 መልዕክቱን አጥፋ</button>
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* 🚀 አድሚኑ በማንኛውም ጊዜ ራሱ መጻፍ የሚችልበት የታችኛው ሳጥን */}
+                  <div className="admin-chat-footer-input" style={{ padding: '20px', background: '#161b22', borderTop: '1px solid #30363d', display: 'flex', gap: '10px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="ለደንበኛው መልዕክት ይጻፉ... (ለምሳሌ፦ ስልክህን ላክልኝ)" 
+                      value={replyText['global_admin_chat'] || ''} 
+                      onChange={(e) => setReplyText({ ...replyText, 'global_admin_chat': e.target.value })} 
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendAdminMessage();
+                        }
+                      }}
+                      className="input-field"
+                      style={{ flex: 1, padding: '14px', background: '#0d0f12', color: '#fff', border: '1px solid #30363d', borderRadius: '10px' }}
+                    />
+                    <button 
+                      onClick={handleSendAdminMessage} 
+                      className="btn-action"
+                      style={{ background: '#ffd700', color: '#0d0f12', padding: '0 25px', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      🚀 ላክ
+                    </button>
                   </div>
                 </>
               ) : (
@@ -318,12 +333,12 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       {/* 3️⃣ ታብ 3፦ የተጠቃሚዎች ማስተዳደሪያ */}
       {activeTab === 'users' && (
         <div className="card admin-full-width-card">
-          <h3>👤 የተመዘገቡ ደንበኞች ማስተዳደሪያ (የብሎክ እና ማጥፊያ ሰሌዳ)</h3>
+          <h3>👤 የተመዘገቡ እና ቻት ያደረጉ ደንበኞች (የብሎክ እና ማጥፊያ ሰሌዳ)</h3>
           <table className="custom-table responsive-table">
             <thead>
               <tr>
                 <th>የደንበኛ ስም</th>
-                <th>ኢሜይል አድራሻ</th>
+                <th>ኢሜይል / ዩዘርኔም</th>
                 <th>ሁኔታ (Status)</th>
                 <th>እርምጃዎች</th>
               </tr>
@@ -332,7 +347,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
               {userList.map((u) => (
                 <tr key={u._id} className={u.isBlocked ? "blocked-user-row" : ""}>
                   <td data-label="የደንበኛ ስም"><strong>{u.name}</strong></td>
-                  <td data-label="ኢሜይል አድራሻ">{u.email}</td>
+                  <td data-label="ኢሜይል አድራሻ">{u.email} {u.isChatOnly && <span style={{fontSize: '11px', color: '#ffd700', background: '#222', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px'}}>💬 ቻት ብቻ</span>}</td>
                   <td data-label="ሁኔታ">
                     <span className={`status-badge ${u.isBlocked ? "badge-blocked" : "badge-active"}`}>
                       {u.isBlocked ? "🚫 የታገደ" : "✔ ንቁ (Active)"}
@@ -343,11 +358,11 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
                       <button 
                         onClick={() => handleToggleBlockUser(u._id, u.isBlocked)} 
                         className={`btn-action ${u.isBlocked ? "btn-unblock" : "btn-block-action"}`}
-                        style={{ padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ padding: '6px 14px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
                       >
                         {u.isBlocked ? "🔓 እገዳ አንሳ" : "🚫 እገድ"}
                       </button>
-                      <button onClick={() => handleDeleteUser(u._id)} className="btn-action btn-delete" style={{ padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>🗑 አካውንት አጥፋ</button>
+                      <button onClick={() => handleDeleteUser(u._id)} className="btn-action btn-delete" style={{ padding: '6px 14px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>🗑 አካውንት አጥፋ</button>
                     </div>
                   </td>
                 </tr>

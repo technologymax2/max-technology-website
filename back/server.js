@@ -388,7 +388,31 @@ app.delete('/api/user/orders/delete/:id', async (req, res) => {
     res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
   }
 });
+// 💬 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት ለደንበኛ የሚልክበት አዲስ መስመር
+app.post('/api/admin/send-new-message', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    
+    if (!email || !message) {
+      return res.status(400).json({ success: false, error: 'እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!' });
+    }
 
+    // አድሚኑ የጻፈውን መልዕክት በቀጥታ እንደ አዲስ የኮንታክት ሬከርድ እንመዘግበዋለን
+    // ለይቶ ለማወቅ 'message' ላይ የአድሚኑን ጽሑፍ አድርገን፣ 'reply' ላይ ራሱን እንደገመገመ እናደርገዋለን
+    const adminNewOrder = new Contact({
+      name: name,
+      email: email,
+      message: `[የባለሙያ መልዕክት]፦ ${message}`, 
+      reply: message, // ለደንበኛው በምላሽ መልክ እንዲታየው
+      status: 'ምላሽ ተሰጥቷል'
+    });
+
+    await adminNewOrder.save();
+    res.status(201).json({ success: true, message: 'መልዕክትዎ ለደንበኛው ተልኳል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'መልዕክት መላክ አልተቻለም' });
+  }
+});
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
