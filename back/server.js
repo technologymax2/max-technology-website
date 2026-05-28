@@ -45,7 +45,7 @@ app.post('/api/contact', async (req, res) => {
     // በResend በኩል ኢሜይል መላክ
     await resend.emails.send({
       from: 'onboarding@resend.dev', 
-      to: 'anmawmamaru7@gmail.com',  // 👈 ያንተ ኢሜይል
+      to: 'technologymax2@gmail.com',  // 👈 ⚠️ ከ anmawmamaru7 ወደ technologymax2 ተቀይሯል!
       subject: `አዲስ መልዕክት ከ ${name} (Max Technology)`,
       html: `
         <h3>አዲስ ደንበኛ መልዕክት ልኮልሃል፡</h3>
