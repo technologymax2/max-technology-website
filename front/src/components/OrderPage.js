@@ -3,9 +3,19 @@ import React, { useEffect, useState } from 'react';
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
 
-  // ከዚህ በታች ባለው መልኩ ይተኩት
+  // የድሮውን useEffect አጥፍተው በዚህ ይተኩት
   useEffect(() => {
+    // 1. ገጹ መጀመሪያ ሲከፈት የደንበኛውን የድሮ ማዘዣዎች ወዲያው ያመጣል
     fetchMyOrders();
+
+    // 2. በየ 5 ሰከንዱ (5000ms) በጀርባ ሆኖ ከአድሚን የተሰጠ አዲስ መልስ ካለ ይፈትሻል
+    const interval = setInterval(() => {
+      fetchMyOrders();
+    }, 5000);
+
+    // 3. ደንበኛው ገጹን ሲዘጋ ወይም ሎግአውት ሲያደርግ ፍተሻውን ያቆማል
+    return () => clearInterval(interval);
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

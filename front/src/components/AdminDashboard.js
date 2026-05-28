@@ -7,9 +7,20 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const [editForm, setEditForm] = useState({ name: '', email: '' });
   const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
 
- // ከዚህ በታች ባለው መልኩ ይተኩት
+ // የድሮውን useEffect አጥፍተው በዚህ ይተኩት
   useEffect(() => {
+    // 1. ገጹ መጀመሪያ ሲከፈት መረጃውን ወዲያው ያመጣል
+    fetchMessages();
     fetchAdmins();
+
+    // 2. በየ 5 ሰከንዱ (5000ms) በጀርባ ሆኖ አዲስ መልዕክት መኖሩን ይፈትሻል
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 5000); 
+
+    // 3. አድሚኑ ከገጹ ሲወጣ ፍተሻውን ያቆማል (Memory leak ለመከላከል)
+    return () => clearInterval(interval);
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
