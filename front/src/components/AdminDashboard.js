@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './AdminDashboard.css';
 
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage }) {
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
-  const [editingAdmin, setEditingAdmin] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', email: '' });
-  const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
   
   // 👥 ለአድሚን የደንበኛ መምረጫ ስቴት (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
@@ -19,15 +16,18 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ከሁሉም መልዕክቶች ውስጥ ልዩ የሆኑ ደንበኞችን (Unique Users) መለየት
-  const uniqueUsers = [];
-  const seenEmails = new Set();
-  adminMessages.forEach(msg => {
-    if (!seenEmails.has(msg.email)) {
-      seenEmails.add(msg.email);
-      uniqueUsers.push({ name: msg.name, email: msg.email });
-    }
-  });
+  // 🔄 የ uniqueUsers ማስጠንቀቂያን በuseMemo ለመፍታት የተደረገ ማስተካከያ
+  const uniqueUsers = useMemo(() => {
+    const users = [];
+    const seenEmails = new Set();
+    adminMessages.forEach(msg => {
+      if (!seenEmails.has(msg.email)) {
+        seenEmails.add(msg.email);
+        users.push({ name: msg.name, email: msg.email });
+      }
+    });
+    return users;
+  }, [adminMessages]);
 
   // አድሚኑ መጀመሪያ ገጹን ሲከፍት የመጀመሪያውን ሰው እንዲመርጥ ማድረግ
   useEffect(() => {
@@ -91,16 +91,13 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           <h3>📋 የተመዘገቡ አድሚኖች ዝርዝር</h3>
           <table className="custom-table responsive-table">
             <thead>
-              <tr><th>ስም</th><th>ዩዘርኔም</th><th>የፓስወርድ ማስተካከያ</th></tr>
+              <tr><th>ስም</th><th>ዩዘርኔም</th></tr>
             </thead>
             <tbody>
               {adminList.map((adm) => (
                 <tr key={adm._id}>
                   <td data-label="ስም"><strong>{adm.name}</strong></td>
                   <td data-label="ዩዘርኔም">{adm.email}</td>
-                  <td data-label="የፓስወርድ ማስተካከያ">
-                    <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="btn-action btn-reply">አስተካክል</button>
-                  </td>
                 </tr>
               ))}
             </tbody>
