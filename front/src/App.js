@@ -129,9 +129,7 @@ function App() {
         </header>
 
         {/* ከስር ያለው ፉተር (Footer) */}
-        <footer style={{ textAlign: 'center', padding: '20px', background: '#343a40', color: 'white', marginTop: '50px' }}>
-          <p>© 2026 Mamaru Anmaw. መብቱ በህግ የተጠበቀ ነው።</p>
-        </footer>
+        <Footer />
       </div>
     );
   }
