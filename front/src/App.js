@@ -3,17 +3,17 @@ import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import OrderPage from './components/OrderPage';
 import logoImg from './logo.jpg';
-import './App.css';
+import './App.css'; // የእርስዎ የድሮ ስታይል ፋይል
 import Footer from './components/Footer';
 
 function App() {
   const API_BASE_URL = 'https://max-tech-backend.onrender.com';
   
-  // --- STATES ---
+  // የትኛው ገጽ መታየት እንዳለበት ለመወሰን ('home', 'login', 'signup', 'admin-dashboard', 'order-page')
   const [currentScreen, setCurrentScreen] = useState('home'); 
   const [user, setUser] = useState(null); 
-  const [projects, setProjects] = useState([]); // ፕሮጀክቶችን ለመያዝ
   
+  // ፎርሞች
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authStatus, setAuthStatus] = useState('');
   const [adminMessages, setAdminMessages] = useState([]);
@@ -22,15 +22,6 @@ function App() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState('');
 
-  // --- EFFECT: ፕሮጀክቶችን ከባክኤንድ ማምጣት ---
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/api/projects`)
-      .then(res => res.json())
-      .then(data => { if (data.success) setProjects(data.projects); })
-      .catch(err => console.error("ፕሮጀክቶችን ማምጣት አልተቻለም", err));
-  }, []);
-
-  // --- EFFECT: አድሚን መልዕክቶችን ማምጣት ---
   useEffect(() => {
     if (user && user.role === 'admin') fetchMessages();
   }, [user]);
@@ -58,7 +49,7 @@ function App() {
           setUser(data.user);
           setCurrentScreen(data.user.role === 'admin' ? 'admin-dashboard' : 'order-page');
         } else {
-          setAuthStatus('✅ ምዝገባው ተሳክቷል!');
+          setAuthStatus('✅ ምዝገባው ተሳክቷል! አሁን መግባት ይችላሉ።'); 
           setCurrentScreen('login');
         }
       } else { setAuthStatus(data.error); }
@@ -109,52 +100,65 @@ function App() {
   };
 
   // ==========================================
-  // VIEW RENDERER
+  // 1️⃣ ዌብሳይቱ ሲከፈት መጀመሪያ የሚመጣው ዋናው ገጽ (HOME VIEW)
   // ==========================================
-
-  // 1. HOME VIEW
   if (currentScreen === 'home') {
     return (
       <div className="home-container" style={{ fontFamily: 'Arial, sans-serif' }}>
-        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 40px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 100 }}>
+        {/* 🌐 የላይኛው የናቪጌሽን ባር (Navbar) */}
+        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 40px', background: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 100 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img src={logoImg} alt="Logo" style={{ width: '45px', borderRadius: '50%' }} />
             <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#333' }}>Max Technology</span>
           </div>
           <div style={{ display: 'flex', gap: '15px' }}>
-            <button onClick={() => setCurrentScreen('login')} style={{ padding: '8px 20px', background: 'transparent', border: '1px solid #007bff', color: '#007bff', borderRadius: '5px', cursor: 'pointer' }}>ይግቡ</button>
-            <button onClick={() => setCurrentScreen('signup')} style={{ padding: '8px 20px', background: '#007bff', border: 'none', color: 'white', borderRadius: '5px', cursor: 'pointer' }}>ይመዝገቡ</button>
+            <button onClick={() => { setAuthStatus(''); setCurrentScreen('login'); }} style={{ padding: '8px 20px', background: 'transparent', border: '1px solid #007bff', color: '#007bff', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>ይግቡ (Login)</button>
+            <button onClick={() => { setAuthStatus(''); setCurrentScreen('signup'); }} style={{ padding: '8px 20px', background: '#007bff', border: 'none', color: 'white', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>ይመዝገቡ (Signup)</button>
           </div>
         </nav>
 
+        {/* 👋 የማስተዋወቂያ ክፍል (Hero Section) */}
         <header style={{ textAlign: 'center', padding: '100px 20px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
           <h1 style={{ fontSize: '42px', color: '#2c3e50', marginBottom: '20px' }}>እንኳን ወደ Max Technology በሰላም መጡ!</h1>
-          <button onClick={() => setCurrentScreen('login')} style={{ padding: '12px 30px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}>አሁኑኑ ይዘዙን!</button>
+          <p style={{ fontSize: '18px', color: '#7f8c8d', maxWidth: '600px', margin: '0 auto 30px auto', lineHeight: '1.6' }}>
+            እኛ የድርጅትዎን ስራ የሚያቀል ድንቅ ድህረ-ገጾችን (Websites) እና ዘመናዊ ሲስተሞችን በጥራት እንሰራለን።
+          </p>
+          <button onClick={() => setCurrentScreen('login')} style={{ padding: '12px 30px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            አሁኑኑ ይዘዙን!
+          </button>
         </header>
+// በመጀመሪያ በ App.js ውስጥ የፕሮጀክቶችን ስቴት ይፍጠሩ
+const [projects, setProjects] = useState([]);
 
-        {/* ፕሮጀክቶች መታየቻ ክፍል */}
-        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>የሰራናቸው ድንቅ ስራዎች</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-            {projects.map(p => (
-              <div key={p._id} style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '15px' }}>
-                <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                <h3>{p.title}</h3>
-                <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'none', fontWeight: 'bold' }}>ሊንኩን ይመልከቱ ➡</a>
-              </div>
-            ))}
-          </div>
-        </div>
+// ዌብሳይቱ ሲከፈት ፕሮጀክቶችን ለማምጣት
+useEffect(() => {
+  fetch(`${API_BASE_URL}/api/projects`)
+    .then(res => res.json())
+    .then(data => setProjects(data));
+}, []);
 
+// በመቀጠል በ Home ገጽ ውስጥ እንዲታዩ ያድርጉ
+<div className="projects-display" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', padding: '40px' }}>
+  {projects.map(p => (
+    <div key={p._id} className="project-card">
+      <img src={p.imageUrl} alt={p.title} style={{ width: '100%' }} />
+      <h3>{p.title}</h3>
+    </div>
+  ))}
+</div>
+        {/* ከስር ያለው ፉተር (Footer) */}
         <Footer />
       </div>
     );
   }
 
-  // 2. AUTH VIEW
+  // ==========================================
+  // 2️⃣ የሎጊን እና ሳይንአፕ ገጽ (LOGIN / SIGNUP)
+  // ==========================================
   if (currentScreen === 'login' || currentScreen === 'signup') {
     return (
       <div>
+        {/* ወደ ዋናው ገጽ መመለሻ Navbar */}
         <nav style={{ padding: '15px 40px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
           <span onClick={() => setCurrentScreen('home')} style={{ cursor: 'pointer', color: '#007bff', fontWeight: 'bold' }}>⬅ ወደ ዋናው ገጽ ይመለሱ</span>
         </nav>
@@ -171,7 +175,9 @@ function App() {
     );
   }
 
-  // 3. ADMIN VIEW
+  // ==========================================
+  // 3️⃣ የአድሚን ገጽ (ADMIN DASHBOARD VIEW)
+  // ==========================================
   if (currentScreen === 'admin-dashboard' && user?.role === 'admin') {
     return (
       <AdminDashboard 
@@ -188,8 +194,10 @@ function App() {
       />
     );
   }
-
-  // 4. ORDER VIEW
+<Footer />
+  // ==========================================
+  // 4️⃣ የደንበኛ ማዘዣ ገጽ (ORDER PAGE VIEW)
+  // ==========================================
   if (currentScreen === 'order-page' && user) {
     return (
       <OrderPage 
@@ -206,6 +214,7 @@ function App() {
   }
 
   return null;
+  
 }
 
 export default App;
