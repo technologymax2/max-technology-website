@@ -32,26 +32,15 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-// 4. Nodemailer Transporter Configuration (IPv6 ን አስገድዶ ወደ IPv4 ለመቀየር)
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  connectionTimeout: 10000, // የ10 ሰከንድ መጠበቂያ ጊዜ
-  greetingTimeout: 10000,
-  // 🔥 ይህ መስመር ኖድሜይለር የ Renderን IPv6 ትቶ IPv4 ብቻ እንዲጠቀም ያስገድደዋል
-  dnsLookup: (hostname, options, callback) => {
-    require('dns').lookup(hostname, { family: 4 }, callback);
-  }
-});
+import { Resend } from 'resend';
+const resend = new Resend(process.env.RESEND_API_KEY);
 
+await resend.emails.send({
+  from: 'onboarding@resend.dev',
+  to: 'you@example.com',
+  subject: 'Hello World',
+  html: '<p>It works!</p>'
+});
 // 5. API Route
 app.post('/api/contact', async (req, res) => {
   try {
