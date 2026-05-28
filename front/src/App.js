@@ -50,12 +50,24 @@ function App() {
     }
   }, [user]);
 
-  // Fetch projects
+ // ከዚህ በታች ያለውን ኮድ በ App.js ውስጥ ባለው useEffect በኩል ለውጠው
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/projects`)
       .then((res) => res.json())
-      .then((data) => setProjects(data))
-      .catch((err) => console.error(err));
+      .then((data) => {
+        // ዳታው በትክክል አሬይ (Array) መሆኑን እናረጋግጣለን
+        if (data && Array.isArray(data.projects)) {
+          setProjects(data.projects);
+        } else if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          setProjects([]); // ዳታው ካልተገኘ ባዶ አሬይ ያድርገው
+        }
+      })
+      .catch((err) => {
+        console.error("ፕሮጀክቶችን ማምጣት አልተቻለም", err);
+        setProjects([]); // ስህተት ቢኖርም ፕሮግራሙ እንዳይቆም ባዶ አሬይ እናድርገው
+      });
   }, []);
 
   const fetchMessages = async () => {
