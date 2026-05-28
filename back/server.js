@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI)
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
 // ==========================================
 
-// ሀ. የተጠቃሚዎች (User) ስኬማ - (isBlocked እዚህ ላይ ተጨምሯል)
+// ሀ. የተጠቃሚዎች (User) ስኬማ
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true }, // እንደ ዩዘርኔም የሚያገለግል
@@ -106,7 +106,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
 
-    // 🚫 ተጠቃሚው ታግዶ ከሆነ እንዳይገባ መከልከል
+    // 🚫 ተጠቃሚው በአድሚን ታግዶ ከሆነ መግቢያ መከልከል
     if (user.isBlocked) {
       return res.status(403).json({ success: false, error: 'አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።' });
     }
@@ -183,7 +183,7 @@ app.put('/api/admin/reset-password/:id', async (req, res) => {
   }
 });
 
-// 🗑️ [አዲስ] ረዳት አድሚን ሙሉ በሙሉ መሰረዣ ኤፒአይ
+// 🗑️ ረዳት አድሚን ሙሉ በሙሉ መሰረዣ ኤፒአይ
 app.delete('/api/admin/delete/:id', async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -228,16 +228,42 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 });
 
 // ==========================================
-// 5. [አዲስ] የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// 5. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
 // ==========================================
 
-// 1. ሁሉንም መደበኛ ደንበኞች ማያ መስመር (Users Tab እንዲሰራ)
+// 1. ቻት ያደረጉ እና የተመዘገቡ ሰዎችን በሙሉ አዋህዶ የሚያመጣ ስማርት መስመር (Users Tab እንዲሰራ)
 app.get('/api/admin/users', async (req, res) => {
   try {
-    const users = await User.find({ role: 'normal' }).select('-password');
-    res.status(200).json({ success: true, users });
+    // ሀ. በዳታቤዝ ውስጥ 'normal' የሆኑትን ተጠቃሚዎች በሙሉ ማምጣት
+    const registeredUsers = await User.find({ role: 'normal' }).select('-password').lean();
+
+    // ለ. በ Contact (መልዕክቶች) ውስጥ ብቻ ያሉ ግን ያልተመዘገቡ ሰዎችንም ለማካተት ከቻት ላይ ኢሜይሎችን መሰብሰብ
+    const chatEmails = await Contact.distinct('email');
+
+    // ሐ. ሁለቱንም ዝርዝሮች ማዋሃድ
+    let finalUsersList = [...registeredUsers];
+
+    for (const email of chatEmails) {
+      const alreadyExists = finalUsersList.some(u => u.email === email);
+      const isMainAdmin = email === 'mamaruAnmaw@1925'; 
+
+      if (!alreadyExists && !isMainAdmin) {
+        const sampleContact = await Contact.findOne({ email });
+        if (sampleContact) {
+          finalUsersList.push({
+            _id: sampleContact._id, 
+            name: sampleContact.name || 'ስም የሌለው ደንበኛ',
+            email: email,
+            isBlocked: false,
+            isChatOnly: true   
+          });
+        }
+      }
+    }
+
+    res.status(200).json({ success: true, users: finalUsersList });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'ተጠቃሚዎችን ማምጣት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም' });
   }
 });
 
@@ -245,7 +271,26 @@ app.get('/api/admin/users', async (req, res) => {
 app.put('/api/admin/users/block/:id', async (req, res) => {
   try {
     const { isBlocked } = req.body;
-    await User.findByIdAndUpdate(req.params.id, { isBlocked });
+    const userId = req.params.id;
+
+    const user = await User.findById(userId);
+    if (user) {
+      await User.findByIdAndUpdate(userId, { isBlocked });
+    } else {
+      const contactData = await Contact.findById(userId);
+      if (contactData) {
+        const dummyPassword = await bcrypt.hash('BLOCKED_USER_PASS_123', 10);
+        const blockedUser = new User({
+          name: contactData.name,
+          email: contactData.email,
+          password: dummyPassword,
+          role: 'normal',
+          isBlocked: isBlocked
+        });
+        await blockedUser.save();
+      }
+    }
+
     res.status(200).json({ success: true, message: 'የተጠቃሚው የብሎክ ሁኔታ ተቀይሯል!' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ብሎክ ማድረግ አልተሳካም' });
@@ -255,7 +300,18 @@ app.put('/api/admin/users/block/:id', async (req, res) => {
 // 3. ተጠቃሚን ሙሉ በሙሉ መሰረዣ መስመር (Delete Regular User Account)
 app.delete('/api/admin/users/delete/:id', async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    
+    if (user) {
+      // አካውንቱን ካጠፋን በኋላ የላካቸውን መልዕክቶችም ጭምር ማጽዳት ከፈለግክ ከስር ያለውን መስመር መክፈት ትችላለህ፦
+      // await Contact.deleteMany({ email: user.email });
+      await User.findByIdAndDelete(userId);
+    } else {
+      // ከቻት ብቻ የመጣ ከሆነ መልዕክቱን ማጥፋት
+      await Contact.findByIdAndDelete(userId);
+    }
+    
     res.status(200).json({ success: true, message: 'ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ተጠቃሚውን ማጥፋት አልተቻለም' });
@@ -270,6 +326,13 @@ app.delete('/api/admin/users/delete/:id', async (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
+    
+    // 🚫 ደንበኛው በኢሜይሉ ታግዶ እንደሆነ መፈተሽ
+    const checkUser = await User.findOne({ email });
+    if (checkUser && checkUser.isBlocked) {
+      return res.status(403).json({ success: false, error: 'አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!' });
+    }
+
     const newContact = new Contact({ name, email, message });
     await newContact.save();
     res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተቀምጧል!' });
@@ -288,7 +351,7 @@ app.get('/api/user/orders/:email', async (req, res) => {
   }
 });
 
-// ✏️ [የተስተካከለ] የላኩትን መልዕክት ማስተካከያ ኤፒአይ (app.put እና Contact ሞዴል ተተክቷል)
+// ✏️ የላኩትን መልዕክት ማስተካከያ ኤፒአይ
 app.put('/api/user/orders/edit/:id', async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -310,11 +373,10 @@ app.put('/api/user/orders/edit/:id', async (req, res) => {
   }
 });
 
-// 🗑️ [የተስተካከለ] የላኩትን መልዕክት ማጥፊያ ኤፒአይ (app.delete እና Contact ሞዴል ተተክቷል)
+// 🗑️ የላኩትን መልዕክት ማጥፊያ ኤፒአይ
 app.delete('/api/user/orders/delete/:id', async (req, res) => {
   try {
     const orderId = req.params.id;
-
     const deletedOrder = await Contact.findByIdAndDelete(orderId);
 
     if (!deletedOrder) {
