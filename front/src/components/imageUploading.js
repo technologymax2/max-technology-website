@@ -1,10 +1,8 @@
-/**
- * 📸 ፎቶን ወደ ImgBB አፕሎድ የሚያደርግ ገለልተኛ ፋንክሽን
- * ይህ ኮድ ምስሉን ወደ ሊንክ ቀይሮ ይሰጥሃል
- */
-
 export const uploadImageToImgBB = async (file, setUploading) => {
-  if (!file) return null;
+  if (!file) {
+    alert("እባክዎ መጀመሪያ ፋይል ይምረጡ!");
+    return null;
+  }
   
   if (setUploading) setUploading(true);
 
@@ -12,9 +10,8 @@ export const uploadImageToImgBB = async (file, setUploading) => {
   formData.append('image', file);
 
   try {
-    // እዚህ ጋር YOUR_API_KEY ባለበት ቦታ የራስህን ኪ አስገባ
-    // ለሙከራ እንዲረዳህ ይሄንን ኪ መጠቀም ትችላለህ
-    const API_KEY = '6dad4f169d300eb052b61f86b4ee99d2'; 
+    // እዚህ ጋር የራስዎን አዲስ የፈጠሩትን Key ያስገቡ
+    const API_KEY = 'YOUR_ACTUAL_API_KEY_HERE'; 
     
     const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
       method: 'POST',
@@ -24,9 +21,10 @@ export const uploadImageToImgBB = async (file, setUploading) => {
     const data = await response.json();
     
     if (data.success) {
-      return data.data.url; // የተሳካ ከሆነ የፎቶውን ሊንክ ይመልሳል
+      return data.data.url;
     } else {
-      throw new Error(data.error?.message || 'ምስል መጫን አልተቻለም');
+      // ስህተቱ ከባክኤንድ የሚመጣውን መረጃ በግልጽ ያሳያል
+      throw new Error(data.error?.message || 'ምስሉን ወደ ሰርቨር መላክ አልተቻለም');
     }
   } catch (err) {
     console.error('Upload Error:', err);
