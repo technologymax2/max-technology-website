@@ -10,7 +10,7 @@ app.use(express.json());
 // የ CORS አደረጃጀት - ማንኛውንም ግንኙነት እንዳያግድ ክፍት ተደርጓል
 app.use(cors({
   origin: '*',
-  methods: ['POST', 'GET', 'DELETE', 'OPTIONS'],
+  methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
@@ -30,7 +30,7 @@ mongoose.connect(MONGO_URI)
 // ሀ. የተጠቃሚዎች (User) ስኬማ
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true }, // እንደ ዩዘርኔም የሚያገለግል
   password: { type: String, required: true },
   role: { type: String, default: 'normal' } // 'normal' ወይም 'admin'
 });
@@ -75,7 +75,7 @@ async function seedFirstAdmin() {
 // 3. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
 // ==========================================
 
-// ሀ. መደበኛ ደንበኞች መመዝገቢያ (SIGNUP - ለኖርማል ዩዘር ብቻ)
+// ሀ. መደበኛ ደንበኞች መመዝገቢያ (SIGNUP)
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -88,7 +88,7 @@ app.post('/api/auth/signup', async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'normal' // በዌብሳይቱ በራሱ የሚመዘገብ ሰው ሁልጊዜም ደንበኛ (normal) ነው
+      role: 'normal'
     });
 
     await newUser.save();
@@ -98,7 +98,7 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
-// ለ. ተጠቃሚዎች መግቢያ (LOGIN - ለአድሚንም ለኖርማልም)
+// ለ. ተጠቃሚዎች መግቢያ (LOGIN)
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -118,10 +118,10 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ==========================================
-// 4. የአድሚን ልዩ መስመሮች (ADMIN ROUTES)
+// 4. የአድሚን መቆጣጠሪያ መስመሮች (ADMIN CONTROL ROUTES)
 // ==========================================
 
-// ሐ. አድሚን ብቻ ሌላ አድሚን የሚጨምርበት መስመር
+// ሐ. አዲስ ረዳት አድሚን መመዝገቢያ
 app.post('/api/admin/add-admin', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -134,7 +134,7 @@ app.post('/api/admin/add-admin', async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'admin' // ዋናው አድሚን ስለመዘገበው በቀጥታ አድሚን ይሆናል
+      role: 'admin'
     });
 
     await newAdmin.save();
@@ -144,7 +144,40 @@ app.post('/api/admin/add-admin', async (req, res) => {
   }
 });
 
-// መ. አድሚን ሁሉንም የደንበኞች ማዘዣዎች የሚያይበት (GET)
+// 🚀 [አዲስ] የተመዘገቡ አድሚኖችን ዝርዝር ማያ (የጸጥታ ጥበቃ ሲባል ፓስወርዱ አይላክም)
+app.get('/api/admin/list', async (req, res) => {
+  try {
+    const admins = await User.find({ role: 'admin' }).select('-password');
+    res.status(200).json({ success: true, admins });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'የአድሚኖችን ዝርዝር ማምጣት አልተቻለም' });
+  }
+});
+
+// 🚀 [አዲስ] የአድሚን መረጃ (ስም እና ዩዘርኔም) ማስተካከያ (PUT)
+app.put('/api/admin/update/:id', async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { name, email });
+    res.status(200).json({ success: true, message: 'የአድሚን መረጃ ተስተካክሏል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ማስተካከሉ አልተሳካም' });
+  }
+});
+
+// 🚀 [አዲስ] የአድሚን ፓስወርድ መለወጫ / ሪሴት ማድረጊያ (PUT)
+app.put('/api/admin/reset-password/:id', async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
+    res.status(200).json({ success: true, message: 'የአድሚኑ ፓስወርድ በስኬት ተለውጧል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ፓስወርድ መቀየር አልተቻለም' });
+  }
+});
+
+// መ. አድሚን ሁሉንም የደንበኞች ማዘዣዎች የሚያይበት
 app.get('/api/admin/messages', async (req, res) => {
   try {
     const messages = await Contact.find().sort({ date: -1 });
@@ -168,7 +201,7 @@ app.post('/api/admin/reply/:id', async (req, res) => {
   }
 });
 
-// ረ. አድሚን ማዘዣ የሚያጠፋበት (DELETE)
+// ረ. አድሚን ማዘዣ የሚያጠፋበት
 app.delete('/api/admin/messages/:id', async (req, res) => {
   try {
     await Contact.findByIdAndDelete(req.params.id);
@@ -182,7 +215,7 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 // 5. የደንበኞች መስመሮች (USER/ORDER ROUTES)
 // ==========================================
 
-// ሰ. ደንበኞች አዲስ ማዘዣ የሚያስገቡበት (POST)
+// ሰ. ደንበኞች አዲስ ማዘዣ የሚያስገቡበት
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
