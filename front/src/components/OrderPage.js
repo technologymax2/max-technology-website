@@ -45,7 +45,7 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
         {/* 1. የግራ ክፍል፦ ማዘዣ ፎርም */}
         <div className="order-form-wrapper">
           <div className="order-card-form">
-            <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
+            <h2 className="order-form-title">🛒 አዲስ የሶፍትዌር ማዘዣ</h2>
             <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶፍትዌር ዝርዝር እዚህ ያስገቡ</p>
             
             <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">

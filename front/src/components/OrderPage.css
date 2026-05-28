@@ -76,7 +76,7 @@
 
 /* 📐 ዋናው ግሪድ አቀማመጥ (Main Grid Layout) */
 .order-main-grid {
-  max-width: 1300px;
+  width: 200px;
   margin: 40px auto;
   padding: 0 4%;
   display: grid;
