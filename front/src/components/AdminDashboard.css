@@ -19,15 +19,23 @@
   margin-bottom: 35px;
 }
 
-/* ዘመናዊ ሰንጠረዥ (Modern Dashboard Table) */
+/* 🛑 በቀኝ በኩል ቁልፎች እንዳይደበቁ የScroll እና Margin ማስተካከያ ኮንቴይነር */
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* ከስክሪን ሲሰፋ ወደ ጎን መሸብለል እንዲችል ያደርጋል */
+  margin-bottom: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  background: var(--white, #ffffff);
+  padding-right: 15px; /* በቀኝ በኩል ተጨማሪ ማርጂን/ክፍተት ይሰጣል */
+}
+
+/* ዘመናዊ ሰንጠረዥ (Modern Table Structure) */
 .custom-table {
   width: 100%;
+  min-width: 900px; /* በጠባብ ስክሪንም ቢሆን ቁልፎቹ እንዳይጨፈለቁ ይከላከላል */
   border-collapse: collapse;
   background: var(--white, #ffffff);
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  margin-top: 20px;
   border: none;
 }
 
@@ -55,13 +63,14 @@
   transition: background-color 0.2s ease;
 }
 
-/* የአድሚን በተኖች */
+/* የአክሽን ቁልፎች */
 .btn-action {
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap; /* ጽሑፉ ወደ ታች እንዳይሰበር */
   transition: var(--transition, all 0.4s ease);
 }
 
