@@ -4,7 +4,7 @@ import Footer from './Footer';
 
 function Login({ authMode, setAuthMode, authForm, handleAuthChange, handleAuthSubmit, authStatus, logoImg }) {
   return (
-    <div className="auth-page-wrapper">
+    <div><div className="auth-page-wrapper">
       <div className="auth-box fade-in">
         <img src={logoImg} alt="Logo" className="auth-logo" />
         <h2>{authMode === 'login' ? 'ወደ Max Technology ይግቡ' : 'የደንበኛ አካውንት ይክፈቱ'}</h2>
@@ -47,7 +47,9 @@ function Login({ authMode, setAuthMode, authForm, handleAuthChange, handleAuthSu
           {authMode === 'login' ? 'አካውንት የለዎትም? ይመዝገቡ' : 'ቀድሞ አካውንት አለዎት? ይግቡ'}
         </p>
       </div>
-      <Footer />
+      
+    </div>
+    <Footer />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import AdminDashboard from './components/AdminDashboard';
 import OrderPage from './components/OrderPage';
 import logoImg from './logo.jpg';
 import './App.css'; // የእርስዎ የድሮ ስታይል ፋይል
-
+import Footer from './components/Footer';
 
 function App() {
   const API_BASE_URL = 'https://max-tech-backend.onrender.com';
@@ -178,7 +178,7 @@ function App() {
       />
     );
   }
-
+<Footer />
   // ==========================================
   // 4️⃣ የደንበኛ ማዘዣ ገጽ (ORDER PAGE VIEW)
   // ==========================================
