@@ -5,6 +5,7 @@ import OrderPage from './components/OrderPage';
 import logoImg from './logo.jpg';
 import './App.css'; // የእርስዎ የድሮ ስታይል ፋይል
 
+
 function App() {
   const API_BASE_URL = 'https://max-tech-backend.onrender.com';
   
@@ -197,6 +198,7 @@ function App() {
   }
 
   return null;
+  
 }
 
 export default App;

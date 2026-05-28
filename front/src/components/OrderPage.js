@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './OrderPage.css';
+import Footer from './Footer';
 
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
@@ -205,6 +206,7 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
         </div>
 
       </div>
+      <Footer />
     </div>
   );
 }

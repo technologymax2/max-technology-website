@@ -1,5 +1,6 @@
 import React from 'react';
 import './Login.css'; // 👈 አዲሱ የስታይል ፋይል ማገናኛ
+import Footer from './Footer';
 
 function Login({ authMode, setAuthMode, authForm, handleAuthChange, handleAuthSubmit, authStatus, logoImg }) {
   return (
@@ -46,6 +47,7 @@ function Login({ authMode, setAuthMode, authForm, handleAuthChange, handleAuthSu
           {authMode === 'login' ? 'አካውንት የለዎትም? ይመዝገቡ' : 'ቀድሞ አካውንት አለዎት? ይግቡ'}
         </p>
       </div>
+      <Footer />
     </div>
   );
 }

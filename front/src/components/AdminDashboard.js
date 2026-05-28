@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './AdminDashboard.css';
+import Footer from './Footer';
 
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage }) {
   const [replyText, setReplyText] = useState({});
@@ -391,6 +392,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 }
