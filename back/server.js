@@ -7,11 +7,9 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+// ማንኛውንም ድህረ ገጽ (Vercel ወይም Localhost) ያለምንም ክልከላ እንዲያስተናግድ ያደርጋል
 app.use(cors({
-  origin: [
-    'https://max-technology-website.vercel.app',
-    /https:\/\/max-technology-website-.*\.vercel\.app$/ 
-  ],
+  origin: '*',
   methods: ['POST', 'GET', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
