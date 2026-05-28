@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './OrderPage.css'; // 👈 አዲሱ የስታይል ፋይል ማገናኛ
+import './OrderPage.css';
 
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
@@ -27,53 +27,85 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
 
   return (
     <div className="order-page-container">
-      {/* የላይኛው መገናኛ ባር (Navbar) */}
-      <nav className="navbar order-navbar">
-        <div className="logo-container">
-          <img src={logoImg} alt="Logo" className="logo-image order-logo-fix" />
-          <span className="logo-text">Max Technology</span>
+      {/* 🚀 የላይኛው መገናኛ ባር (Navbar) */}
+      <nav className="order-navbar">
+        <div className="order-logo-area">
+          <img src={logoImg} alt="Logo" className="order-logo-img" />
+          <span className="order-brand-name">Max Technology</span>
         </div>
-        <div className="nav-links order-user-actions">
+        <div className="order-user-area">
           <span className="order-user-badge">👤 {user.name}</span>
-          <button onClick={handleLogout} className="btn-logout order-logout-btn">ውጣ</button>
+          <button onClick={handleLogout} className="order-logout-btn">ውጣ</button>
         </div>
       </nav>
 
-      {/* ማዘዣ ፎርም */}
-      <section className="contact-form order-form-container">
-        <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
-        <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
-          <input type="text" name="name" placeholder="የድርጅትዎ ስም" value={formData.name} onChange={handleContactChange} required className="input-field" />
-          <input type="email" name="email" value={formData.email = user.email} disabled className="input-field order-disabled-input" />
-          <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ዝርዝር..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
-          <button type="submit" className="submit-btn">ትዕዛዝ ያስገቡ</button>
-          {status && <p className="status-msg order-success-msg">{status}</p>}
-        </form>
-      </section>
+      {/* 🚀 ዋናው የይዘት ክፍል (Main Layout Grid) */}
+      <div className="order-main-grid">
+        
+        {/* 1. የግራ ክፍል፦ ማዘዣ ፎርም */}
+        <div className="order-form-wrapper">
+          <div className="order-card-form">
+            <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
+            <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶፍትዌር ዝርዝር እዚህ ያስገቡ</p>
+            
+            <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
+              <div className="input-group-fixed">
+                <label>የድርጅትዎ ስም</label>
+                <input type="text" name="name" placeholder="ለምሳሌ፦ አቢሲኒያ ቴክ" value={formData.name} onChange={handleContactChange} required className="input-field" />
+              </div>
 
-      {/* የላኳቸው ማዘዣዎች እና የተሰጡ ምላሾች ሰሌዳ */}
-      <section className="order-list-section">
-        <h3 className="order-section-title">📋 የላኳቸው ማዘዣዎች እና ከአድሚን የተሰጡ ምላሾች</h3>
-        <div className="order-cards-list">
-          {myOrders.map((order) => (
-            <div key={order._id} className="card order-status-card zoom-in">
-              <p className="order-msg-text"><strong>የእርስዎ ማዘዣ፦</strong> {order.message}</p>
-              <p className="order-status-text">
-                <strong>ሁኔታ (Status)፦</strong>{' '}
-                <span className={order.status === 'ምላሽ ተሰጥቷል' ? 'status-replied-tag' : 'status-pending-tag'}>
-                  {order.status}
-                </span>
-              </p>
-              {order.reply && (
-                <div className="reply-box order-reply-box-fix">
-                  <p className="order-reply-inner"><strong>👑 የአድሚን ምላሽ፦</strong> {order.reply}</p>
-                </div>
-              )}
-            </div>
-          ))}
-          {myOrders.length === 0 && <p className="order-empty-text">እስካሁን ምንም ያስገቡት ትዕዛዝ የለም።</p>}
+              <div className="input-group-fixed">
+                <label>ኢሜይል (አይቀየርም)</label>
+                <input type="email" name="email" value={formData.email = user.email} disabled className="input-field order-disabled-input" />
+              </div>
+
+              <div className="input-group-fixed">
+                <label>የስራው ዝርዝር መግለጫ</label>
+                <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ወይም ሲስተም በዝርዝር ይጻፉ..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
+              </div>
+
+              <button type="submit" className="submit-btn order-submit-btn-fixed">🚀 ትዕዛዝ ያስገቡ</button>
+              {status && <p className="order-success-msg">✨ {status}</p>}
+            </form>
+          </div>
         </div>
-      </section>
+
+        {/* 2. የቀኝ ክፍል፦ የላኳቸው ማዘዣዎች ሰሌዳ */}
+        <div className="order-history-wrapper">
+          <h3 className="order-section-title">📋 የላኳቸው ማዘዣዎች እና ምላሾች</h3>
+          <div className="order-cards-list">
+            {myOrders.map((order) => (
+              <div key={order._id} className="card order-status-card fade-in">
+                <div className="order-card-header">
+                  <span className="order-date-badge">📅 {new Date().toLocaleDateString()}</span>
+                  <span className={order.status === 'ምላሽ ተሰጥቷል' ? 'status-replied-tag' : 'status-pending-tag'}>
+                    {order.status === 'ምላሽ ተሰጥቷል' ? '● ምላሽ ተሰጥቷል' : '○ በመጠባበቅ ላይ'}
+                  </span>
+                </div>
+                
+                <div className="order-card-body">
+                  <p className="order-msg-text"><strong>የእርስዎ ማዘዣ፦</strong> {order.message}</p>
+                </div>
+
+                {order.reply && (
+                  <div className="order-reply-box-fix">
+                    <p className="order-reply-inner">
+                      <strong>👑 የአድሚን ምላሽ፦</strong> {order.reply}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {myOrders.length === 0 && (
+              <div className="order-empty-box">
+                <p className="order-empty-text">እስካሁን ምንም ያስገቡት የሶ프트ዌር ትዕዛዝ የለም።</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
