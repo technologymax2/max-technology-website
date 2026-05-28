@@ -19,23 +19,15 @@
   margin-bottom: 35px;
 }
 
-/* 🛑 በቀኝ በኩል ቁልፎች እንዳይደበቁ የScroll እና Margin ማስተካከያ ኮንቴይነር */
-.table-container {
-  width: 100%;
-  overflow-x: auto; /* ከስክሪን ሲሰፋ ወደ ጎን መሸብለል እንዲችል ያደርጋል */
-  margin-bottom: 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  background: var(--white, #ffffff);
-  padding-right: 15px; /* በቀኝ በኩል ተጨማሪ ማርጂን/ክፍተት ይሰጣል */
-}
-
-/* ዘመናዊ ሰንጠረዥ (Modern Table Structure) */
+/* ዘመናዊ ሰንጠረዥ */
 .custom-table {
   width: 100%;
-  min-width: 900px; /* በጠባብ ስክሪንም ቢሆን ቁልፎቹ እንዳይጨፈለቁ ይከላከላል */
   border-collapse: collapse;
   background: var(--white, #ffffff);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  margin-top: 20px;
   border: none;
 }
 
@@ -70,7 +62,6 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap; /* ጽሑፉ ወደ ታች እንዳይሰበር */
   transition: var(--transition, all 0.4s ease);
 }
 
@@ -83,7 +74,7 @@
 .btn-reply { background-color: #38a169; color: white; }
 .btn-reply:hover { background-color: #2f855a; transform: translateY(-2px); }
 
-/* የጥበቃ እና የምላሽ ሳጥኖች */
+/* የምላሽ ሳጥን */
 .reply-box {
   background-color: #f0fff4;
   border: 1px solid #c6f6d5;
@@ -94,7 +85,7 @@
   text-align: left;
 }
 
-/* ብቅ ባይ ማስተካከያ (Modal Box) */
+/* ብቅ ባይ ፎርም */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -112,26 +103,10 @@
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
 }
 
-/* ለአድሚን ሰሌዳ የወጡ ተጨማሪ መዋቅሮች */
-.admin-grid-gap {
-  margin-top: 20px;
-  align-items: flex-start;
-}
-
-.admin-form-card {
-  width: 100% !important;
-  flex: 1;
-  min-width: 300px;
-  padding: 25px;
-}
-
-.admin-table-card {
-  width: 100% !important;
-  flex: 2;
-  min-width: 400px;
-  padding: 25px;
-}
-
+/* ተጨማሪ አቀማመጦች */
+.admin-grid-gap { margin-top: 20px; align-items: flex-start; }
+.admin-form-card { width: 100% !important; flex: 1; min-width: 300px; padding: 25px; }
+.admin-table-card { width: 100% !important; flex: 2; min-width: 300px; padding: 25px; }
 .admin-form-top { margin-top: 15px; }
 .admin-input-bottom { margin-bottom: 10px; }
 .admin-input-large-bottom { margin-bottom: 15px; }
@@ -142,20 +117,20 @@
   justify-content: center;
 }
 
-.admin-table-input {
-  padding: 6px !important;
-  width: 120px;
-  margin-bottom: 0 !important;
+.admin-wrap-fix {
+  flex-wrap: wrap; /* ስክሪን ሲጠብ እቃዎቹ ወደ ታች እንዲወርዱ ያደርጋል */
 }
 
+.admin-table-input { padding: 6px !important; width: 130px; margin-bottom: 0 !important; flex: 1; }
 .btn-padding-fix { padding: 6px 12px !important; }
 .btn-flex-one { flex: 1; padding: 12px !important; }
 .admin-section-heading { margin-top: 50px; margin-bottom: 15px; }
 .text-left-align { text-align: left !important; }
 .admin-subtext { color: #777; font-size: 13px; }
 .admin-date-text { color: #999; }
-.admin-no-margin { margin-bottom: 0 !important; }
+.admin-no-margin { margin-bottom: 0 !important; flex: 2; min-width: 150px; }
 .admin-empty-text { text-align: center; margin-top: 30px; color: #777; }
+.admin-text-break { word-break: break-word; min-width: 200px; }
 
 .admin-welcome-text {
   font-size: 18px;
@@ -167,7 +142,65 @@
   display: inline-block;
   border-left: 4px solid var(--primary-color, gold);
 }
+.admin-welcome-text strong { color: var(--primary-color, gold); }
 
-.admin-welcome-text strong {
-  color: var(--primary-color, gold);
+/* ==========================================================================
+   🛑 ለሞባይል እና ለጠባብ ስክሪን የተሰራ ድንቅ ፎርማት (No Scroll - Text Wrap Stack)
+   ========================================================================== */
+@media screen and (max-width: 850px) {
+  .responsive-table, 
+  .responsive-table thead, 
+  .responsive-table tbody, 
+  .responsive-table th, 
+  .responsive-table td, 
+  .responsive-table tr {
+    display: block; /* ሰንጠረዡን ወደ ተራ ብሎክ ይቀይረዋል */
+  }
+
+  .responsive-table thead {
+    display: none; /* የላይኛውን ጥቁር ርዕስ ይደብቀዋል */
+  }
+
+  .responsive-table tr {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 10px;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  }
+
+  .responsive-table td {
+    text-align: right !important; /* መረጃውን በቀኝ ያደርጋል */
+    padding: 12px 10px;
+    border-bottom: 1px dashed #edf2f7;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* ፅሁፉ ወደ ታች እንዲቀጥል */
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* በግራ በኩል የጎደለውን ርዕስ በስማርት መንገድ ይተካል */
+  .responsive-table td::before {
+    content: attr(data-label); /* ከጃቫስክሪፕቱ data-label ላይ ስሙን ይወስዳል */
+    font-weight: 700;
+    color: var(--accent-dark, #393e46);
+    text-transform: uppercase;
+    font-size: 13px;
+    margin-right: 15px;
+  }
+
+  .admin-mobile-center {
+    text-align: right !important;
+  }
+
+  .admin-inline-flex {
+    width: 100%;
+    margin-top: 5px;
+  }
 }

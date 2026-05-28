@@ -110,35 +110,33 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         {/* ለ. የተመዘገቡ አድሚኖች ዝርዝር */}
         <div className="card admin-table-card">
           <h3>📋 የተመዘገቡ አድሚኖች ዝርዝር</h3>
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>ስም</th>
-                  <th>ዩዘርኔም / ኢሜይል</th>
-                  <th>የፓስወርድ ማስተካከያ</th>
-                  <th>እርምጃ</th>
+          <table className="custom-table responsive-table">
+            <thead>
+              <tr>
+                <th>ስም</th>
+                <th>ዩዘርኔም / ኢሜይል</th>
+                <th>የፓስወርድ ማስተካከያ</th>
+                <th>እርምጃ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adminList.map((adm) => (
+                <tr key={adm._id}>
+                  <td data-label="ስም"><strong>{adm.name}</strong></td>
+                  <td data-label="ዩዘርኔም / ኢሜይል">{adm.email}</td>
+                  <td data-label="የፓስወርድ ማስተካከያ">
+                    <div className="admin-inline-flex admin-wrap-fix">
+                      <input type="text" placeholder="አዲስ ፓስወርድ" onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })} className="input-field admin-table-input" />
+                      <button onClick={() => handleResetPassword(adm._id)} className="btn-action btn-edit btn-padding-fix">ቀይር</button>
+                    </div>
+                  </td>
+                  <td data-label="እርምጃ">
+                    <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="btn-action btn-reply">አስተካክል</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {adminList.map((adm) => (
-                  <tr key={adm._id}>
-                    <td><strong>{adm.name}</strong></td>
-                    <td>{adm.email}</td>
-                    <td>
-                      <div className="admin-inline-flex">
-                        <input type="text" placeholder="አዲስ ፓስወርድ" onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })} className="input-field admin-table-input" />
-                        <button onClick={() => handleResetPassword(adm._id)} className="btn-action btn-edit btn-padding-fix">ቀይር</button>
-                      </div>
-                    </td>
-                    <td>
-                      <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="btn-action btn-reply">አስተካክል</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -161,41 +159,39 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
       {/* መ. የደንበኞች መልዕክት ማያ እና ምላሽ መስጫ */}
       <h3 className="admin-section-heading">🛒 የደንበኞች ማዘዣዎች ዝርዝር እና ምላሽ መስጫ</h3>
-      <div className="table-container">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>ደንበኛ</th>
-              <th>ማዘዣ / መልዕክት</th>
-              <th>የእርስዎ ምላሽ (Reply)</th>
-              <th>እርምጃ</th>
+      <table className="custom-table responsive-table">
+        <thead>
+          <tr>
+            <th>ደንበኛ</th>
+            <th>ማዘዣ / መልዕክት</th>
+            <th>የእርስዎ ምላሽ (Reply)</th>
+            <th>እርምጃ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {adminMessages.map((msg) => (
+            <tr key={msg._id}>
+              <td data-label="ደንበኛ" className="text-left-align admin-mobile-center"><strong>{msg.name}</strong><br/><span className="admin-subtext">{msg.email}</span></td>
+              <td data-label="ማዘዣ / መልዕክት" className="text-left-align admin-mobile-center admin-text-break">{msg.message}<br/><small className="admin-date-text">{new Date(msg.date).toLocaleDateString()}</small></td>
+              <td data-label="የእርስዎ ምላሽ (Reply)">
+                {msg.reply ? (
+                  <div className="reply-box">
+                    <strong>የተላከ መልስ፦</strong> {msg.reply}
+                  </div>
+                ) : (
+                  <div className="admin-inline-flex admin-wrap-fix">
+                    <input type="text" placeholder="መልስ እዚህ ይጻፉ..." onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })} className="input-field admin-no-margin" />
+                    <button onClick={() => handleReplySubmit(msg._id)} className="btn-action btn-reply">ላክ</button>
+                  </div>
+                )}
+              </td>
+              <td data-label="እርምጃ">
+                <button onClick={() => handleDeleteMessage(msg._id)} className="btn-action btn-delete">አጥፋ</button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {adminMessages.map((msg) => (
-              <tr key={msg._id}>
-                <td className="text-left-align"><strong>{msg.name}</strong><br/><span className="admin-subtext">{msg.email}</span></td>
-                <td className="text-left-align">{msg.message}<br/><small className="admin-date-text">{new Date(msg.date).toLocaleDateString()}</small></td>
-                <td>
-                  {msg.reply ? (
-                    <div className="reply-box">
-                      <strong>የተላከ መልስ፦</strong> {msg.reply}
-                    </div>
-                  ) : (
-                    <div className="admin-inline-flex">
-                      <input type="text" placeholder="መልስ እዚህ ይጻፉ..." onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })} className="input-field admin-no-margin" />
-                      <button onClick={() => handleReplySubmit(msg._id)} className="btn-action btn-reply">ላክ</button>
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <button onClick={() => handleDeleteMessage(msg._id)} className="btn-action btn-delete">አጥፋ</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
       {adminMessages.length === 0 && <p className="admin-empty-text">ምንም የቀረበ ትዕዛዝ የለም።</p>}
     </div>
   );
