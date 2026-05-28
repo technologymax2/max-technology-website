@@ -35,6 +35,16 @@ const Contact = mongoose.model('Contact', contactSchema);
 // የ Resend አደረጃጀት
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// 1. የሰርቨር ጤንነት መፈተኛ መስመር (የተጨመረው አዲስ መስመር 👈)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    success: true, 
+    status: 'OK', 
+    message: 'ሰርቨሩ በትክክል እየሰራ ነው!' 
+  });
+});
+
+// 2. የፎርም መልዕክት መቀበያ መስመር
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -45,7 +55,7 @@ app.post('/api/contact', async (req, res) => {
     // በResend በኩል ኢሜይል መላክ
     await resend.emails.send({
       from: 'onboarding@resend.dev', 
-      to: 'technologymax2@gmail.com',  // 👈 ⚠️ ከ anmawmamaru7 ወደ technologymax2 ተቀይሯል!
+      to: 'technologymax2@gmail.com',  
       subject: `አዲስ መልዕክት ከ ${name} (Max Technology)`,
       html: `
         <h3>አዲስ ደንበኛ መልዕክት ልኮልሃል፡</h3>
