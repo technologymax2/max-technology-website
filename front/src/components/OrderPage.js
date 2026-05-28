@@ -3,16 +3,24 @@ import './OrderPage.css';
 
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
+  
+  // ✏️ ለማስተካከያ (Edit) የሚያስፈልጉ ስቴቶች
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [editText, setEditText] = useState("");
 
   useEffect(() => {
     fetchMyOrders();
-    const interval = setInterval(() => { fetchMyOrders(); }, 5000);
+
+    // በየ 5 ሰከንዱ አዲስ መልዕክት ወይም ምላሽ ካለ ቻቱን ማደስ
+    const interval = setInterval(() => {
+      fetchMyOrders();
+    }, 5000);
+
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 🔄 የዚህን ተጠቃሚ ማዘዣዎች (ውይይቶች) ብቻ ከባክኤንድ ማምጫ
   const fetchMyOrders = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/user/orders/${user.email}`);
@@ -23,9 +31,9 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
     }
   };
 
-  // ✏️ መልዕክት ለማስተካከል (Edit)
+  // ✏️ የተላከን መልዕክት ለማስተካከል (Update Process)
   const handleEditSubmit = async (orderId) => {
-    if (!editText.trim()) return;
+    if (!editText.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
     try {
       const res = await fetch(`${API_BASE_URL}/api/user/orders/edit/${orderId}`, {
         method: 'PUT',
@@ -34,34 +42,35 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
       });
       const data = await res.json();
       if (data.success || res.ok) {
-        alert('መልዕክቱ ተስተካክሏል!');
-        setEditingOrderId(null);
-        fetchMyOrders();
+        alert('መልዕክትዎ ተስተካክሏል!');
+        setEditingOrderId(null); // የማስተካከያ ሳጥኑን መዝጋት
+        fetchMyOrders(); // ቻቱን ማደስ
       }
     } catch (err) {
-      alert('ማስተካከል አልተሳካም፤ (ማስታወሻ፦ ባክኤንድ ኤፒአይ ያስፈልገዋል)');
+      alert('ማስተካከል አልተሳካም፤ እባክዎ የባክኤንድ ኤፒአይ መኖሩን ያረጋግጡ።');
     }
   };
 
-  // 🗑️ መልዕክት ለማጥፋት (Delete)
+  // 🗑️ የተላከን መልዕክት ሙሉ በሙሉ ለማጥፋት (Delete Process)
   const handleDeleteOrder = async (orderId) => {
-    if (!window.confirm("ይህንን መልዕክት በእርግጥ ማጥፋት ይፈልጋሉ?")) return;
+    if (!window.confirm("ይህንን መልዕክት በእርግጥ ማጥፋት ይፈልጋሉ? ከሁለታችሁም ቻት ላይ ይጠፋል።")) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/user/orders/delete/${orderId}`, {
         method: 'DELETE'
       });
       const data = await res.json();
       if (data.success || res.ok) {
-        alert('መልዕክቱ ጠፍቷል!');
-        fetchMyOrders();
+        alert('መልዕክትዎ ጠፍቷል!');
+        fetchMyOrders(); // ቻቱን ማደስ
       }
     } catch (err) {
-      alert('ማጥፋት አልተሳካም፤ (ማስታወሻ፦ ባክኤንድ ኤፒአይ ያስፈልገዋል)');
+      alert('ማጥፋት አልተሳካም፤ እባክዎ የባክኤንድ ኤፒአይ መኖሩን ያረጋግጡ።');
     }
   };
 
   return (
     <div className="order-page-container">
+      {/* 🔝 የላይኛው ናቭባር (Navbar) */}
       <nav className="order-navbar">
         <div className="order-logo-area">
           <img src={logoImg} alt="Logo" className="order-logo-img" />
@@ -73,32 +82,38 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
         </div>
       </nav>
 
+      {/* 🔲 ዋናው መዋቅር (Main Grid) */}
       <div className="order-main-grid">
+        
+        {/* 1️⃣ የግራ ክፍል፦ አዲስ ማዘዣ ፎርም */}
         <div className="order-form-wrapper">
           <div className="order-card-form">
             <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
-            <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶፍትዌር ዝርዝር እዚህ ያስገቡ</p>
+            <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶ프트ዌር ዝርዝር እዚህ ያስገቡ</p>
             
             <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
               <div className="input-group-fixed">
                 <label>የድርጅትዎ ስም</label>
                 <input type="text" name="name" placeholder="ለምሳሌ፦ አቢሲኒያ ቴክ" value={formData.name} onChange={handleContactChange} required className="input-field" />
               </div>
+
               <div className="input-group-fixed">
-                <label>ኢሜይል</label>
+                <label>ኢሜይል (አይቀየርም)</label>
                 <input type="email" name="email" value={formData.email = user.email} disabled className="input-field order-disabled-input" />
               </div>
+
               <div className="input-group-fixed">
                 <label>የስራው ዝርዝር መግለጫ</label>
-                <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ በዝርዝር ይጻፉ..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
+                <textarea name="message" placeholder="ሊሰራልዎት የሚፈልጉትን ስራ ወይም ሲስተም በዝርዝር ይጻፉ..." value={formData.message} onChange={handleContactChange} required className="textarea-field order-textarea"></textarea>
               </div>
+
               <button type="submit" className="submit-btn order-submit-btn-fixed">🚀 ትዕዛዝ ያስገቡ</button>
               {status && <p className="order-success-msg">✨ {status}</p>}
             </form>
           </div>
         </div>
 
-        {/* 💬 የቴሌግራም ቻት ክፍል */}
+        {/* 2️⃣ የቀኝ ክፍል፦ የቴሌግራም ስታይል የቻት ታሪክ */}
         <div className="order-history-wrapper">
           <h3 className="order-section-title">💬 ከባለሙያ ጋር የተደረገ ውይይት</h3>
           <div className="chat-container">
@@ -106,23 +121,31 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
               {myOrders.map((order) => (
                 <div key={order._id} className="chat-group">
                   
-                  {/* የተጠቃሚው መልዕክት (በቀኝ በኩል) */}
+                  {/* 🟢 የተጠቃሚው መልዕክት ባብል (በቀኝ በኩል) */}
                   <div className="chat-bubble user-bubble">
                     {editingOrderId === order._id ? (
+                      /* ✏️ ማስተካከያ ቁልፍ ሲጫን የሚመጣ የውስጥ ፎርም (Inline Edit) */
                       <div className="chat-edit-inline-form">
-                        <input type="text" value={editText} onChange={(e) => setEditText(e.target.value)} className="input-field chat-edit-input" />
+                        <input 
+                          type="text" 
+                          value={editText} 
+                          onChange={(e) => setEditText(e.target.value)} 
+                          className="input-field chat-edit-input" 
+                        />
                         <button onClick={() => handleEditSubmit(order._id)} className="chat-edit-save-btn">✔</button>
                         <button onClick={() => setEditingOrderId(null)} className="chat-edit-cancel-btn">✖</button>
                       </div>
                     ) : (
+                      /* መደበኛ የተላከ መልዕክት እይታ */
                       <>
                         <p className="chat-text">{order.message}</p>
                         <div className="user-bubble-actions">
-                          {/* አድሚኑ መልስ ካልሰጠ ገና ማስተካከልና ማጥፋት ይቻላል */}
+                          
+                          {/* 🔐 ጥበቃ፦ አድሚኑ መልስ ካልጻፈበት ብቻ ማስተካከል እና ማጥፋት ይቻላል */}
                           {!order.reply && (
                             <div className="bubble-action-buttons">
-                              <span className="action-icon-btn" title="ማስተካከያ" onClick={() => { setEditingOrderId(order._id); setEditText(order.message); }}>✏</span>
-                              <span className="action-icon-btn delete-icon-btn" title="ማጥፊያ" onClick={() => handleDeleteOrder(order._id)}>🗑</span>
+                              <span className="action-icon-btn" title="ማስተካከያ (Edit)" onClick={() => { setEditingOrderId(order._id); setEditText(order.message); }}>✏️</span>
+                              <span className="action-icon-btn delete-icon-btn" title="ማጥፊያ (Delete)" onClick={() => handleDeleteOrder(order._id)}>🗑️</span>
                             </div>
                           )}
                           <span className="chat-time">📅 {new Date(order.date || Date.now()).toLocaleDateString()}</span>
@@ -131,7 +154,7 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
                     )}
                   </div>
 
-                  {/* የአድሚኑ መልዕክት (በግራ በኩል) */}
+                  {/* 🟡 የአድሚኑ ምላሽ ባብል (በግራ በኩል) */}
                   {order.reply ? (
                     <div className="chat-bubble admin-bubble">
                       <span className="chat-sender-name">👑 Max Technology Admin</span>
@@ -139,6 +162,7 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
                       <span className="chat-time">ምላሽ ተሰጥቷል</span>
                     </div>
                   ) : (
+                    /* አድሚኑ ገና ያላየው ከሆነ የሚመጣ ምልክት */
                     <div className="chat-status-pending">
                       <span>⏳ አድሚኑ መልዕክትዎን እያየው ነው...</span>
                     </div>
@@ -147,14 +171,16 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
                 </div>
               ))}
 
+              {/* መልዕክት ከሌለ የሚታይ */}
               {myOrders.length === 0 && (
                 <div className="chat-empty">
-                  <p>እስካሁን ምንም የተደረገ ውይይት የለም። አዲስ ትዕዛዝ ሲያስገቡ ቻቱ እዚህ ይጀምራል!</p>
+                  <p>እስካሁን ምንም የተደረገ ውይይት የለም። አዲስ ትዕዛዝ ሲያስገቡ የቴሌግራም ውይይቱ እዚህ ይጀምራል!</p>
                 </div>
               )}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

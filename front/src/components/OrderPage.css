@@ -180,3 +180,66 @@
 }
 .chat-edit-save-btn { background: #2ecc71; border:none; color:white; padding: 5px 10px; border-radius:4px; cursor:pointer;}
 .chat-edit-cancel-btn { background: #e53e3e; border:none; color:white; padding: 5px 10px; border-radius:4px; cursor:pointer;}
+/* ✏️ ቻት ውስጥ መልዕክት ማስተካከያ ዲዛይን */
+.user-bubble-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding-top: 5px;
+}
+
+.bubble-action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-icon-btn {
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.action-icon-btn:hover {
+  opacity: 1;
+}
+
+.chat-edit-inline-form {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  align-items: center;
+}
+
+.chat-edit-input {
+  background: #ffffff !important;
+  color: #111111 !important;
+  padding: 6px 10px !important;
+  font-size: 14px !important;
+  border-radius: 6px !important;
+  border: 1px solid #ccc !important;
+  margin: 0 !important;
+  flex: 1;
+}
+
+.chat-edit-save-btn {
+  background: #2ecc71;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.chat-edit-cancel-btn {
+  background: #e53e3e;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}

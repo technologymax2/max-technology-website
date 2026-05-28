@@ -27,12 +27,13 @@ mongoose.connect(MONGO_URI)
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
 // ==========================================
 
-// ሀ. የተጠቃሚዎች (User) ስኬማ
+// ሀ. የተጠቃሚዎች (User) ስኬማ - (isBlocked እዚህ ላይ ተጨምሯል)
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true }, // እንደ ዩዘርኔም የሚያገለግል
   password: { type: String, required: true },
-  role: { type: String, default: 'normal' } // 'normal' ወይም 'admin'
+  role: { type: String, default: 'normal' }, // 'normal' ወይም 'admin'
+  isBlocked: { type: Boolean, default: false } // 🚫 ለብሎክ ማድረጊያ የተጨመረ
 });
 const User = mongoose.model('User', userSchema);
 
@@ -98,12 +99,17 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
-// ለ. ተጠቃሚዎች መግቢያ (LOGIN)
+// ለ. ተጠቃሚዎች መግቢያ (LOGIN) - (የታገዱ ሰዎችን ይከለክላል)
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
+
+    // 🚫 ተጠቃሚው ታግዶ ከሆነ እንዳይገባ መከልከል
+    if (user.isBlocked) {
+      return res.status(403).json({ success: false, error: 'አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
@@ -144,7 +150,7 @@ app.post('/api/admin/add-admin', async (req, res) => {
   }
 });
 
-// 🚀 [አዲስ] የተመዘገቡ አድሚኖችን ዝርዝር ማያ (የጸጥታ ጥበቃ ሲባል ፓስወርዱ አይላክም)
+// የተመዘገቡ አድሚኖችን ዝርዝር ማያ
 app.get('/api/admin/list', async (req, res) => {
   try {
     const admins = await User.find({ role: 'admin' }).select('-password');
@@ -154,7 +160,7 @@ app.get('/api/admin/list', async (req, res) => {
   }
 });
 
-// 🚀 [አዲስ] የአድሚን መረጃ (ስም እና ዩዘርኔም) ማስተካከያ (PUT)
+// የአድሚን መረጃ ማስተካከያ (PUT)
 app.put('/api/admin/update/:id', async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -165,7 +171,7 @@ app.put('/api/admin/update/:id', async (req, res) => {
   }
 });
 
-// 🚀 [አዲስ] የአድሚን ፓስወርድ መለወጫ / ሪሴት ማድረጊያ (PUT)
+// የአድሚን ፓስወርድ መለወጫ (PUT)
 app.put('/api/admin/reset-password/:id', async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -174,6 +180,16 @@ app.put('/api/admin/reset-password/:id', async (req, res) => {
     res.status(200).json({ success: true, message: 'የአድሚኑ ፓስወርድ በስኬት ተለውጧል!' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ፓስወርድ መቀየር አልተቻለም' });
+  }
+});
+
+// 🗑️ [አዲስ] ረዳት አድሚን ሙሉ በሙሉ መሰረዣ ኤፒአይ
+app.delete('/api/admin/delete/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'አድሚኑ በተሳካ ሁኔታ ተሰርዟል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'አድሚኑን ማጥፋት አልተቻለም' });
   }
 });
 
@@ -201,7 +217,7 @@ app.post('/api/admin/reply/:id', async (req, res) => {
   }
 });
 
-// ረ. አድሚን ማዘዣ የሚያጠፋበት
+// ረ. አድሚን ማዘዣ የሚያጠፋበት (ከቻት ቦክስ ላይ)
 app.delete('/api/admin/messages/:id', async (req, res) => {
   try {
     await Contact.findByIdAndDelete(req.params.id);
@@ -212,7 +228,42 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 });
 
 // ==========================================
-// 5. የደንበኞች መስመሮች (USER/ORDER ROUTES)
+// 5. [አዲስ] የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// ==========================================
+
+// 1. ሁሉንም መደበኛ ደንበኞች ማያ መስመር (Users Tab እንዲሰራ)
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await User.find({ role: 'normal' }).select('-password');
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ተጠቃሚዎችን ማምጣት አልተቻለም' });
+  }
+});
+
+// 2. ተጠቃሚን ብሎክ / አንብሎክ ማድረጊያ መስመር (Block/Unblock API)
+app.put('/api/admin/users/block/:id', async (req, res) => {
+  try {
+    const { isBlocked } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { isBlocked });
+    res.status(200).json({ success: true, message: 'የተጠቃሚው የብሎክ ሁኔታ ተቀይሯል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ብሎክ ማድረግ አልተሳካም' });
+  }
+});
+
+// 3. ተጠቃሚን ሙሉ በሙሉ መሰረዣ መስመር (Delete Regular User Account)
+app.delete('/api/admin/users/delete/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ተጠቃሚውን ማጥፋት አልተቻለም' });
+  }
+});
+
+// ==========================================
+// 6. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
 // ==========================================
 
 // ሰ. ደንበኞች አዲስ ማዘዣ የሚያስገቡበት
@@ -237,8 +288,47 @@ app.get('/api/user/orders/:email', async (req, res) => {
   }
 });
 
+// ✏️ [የተስተካከለ] የላኩትን መልዕክት ማስተካከያ ኤፒአይ (app.put እና Contact ሞዴል ተተክቷል)
+app.put('/api/user/orders/edit/:id', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { message } = req.body;
+
+    const updatedOrder = await Contact.findByIdAndUpdate(
+      orderId,
+      { message: message },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, message: "መልዕክቱ አልተገኘም" });
+    }
+
+    res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ተስተካክሏል", order: updatedOrder });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
+  }
+});
+
+// 🗑️ [የተስተካከለ] የላኩትን መልዕክት ማጥፊያ ኤፒአይ (app.delete እና Contact ሞዴል ተተክቷል)
+app.delete('/api/user/orders/delete/:id', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+
+    const deletedOrder = await Contact.findByIdAndDelete(orderId);
+
+    if (!deletedOrder) {
+      return res.status(404).json({ success: false, message: "መልዕክቱ አልተገኘም" });
+    }
+
+    res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ጠፍቷል" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
+  }
+});
+
 // ==========================================
-// 6. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
+// 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'ሰርቨሩ ዝግጁ ነው!' });
