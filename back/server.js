@@ -32,17 +32,23 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-// 4. Nodemailer Transporter Configuration (Render ላይ የ IPv6 Timeout ችግርን ለመፍታት የተስተካከለ)
+// 4. Nodemailer Transporter Configuration (IPv6 ን አስገድዶ ወደ IPv4 ለመቀየር)
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',   // በባዶ 'service' ፈንታ ቀጥታ የ Gmail IPv4 ሰርቨርን መጥራት
-  port: 587,                // በ Render በነጻ አካውንት ላይ የማይዘጋው የ TLS ፖርት
-  secure: false,            // ለፖርት 587 ሁልጊዜ false መሆን አለበት
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
   tls: {
-    rejectUnauthorized: false // የደህንነት ማረጋገጫው ግንኙነቱን እንዳያቋርጠው ይረዳል
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 10000, // የ10 ሰከንድ መጠበቂያ ጊዜ
+  greetingTimeout: 10000,
+  // 🔥 ይህ መስመር ኖድሜይለር የ Renderን IPv6 ትቶ IPv4 ብቻ እንዲጠቀም ያስገድደዋል
+  dnsLookup: (hostname, options, callback) => {
+    require('dns').lookup(hostname, { family: 4 }, callback);
   }
 });
 
