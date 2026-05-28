@@ -9,7 +9,7 @@
   padding-bottom: 50px;
 }
 
-/* 🧭 ናቭባር ማስተካከያ (Navbar) */
+/* ናቭባር */
 .order-navbar {
   display: flex;
   justify-content: space-between;
@@ -20,32 +20,10 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.order-logo-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.order-logo-img {
-  height: 42px;
-  width: 42px;
-  border-radius: 50%;
-  border: 2px solid #ffd700;
-  object-fit: cover;
-}
-
-.order-brand-name {
-  font-weight: 700;
-  font-size: 19px;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
-.order-user-area {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
+.order-logo-area { display: flex; align-items: center; gap: 12px; }
+.order-logo-img { height: 42px; width: 42px; border-radius: 50%; border: 2px solid #ffd700; object-fit: cover; }
+.order-brand-name { font-weight: 700; font-size: 19px; color: #ffffff; letter-spacing: 0.5px; }
+.order-user-area { display: flex; align-items: center; gap: 15px; }
 
 .order-user-badge {
   color: #ffd700;
@@ -68,24 +46,19 @@
   transition: all 0.3s ease;
 }
 
-.order-logout-btn:hover {
-  background-color: #e53e3e;
-  border-color: #e53e3e;
-  transform: translateY(-1px);
-}
+.order-logout-btn:hover { background-color: #e53e3e; border-color: #e53e3e; transform: translateY(-1px); }
 
-/* 📐 ዋናው ግሪድ አቀማመጥ (Main Grid Layout) */
+/* ግሪድ መዋቅር */
 .order-main-grid {
-  width: 200px;
+  max-width: 1300px;
   margin: 40px auto;
   padding: 0 4%;
   display: grid;
-  grid-template-columns: 1.1fr 1.4fr; /* ግራና ቀኝ መክፈያ */
+  grid-template-columns: 1.1fr 1.4fr;
   gap: 40px;
   align-items: flex-start;
 }
 
-/* 📝 የፎርም ካርድ ማስተካከያ */
 .order-card-form {
   background: #1a1a1a;
   border: 1px solid rgba(255, 215, 0, 0.1);
@@ -94,176 +67,83 @@
   box-shadow: 0 15px 35px rgba(0,0,0,0.4);
 }
 
-.order-form-title {
-  color: #ffd700;
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.order-form-subtitle {
-  color: #888888;
-  font-size: 14px;
-  margin-bottom: 25px;
-}
-
-.input-group-fixed {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
-  text-align: left;
-}
-
-.input-group-fixed label {
-  font-size: 14px;
-  color: #bbbbbb;
-  font-weight: 600;
-}
-
-.order-disabled-input {
-  background-color: #111111 !important;
-  color: #666666 !important;
-  border-color: #222222 !important;
-  cursor: not-allowed;
-}
-
-.order-textarea {
-  height: 140px !important;
-}
-
-.order-submit-btn-fixed {
-  margin-top: 10px;
-  background-color: #ffd700 !important;
-  color: #111111 !important;
-}
-
-.order-submit-btn-fixed:hover {
-  background-color: transparent !important;
-  color: #ffd700 !important;
-}
+.order-form-title { color: #ffd700; font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+.order-form-subtitle { color: #888888; font-size: 14px; margin-bottom: 25px; }
+.input-group-fixed { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; text-align: left; }
+.input-group-fixed label { font-size: 14px; color: #bbbbbb; font-weight: 600; }
+.order-disabled-input { background-color: #111111 !important; color: #666666 !important; border-color: #222222 !important; cursor: not-allowed; }
+.order-textarea { height: 140px !important; }
+.order-submit-btn-fixed { margin-top: 10px; background-color: #ffd700 !important; color: #111111 !important; }
+.order-submit-btn-fixed:hover { background-color: transparent !important; color: #ffd700 !important; }
 
 .order-success-msg {
-  color: #2ecc71;
-  font-weight: 600;
-  text-align: center;
-  margin-top: 15px;
-  background: rgba(46, 204, 113, 0.1);
-  padding: 10px;
-  border-radius: 8px;
+  color: #2ecc71; font-weight: 600; text-align: center; margin-top: 15px; background: rgba(46, 204, 113, 0.1); padding: 10px; border-radius: 8px;
 }
 
-/* 📋 የታሪክ ካርዶች ዝርዝር (Order History) */
 .order-section-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 25px;
-  color: #ffffff;
-  border-left: 4px solid #ffd700;
-  padding-left: 12px;
-  text-align: left;
+  font-size: 22px; font-weight: 700; margin-bottom: 25px; color: #ffffff; border-left: 4px solid #ffd700; padding-left: 12px; text-align: left;
 }
 
-.order-cards-list {
+/* 💬 TELEGRAM CHAT STYLE FOR ORDER PAGE */
+.chat-container {
+  background-color: #14171a;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  height: 550px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.order-status-card {
-  background: #1a1a1a !important;
-  border: 1px solid #252525 !important;
-  padding: 20px 25px !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
-  transition: all 0.3s ease !important;
-}
-
-.order-status-card:hover {
-  border-color: rgba(255, 215, 0, 0.3) !important;
-  transform: translateY(-3px);
-}
-
-.order-card-header {
+.chat-messages-box {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #252525;
-  padding-bottom: 12px;
-  margin-bottom: 15px;
+  flex-direction: column;
+  gap: 25px;
 }
 
-.order-date-badge {
-  font-size: 13px;
-  color: #888888;
-}
+.chat-group { display: flex; flex-direction: column; gap: 10px; }
 
-/* የሁኔታ ባጆች */
-.status-replied-tag {
-  color: #2ecc71;
-  font-weight: 700;
-  font-size: 13px;
-  background: rgba(46, 204, 113, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.status-pending-tag {
-  color: #f1c40f;
-  font-weight: 700;
-  font-size: 13px;
-  background: rgba(241, 196, 15, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.order-msg-text {
-  font-size: 15px;
-  color: #dddddd;
-  line-height: 1.6;
-  text-align: left;
-}
-
-/* 👑 የአድሚን ምላሽ ሳጥን */
-.order-reply-box-fix {
-  background-color: rgba(46, 204, 113, 0.05) !important;
-  border: 1px solid rgba(46, 204, 113, 0.2) !important;
-  border-left: 4px solid #2ecc71 !important;
-  margin-top: 15px;
-  border-radius: 8px;
-  padding: 12px 15px !important;
-  text-align: left;
-}
-
-.order-reply-inner {
-  margin: 0 !important;
-  color: #2ecc71 !important;
+.chat-bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 16px;
   font-size: 15px;
   line-height: 1.5;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* ባዶ ሲሆን ማሳያ */
-.order-empty-box {
-  background: #1a1a1a;
-  border: 1px dashed #333;
-  padding: 40px;
-  border-radius: 12px;
-  text-align: center;
+/* የተጠቃሚው ባብል - በቀኝ */
+.user-bubble {
+  align-self: flex-end;
+  background-color: #ffd700;
+  color: #111111;
+  border-bottom-right-radius: 4px;
+  text-align: left;
 }
 
-.order-empty-text {
-  color: #666666;
-  font-size: 15px;
+/* የአድሚኑ ባብል - በግራ */
+.admin-bubble {
+  align-self: flex-start;
+  background-color: #222222;
+  color: #eeeeee;
+  border: 1px solid #333;
+  border-bottom-left-radius: 4px;
+  text-align: left;
 }
 
-/* 📱 ለሞባይል ስክሪን የሚሆን ማስተካከያ (Responsive) */
+.chat-sender-name { display: block; font-size: 12px; font-weight: 700; color: #ffd700; margin-bottom: 4px; }
+.chat-text { margin: 0; word-break: break-word; }
+.chat-time { display: block; font-size: 10px; text-align: right; margin-top: 5px; opacity: 0.6; }
+.chat-status-pending { align-self: flex-start; font-size: 13px; color: #888888; font-style: italic; padding-left: 10px; }
+.chat-empty { text-align: center; color: #555; margin: auto; padding: 20px; }
+
+/* 📱 ሬስፖንሲቭ ማስተካከያ */
 @media screen and (max-width: 968px) {
-  .order-main-grid {
-    grid-template-columns: 1fr; /* ወደ አንድ ኮለምን ይቀየራል */
-    gap: 30px;
-  }
-  
-  .order-navbar {
-    padding: 12px 4%;
-  }
+  .order-main-grid { grid-template-columns: 1fr; gap: 30px; }
+  .order-navbar { padding: 12px 4%; }
 }

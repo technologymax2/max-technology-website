@@ -157,42 +157,57 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* መ. የደንበኞች መልዕክት ማያ እና ምላሽ መስጫ */}
-      <h3 className="admin-section-heading">🛒 የደንበኞች ማዘዣዎች ዝርዝር እና ምላሽ መስጫ</h3>
-      <table className="custom-table responsive-table">
-        <thead>
-          <tr>
-            <th>ደንበኛ</th>
-            <th>ማዘዣ / መልዕክት</th>
-            <th>የእርስዎ ምላሽ (Reply)</th>
-            <th>እርምጃ</th>
-          </tr>
-        </thead>
-        <tbody>
+      {/* መ. የደንበኞች ቻት ማዘዣዎች ዝርዝር */}
+      <h3 className="admin-section-heading">💬 የደንበኞች የቻት ማዘዣዎች</h3>
+      <div className="admin-chat-container">
+        <div className="admin-chat-list">
           {adminMessages.map((msg) => (
-            <tr key={msg._id}>
-              <td data-label="ደንበኛ" className="text-left-align admin-mobile-center"><strong>{msg.name}</strong><br/><span className="admin-subtext">{msg.email}</span></td>
-              <td data-label="ማዘዣ / መልዕክት" className="text-left-align admin-mobile-center admin-text-break">{msg.message}<br/><small className="admin-date-text">{new Date(msg.date).toLocaleDateString()}</small></td>
-              <td data-label="የእርስዎ ምላሽ (Reply)">
+            <div key={msg._id} className="admin-chat-card">
+              
+              <div className="admin-chat-card-header">
+                <div className="admin-chat-user-info">
+                  <span className="admin-avatar">👤</span>
+                  <div>
+                    <h4>{msg.name}</h4>
+                    <span className="admin-chat-email">{msg.email}</span>
+                  </div>
+                </div>
+                <span className="admin-chat-date">📅 {new Date(msg.date).toLocaleDateString()}</span>
+              </div>
+
+              <div className="admin-chat-body">
+                <div className="admin-user-msg-bubble">
+                  <p>{msg.message}</p>
+                </div>
+
                 {msg.reply ? (
-                  <div className="reply-box">
-                    <strong>የተላከ መልስ፦</strong> {msg.reply}
+                  <div className="admin-reply-msg-bubble">
+                    <span className="reply-label">የእርስዎ ምላሽ፦</span>
+                    <p>{msg.reply}</p>
                   </div>
                 ) : (
-                  <div className="admin-inline-flex admin-wrap-fix">
-                    <input type="text" placeholder="መልስ እዚህ ይጻፉ..." onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })} className="input-field admin-no-margin" />
-                    <button onClick={() => handleReplySubmit(msg._id)} className="btn-action btn-reply">ላክ</button>
+                  <div className="admin-chat-input-area">
+                    <input 
+                      type="text" 
+                      placeholder="ለደንበኛው ምላሽ እዚህ ይጻፉ..." 
+                      onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })} 
+                      className="input-field admin-chat-input"
+                    />
+                    <button onClick={() => handleReplySubmit(msg._id)} className="btn-action btn-reply admin-chat-send-btn">🚀 ላክ</button>
                   </div>
                 )}
-              </td>
-              <td data-label="እርምጃ">
-                <button onClick={() => handleDeleteMessage(msg._id)} className="btn-action btn-delete">አጥፋ</button>
-              </td>
-            </tr>
+              </div>
+
+              <div className="admin-chat-footer">
+                <button onClick={() => handleDeleteMessage(msg._id)} className="btn-action btn-delete btn-sm">🗑️ ይህንን ውይይት አጥፋ</button>
+              </div>
+
+            </div>
           ))}
-        </tbody>
-      </table>
-      {adminMessages.length === 0 && <p className="admin-empty-text">ምንም የቀረበ ትዕዛዝ የለም።</p>}
+
+          {adminMessages.length === 0 && <p className="admin-empty-text">ምንም የቀረበ የቻት መልዕክት የለም።</p>}
+        </div>
+      </div>
     </div>
   );
 }

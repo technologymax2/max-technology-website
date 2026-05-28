@@ -27,7 +27,7 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
 
   return (
     <div className="order-page-container">
-      {/* 🚀 የላይኛው መገናኛ ባር (Navbar) */}
+      {/* የላይኛው መገናኛ ባር (Navbar) */}
       <nav className="order-navbar">
         <div className="order-logo-area">
           <img src={logoImg} alt="Logo" className="order-logo-img" />
@@ -39,13 +39,13 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
         </div>
       </nav>
 
-      {/* 🚀 ዋናው የይዘት ክፍል (Main Layout Grid) */}
+      {/* ዋናው የይዘት ክፍል (Main Layout Grid) */}
       <div className="order-main-grid">
         
         {/* 1. የግራ ክፍል፦ ማዘዣ ፎርም */}
         <div className="order-form-wrapper">
           <div className="order-card-form">
-            <h2 className="order-form-title">🛒 አዲስ የሶፍትዌር ማዘዣ</h2>
+            <h2 className="order-form-title">🛒 አዲስ የሶ프트ዌር ማዘዣ</h2>
             <p className="order-form-subtitle">ሊሰሩ ያሰቡትን ሶፍትዌር ዝርዝር እዚህ ያስገቡ</p>
             
             <form onSubmit={(e) => { handleOrderSubmit(e); setTimeout(fetchMyOrders, 1000); }} className="form-group">
@@ -70,38 +70,42 @@ function OrderPage({ user, handleLogout, formData, handleContactChange, handleOr
           </div>
         </div>
 
-        {/* 2. የቀኝ ክፍል፦ የላኳቸው ማዘዣዎች ሰሌዳ */}
+        {/* 2. የቀኝ ክፍል፦ የላኳቸው ማዘዣዎች (Telegram Chat Style) */}
         <div className="order-history-wrapper">
-          <h3 className="order-section-title">📋 የላኳቸው ማዘዣዎች እና ምላሾች</h3>
-          <div className="order-cards-list">
-            {myOrders.map((order) => (
-              <div key={order._id} className="card order-status-card fade-in">
-                <div className="order-card-header">
-                  <span className="order-date-badge">📅 {new Date().toLocaleDateString()}</span>
-                  <span className={order.status === 'ምላሽ ተሰጥቷል' ? 'status-replied-tag' : 'status-pending-tag'}>
-                    {order.status === 'ምላሽ ተሰጥቷል' ? '● ምላሽ ተሰጥቷል' : '○ በመጠባበቅ ላይ'}
-                  </span>
-                </div>
-                
-                <div className="order-card-body">
-                  <p className="order-msg-text"><strong>የእርስዎ ማዘዣ፦</strong> {order.message}</p>
-                </div>
-
-                {order.reply && (
-                  <div className="order-reply-box-fix">
-                    <p className="order-reply-inner">
-                      <strong>👑 የአድሚን ምላሽ፦</strong> {order.reply}
-                    </p>
+          <h3 className="order-section-title">💬 ከባለሙያ ጋር የተደረገ ውይይት</h3>
+          <div className="chat-container">
+            <div className="chat-messages-box">
+              {myOrders.map((order) => (
+                <div key={order._id} className="chat-group">
+                  
+                  {/* የደንበኛው መልዕክት (በቀኝ በኩል) */}
+                  <div className="chat-bubble user-bubble">
+                    <p className="chat-text">{order.message}</p>
+                    <span className="chat-time">📅 {new Date(order.date || Date.now()).toLocaleDateString()} ማዘዣ</span>
                   </div>
-                )}
-              </div>
-            ))}
-            
-            {myOrders.length === 0 && (
-              <div className="order-empty-box">
-                <p className="order-empty-text">እስካሁን ምንም ያስገቡት የሶ프트ዌር ትዕዛዝ የለም።</p>
-              </div>
-            )}
+
+                  {/* የአድሚኑ ምላሽ (በግራ በኩል) */}
+                  {order.reply ? (
+                    <div className="chat-bubble admin-bubble">
+                      <span className="chat-sender-name">👑 Max Technology Admin</span>
+                      <p className="chat-text">{order.reply}</p>
+                      <span className="chat-time">ምላሽ ተሰጥቷል</span>
+                    </div>
+                  ) : (
+                    <div className="chat-status-pending">
+                      <span>⏳ አድሚኑ መልዕክትዎን እያየው ነው...</span>
+                    </div>
+                  )}
+
+                </div>
+              ))}
+
+              {myOrders.length === 0 && (
+                <div className="chat-empty">
+                  <p>እስካሁን ምንም የተደረገ ውይይት የለም። አዲስ ትዕዛዝ ሲያስገቡ ቻቱ እዚህ ይጀምራል!</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
