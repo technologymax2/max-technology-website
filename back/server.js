@@ -65,40 +65,49 @@ async function seedFirstAdmin() {
 
 // ---- AUTHENTICATION ROUTES ----
 
-// [ቁጥር 2] Signup ከVerification Key ማረጋገጫ ጋር
+// ---- መደበኛ ደንበኞች መመዝገቢያ (SIGNUP - ለኖርማል ዩዘር ብቻ) ----
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const { name, email, password, role, verificationKey } = req.body;
+    const { name, email, password } = req.body;
     
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል ቀድሞ ተመዝግቧል!' });
-
-    let finalRole = 'normal';
-    
-    // ተጠቃሚው አድሚን ለመሆን ከፈለገ ቁልፉን ይፈትሻል
-    if (role === 'admin') {
-      const SECRET_KEY = 'MAX_ADMIN_SECRET_2026'; // ዋናው አድሚን ለሌሎች የሚሰጠው ቁልፍ
-      if (verificationKey !== SECRET_KEY) {
-        return res.status(401).json({ 
-          success: false, 
-          error: 'የተሳሳተ የማረጋገጫ ቁልፍ! አድሚን ለመሆን ከዋናው አድሚን ፈቃድ ማግኘት አለብዎት።' 
-        });
-      }
-      finalRole = 'admin';
-    }
+    if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role: finalRole
+      role: 'normal' // ሁልጊዜም በዌብሳይቱ የሚመዘገብ ሰው ኖርማል ዩዘር ብቻ ይሆናል
     });
 
     await newUser.save();
     res.status(201).json({ success: true, message: 'ምዝገባው በስኬት ተጠናቋል!' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'የምዝገባ ስህተት ተፈጥሯል' });
+  }
+});
+
+// ---- [አዲስ] አድሚን ብቻ ሌላ አድሚን የሚጨምርበት ራውት (ADD NEW ADMIN) ----
+app.post('/api/admin/add-admin', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newAdmin = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'admin' // አድሚኑ ስለመዘገበው በቀጥታ አድሚን ይሆናል
+    });
+
+    await newAdmin.save();
+    res.status(201).json({ success: true, message: 'አዲሱ አድሚን በስኬት ተመዝግቧል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'አድሚን መፍጠር አልተቻለም' });
   }
 });
 

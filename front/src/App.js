@@ -7,14 +7,18 @@ function App() {
   
   // Auth States
   const [user, setUser] = useState(null); 
-  const [authMode, setAuthMode] = useState('login'); // 'login' ወይም 'signup' ወይም 'admin-dashboard' ወይም 'order-page'
-  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '', role: 'normal', verificationKey: '' });
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', 'admin-dashboard', 'order-page'
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authStatus, setAuthStatus] = useState('');
   
+  // Admin States
+  const [adminMessages, setAdminMessages] = useState([]);
+  const [newAdminForm, setNewAdminForm] = useState({ name: '', email: '', password: '' });
+  const [adminAddStatus, setAdminAddStatus] = useState('');
+
   // App States
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState('');
-  const [adminMessages, setAdminMessages] = useState([]);
 
   useEffect(() => {
     if (user && user.role === 'admin') {
@@ -40,7 +44,11 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Login እና Signup አያያዝ ከ ገጽ አቅጣጫ መቀየር (Redirect) ጋር
+  const handleNewAdminChange = (e) => {
+    setNewAdminForm({ ...newAdminForm, [e.target.name]: e.target.value });
+  };
+
+  // መደበኛ Login እና Signup
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthStatus('በመላክ ላይ...');
@@ -58,7 +66,6 @@ function App() {
         if (authMode === 'login') {
           setUser(data.user);
           setAuthStatus('');
-          // 🚀 [ቁጥር 3] እንደ ተጠቃሚው ማዕረግ (Role) ገጹን መቀየሪያ ሎጂክ
           if (data.user.role === 'admin') {
             setAuthMode('admin-dashboard');
           } else {
@@ -76,7 +83,29 @@ function App() {
     }
   };
 
-  // የትዕዛዝ መላኪያ ፎርም (Order Submission)
+  // 👑 አድሚኑ አዲስ አድሚን የሚመዘግብበት ፎርም አያያዝ
+  const handleAddAdminSubmit = async (e) => {
+    e.preventDefault();
+    setAdminAddStatus('በመመዝገብ ላይ...');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/add-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAdminForm)
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setAdminAddStatus(`✅ አዲሱ አድሚን ተፈጥሯል! ለ ${newAdminForm.name} ዩዘርኔም እና ፓስወርዱን ይላኩለት።`);
+        setNewAdminForm({ name: '', email: '', password: '' }); // ፎርሙን ባዶ ማድረጊያ
+      } else {
+        setAdminAddStatus(data.error || 'አድሚን መፍጠር አልተቻለም');
+      }
+    } catch (error) {
+      setAdminAddStatus('የሰርቨር ስህተት!');
+    }
+  };
+
+  // የትዕዛዝ መላኪያ ፎርም
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
     setStatus('በመላክ ላይ...');
@@ -88,7 +117,7 @@ function App() {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        setStatus('ትዕዛዝዎ በስኬት ተመዝግቧል! አስተዳዳሪው ያየዋል።');
+        setStatus('ትዕዛዝዎ በስኬት ተመዝግቧል!');
         setFormData({ name: '', email: '', message: '' });
       } else {
         setStatus(data.error || 'ችግር ተፈጥሯል!');
@@ -115,12 +144,12 @@ function App() {
     setAuthMode('login');
   };
 
-  // ---- 1. LOGIN / SIGNUP VIEW ----
+  // ---- 1. LOGIN / SIGNUP VIEW (ለደንበኞች ብቻ) ----
   if (authMode === 'login' || authMode === 'signup') {
     return (
       <div className="auth-box" style={{ maxWidth: '420px', margin: '80px auto', padding: '30px', border: '1px solid #ddd', borderRadius: '12px', textAlign: 'center', boxShadow: '0px 4px 10px rgba(0,0,0,0.1)' }}>
         <img src={logoImg} alt="Logo" style={{ width: '70px', borderRadius: '50%' }} />
-        <h2>{authMode === 'login' ? 'ወደ Max Technology ይግቡ' : 'አዲስ አካውንት ይክፈቱ'}</h2>
+        <h2>{authMode === 'login' ? 'ወደ Max Technology ይግቡ' : 'የደንበኛ አካውንት ይክፈቱ'}</h2>
         
         <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {authMode === 'signup' && (
@@ -128,19 +157,6 @@ function App() {
           )}
           <input type="text" name="email" placeholder="ኢሜይል ወይም የተጠቃሚ ስም" onChange={handleAuthChange} required style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ccc' }} />
           <input type="password" name="password" placeholder="ፓስወርድ" onChange={handleAuthChange} required style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ccc' }} />
-          
-          {authMode === 'signup' && (
-            <>
-              <select name="role" onChange={handleAuthChange} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ccc' }}>
-                <option value="normal">Normal User (ደንበኛ)</option>
-                <option value="admin">Admin User (አስተዳዳሪ)</option>
-              </select>
-              {/* 🚀 [ቁጥር 2] አድሚን ከተመረጠ ብቻ የቁልፍ ማስገቢያው ይከፈታል */}
-              {authForm.role === 'admin' && (
-                <input type="text" name="verificationKey" placeholder="የአድሚን ማረጋገጫ ቁልፍ (Verification Key)" onChange={handleAuthChange} required style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ff9900', background: '#fffde6' }} />
-              )}
-            </>
-          )}
           
           <button type="submit" style={{ padding: '12px', background: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
             {authMode === 'login' ? 'ይግቡ' : 'ይመዝገቡ'}
@@ -154,7 +170,7 @@ function App() {
     );
   }
 
-  // ---- 2. [ቁጥር 3] ADMIN DASHBOARD VIEW ----
+  // ---- 2. ADMIN DASHBOARD VIEW (አድሚን አዲስ አድሚን መመዝገቢያ ያለው) ----
   if (authMode === 'admin-dashboard' && user && user.role === 'admin') {
     return (
       <div style={{ padding: '40px', fontFamily: 'Arial' }}>
@@ -164,7 +180,21 @@ function App() {
         </div>
         <p style={{ marginTop: '15px' }}>እንኳን ደህና መጣህ፣ ዋና አስተዳዳሪ <strong>{user.name}</strong>!</p>
         
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '25px' }} border="1" cellPadding="10">
+        {/* ➕ አዲስ አድሚን መመዝገቢያ ሰሌዳ (የተጨመረ አዲስ ክፍል) */}
+        <div style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0', marginTop: '20px', maxWidth: '500px' }}>
+          <h3>➕ አዲስ ረዳት አድሚን ይጨምሩ</h3>
+          <form onSubmit={handleAddAdminSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input type="text" name="name" placeholder="የአዲሱ አድሚን ስም" value={newAdminForm.name} onChange={handleNewAdminChange} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="text" name="email" placeholder="የአድሚን ዩዘርኔም / ኢሜይል" value={newAdminForm.email} onChange={handleNewAdminChange} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="password" name="password" placeholder="የምስጢር ቃል (Password)" value={newAdminForm.password} onChange={handleNewAdminChange} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <button type="submit" style={{ padding: '10px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>አድሚኑን መዝግብ</button>
+          </form>
+          {adminAddStatus && <p style={{ color: 'blue', marginTop: '10px', fontWeight: 'bold' }}>{adminAddStatus}</p>}
+        </div>
+
+        {/* የትዕዛዞች ሰንጠረዥ */}
+        <h3 style={{ marginTop: '40px' }}>🛒 የደንበኞች ማዘዣዎች ዝርዝር</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }} border="1" cellPadding="10">
           <thead>
             <tr style={{ background: '#007bff', color: 'white' }}>
               <th>የደንበኛ ስም</th>
@@ -193,7 +223,7 @@ function App() {
     );
   }
 
-  // ---- 3. [ቁጥር 3] NORMAL USER / ORDER PAGE VIEW ----
+  // ---- 3. NORMAL USER / ORDER PAGE VIEW ----
   if (authMode === 'order-page' && user) {
     return (
       <div className="container" style={{ padding: '20px' }}>
@@ -208,7 +238,6 @@ function App() {
           </div>
         </nav>
 
-        {/* Order Form Section */}
         <section id="contact" style={{ maxWidth: '600px', margin: '50px auto', padding: '30px', border: '1px solid #eee', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
           <h2 style={{ textAlign: 'center', color: '#007bff' }}>🛒 የሶፍትዌር ማዘዣ ገጽ (Order Page)</h2>
           <p style={{ textAlign: 'center', color: '#666' }}>የሚፈልጉትን የዌብሳይት ወይም የሲስተም አይነት በዝርዝር ይጻፉልን።</p>
