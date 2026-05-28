@@ -8,7 +8,13 @@ const app = express();
 
 // 1. Middleware
 app.use(express.json());
-app.use(cors()); // ማሳሰቢያ፡ ፍሮንትኤንዱን deploy ካደረግክ በኋላ cors(origin: 'የአንተ_vercel_ሊንክ') ብታደርገው ለደህንነት ይመረጣል።
+
+// የ CORS ማስተካከያ፦ ፍሮንትኤንድህ (Vercel) በነጻነት ወደዚህ ባክኤንድ መረጃ እንዲልክ ይፈቅዳል
+app.use(cors({
+  origin: 'https://max-technology-website.vercel.app',
+  methods: ['POST', 'GET', 'OPTIONS'],
+  credentials: true
+}));
 
 // 2. MongoDB Connection (ከ .env ፋይል ያነባል)
 const MONGO_URI = process.env.MONGO_URI;
