@@ -7,9 +7,10 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const [editForm, setEditForm] = useState({ name: '', email: '' });
   const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
 
-  // ሰርቨሩ ሲነሳ የአድሚኖችን ዝርዝር ያመጣል
+ // ከዚህ በታች ባለው መልኩ ይተኩት
   useEffect(() => {
     fetchAdmins();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAdmins = async () => {

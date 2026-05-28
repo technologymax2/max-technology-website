@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 function OrderPage({ user, handleLogout, formData, handleContactChange, handleOrderSubmit, status, logoImg, API_BASE_URL }) {
   const [myOrders, setMyOrders] = useState([]);
 
-  // የራሱን መልስና ማዘዣ ለማምጣት
+  // ከዚህ በታች ባለው መልኩ ይተኩት
   useEffect(() => {
     fetchMyOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMyOrders = async () => {
