@@ -530,3 +530,34 @@
   border-radius: 8px;
   margin-bottom: 10px;
 }
+/* የቻት መስኮቱ መያዣ - አጠቃላይ ቁመቱን እንገድበዋለን */
+.telegram-chat-window {
+  position: relative; /* ይህ ለውስጥ መጻፊያው ወሳኝ ነው */
+  display: flex;
+  flex-direction: column;
+  height: 500px; /* እንደ ፍላጎትህ መጠን አስተካክለው (ለምሳሌ 500px ወይም 70vh) */
+  background: #0d0f12;
+  border-left: 1px solid #30363d;
+  overflow: hidden; /* የቻት ኤሪያው እንዳይበላሽ */
+}
+
+/* የቻት መልዕክቶች የሚታዩበት ዋና ክፍል */
+.chat-window-body {
+  flex: 1; /* የቀረውን ቦታ በሙሉ ይያዝ */
+  overflow-y: auto; /* መልዕክቶች ሲበዙ እንዲሽከረከር (scroll) ያደርጋል */
+  padding: 20px;
+}
+
+/* የመጻፊያ ሳጥኑ - ከቻት መስኮቱ ግርጌ ተጣብቆ እንዲቀመጥ */
+.admin-chat-footer-input {
+  position: absolute; /* ከወላጅ ኮንቴይነር ጋር ይጣበቃል */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #161b22;
+  border-top: 1px solid #30363d;
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+} 
