@@ -3,7 +3,7 @@ import './AdminDashboard.css';
 import Footer from './Footer';
 import { uploadImageToImgBB } from './imageUploading';
 
-function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage }) {
+function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage, projects, setProjects }) {
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የደንበኞች ዝርዝር
@@ -19,6 +19,16 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   // እነዚህን ስቴቶች መግለጽህን እርግጠኛ ሁን
 const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
 const [uploading, setUploading] = useState(false);
+
+
+useEffect(() => {
+    fetchMessages();
+    fetchAdmins();
+    fetchUsers();
+    const interval = setInterval(() => { fetchMessages(); }, 5000); 
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE_URL]); // <-- እዚህ ጋር API_BASE_URL ን ጨምርበት
 
   useEffect(() => {
     fetchMessages();
@@ -217,6 +227,22 @@ const handleProjectSubmit = async (e) => {
       alert('ተጠቃሚውን ማጥፋት አልተቻለም');
     }
   };
+ const handleDeleteProject = async (id) => {
+  if (window.confirm('ይህንን ፕሮጀክት በእርግጥ ማጥፋት ይፈልጋሉ?')) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert('ፕሮጀክቱ ተሰርዟል!');
+        // እዚህ ጋር setProjects ን መጠቀምህ ነው ማስጠንቀቂያውን የሚያጠፋው
+        setProjects(prev => prev.filter(p => p._id !== id)); 
+      }
+    } catch (err) {
+      alert('ማጥፋት አልተቻለም');
+    }
+  }
+};
 
   return (
     <div className="admin-dashboard-container">
@@ -242,38 +268,40 @@ const handleProjectSubmit = async (e) => {
     onClick={() => setActiveTab('users')}>👤 ደንበኞች</button>
 </div>
 {activeTab === 'projects' && (
-  <div className="card">
-    <h3>🚀 ፖርትፎሊዮ ማስተዳደሪያ</h3>
-    <input 
-      type="text" 
-      placeholder="ስም" 
-      value={projectForm.title} 
-      onChange={(e) => setProjectForm({...projectForm, title: e.target.value})} 
-      className="input-field" 
-    />
-    <input 
-      type="url" 
-      placeholder="ሊንክ" 
-      value={projectForm.link} 
-      onChange={(e) => setProjectForm({...projectForm, link: e.target.value})} 
-      className="input-field" 
-    />
-    <input 
-      type="file" 
-      onChange={handleImageUpload} // ይህ ፋንክሽን ጥቅም ላይ ዋለ
-      className="input-field" 
-    />
-    <button 
-      onClick={handleProjectSubmit} // ይህ ፋንክሽን ጥቅም ላይ ዋለ
-      className="btn-action"
-      disabled={uploading} // ይህ ስቴት ጥቅም ላይ ዋለ
-    >
-      {uploading ? 'በመጫን ላይ...' : 'መዝግብ'}
-    </button>
-  </div>
-  
-)}
-      {/* 1️⃣ ታብ 1፦ የቴሌግራም ቻት መልዕክቶች */}
+        <div className="card">
+          <h3>🚀 ፖርትፎሊዮ ማስተዳደሪያ</h3>
+          
+          <div className="project-form-section" style={{marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #333'}}>
+            <input type="text" placeholder="የፕሮጀክቱ ስም" value={projectForm.title} onChange={(e) => setProjectForm({...projectForm, title: e.target.value})} className="input-field" />
+            <input type="url" placeholder="የፕሮጀክቱ ሊንክ" value={projectForm.link} onChange={(e) => setProjectForm({...projectForm, link: e.target.value})} className="input-field" />
+            <input type="file" onChange={handleImageUpload} className="input-field" />
+            <button onClick={handleProjectSubmit} className="btn-action" disabled={uploading}>
+              {uploading ? 'በመጫን ላይ...' : 'መዝግብ'}
+            </button>
+          </div>
+
+          <h3>📋 ያሉ ፕሮጀክቶች</h3>
+          <div className="admin-projects-list" style={{display: 'grid', gap: '15px'}}>
+            {projects && projects.length > 0 ? (
+              projects.map((p) => (
+                <div key={p._id} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: '#161b22', borderRadius: '8px', border: '1px solid #30363d'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                    <img src={p.imageUrl} alt={p.title} style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px'}} />
+                    <span>{p.title}</span>
+                  </div>
+                  <button onClick={() => handleDeleteProject(p._id)} style={{background: '#ff4444', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer'}}>
+                    🗑 አጥፋ
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p>ምንም ፕሮጀክት የለም።</p>
+            )}
+          </div>
+        </div>
+      )}
+      
+         {/* 1️⃣ ታብ 1፦ የቴሌግራም ቻት መልዕክቶች */}
       {activeTab === 'messages' && (
         <>
           <h3 className="admin-section-heading">💬 የደንበኞች የቻት ማዘዣዎች (Telegram Split Mode)</h3>

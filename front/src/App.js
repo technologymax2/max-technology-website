@@ -33,9 +33,7 @@ function App() {
 
   // Order
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
+    name: '', email: '',message: ''
   });
 
   const [status, setStatus] = useState('');
@@ -203,50 +201,15 @@ function App() {
     setCurrentScreen('home');
   };
 
-  // HOME
   if (currentScreen === 'home') {
     return (
       <div
-        className="home-container"
-        style={{ fontFamily: 'Arial, sans-serif' }}
-      >
-        {/* Navbar */}
-        <nav
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '15px 40px',
-            background: '#ffffff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-          >
-            <img
-              src={logoImg}
-              alt="Logo"
-              style={{
-                width: '45px',
-                borderRadius: '50%'
-              }}
-            />
+        className="home-container">
+        <nav>
+          <div>
+            <img src={logoImg} alt="Logo"/>
 
-            <span
-              style={{
-                fontWeight: 'bold',
-                fontSize: '20px',
-                color: '#333'
-              }}
-            >
+            <span>
               Max Technology
             </span>
           </div>
@@ -271,16 +234,7 @@ function App() {
             </button>
           </div>
         </nav>
-
-        {/* Hero */}
-        <header
-          style={{
-            textAlign: 'center',
-            padding: '100px 20px',
-            background:
-              'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
-          }}
-        >
+        <header>
           <h1>እንኳን ወደ Max Technology በሰላም መጡ!</h1>
 
           <p>
@@ -289,37 +243,21 @@ function App() {
           </p>
 
           <button
-            onClick={() => setCurrentScreen('login')}
-          >
-            አሁኑኑ ይዘዙን!
+            onClick={() => setCurrentScreen('login')}> አሁኑኑ ይዘዙን!
           </button>
         </header>
 
-        {/* Projects */}
-        <div
-          className="projects-display"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '20px',
-            padding: '40px'
-          }}
-        >
-          {projects.map((p) => (
-            <div
-              key={p._id}
-              className="project-card"
-            >
-              <img
-                src={p.imageUrl}
-                alt={p.title}
-                style={{ width: '100%' }}
-              />
-
-              <h3>{p.title}</h3>
-            </div>
-          ))}
-        </div>
+        {/* Projects - አሁን ሊንክ ብቻ አለው */}
+<div className="projects-display">
+  {projects.map((p) => (
+    <div key={p._id} className="project-card">
+      <a href={p.link || "#"} target="_blank" rel="noopener noreferrer">
+        <img src={p.imageUrl} alt={p.title} style={{ cursor: 'pointer' }} />
+      </a>
+      <h3>{p.title}</h3>
+    </div>
+  ))}
+</div>
 
         <Footer />
       </div>
@@ -333,12 +271,7 @@ function App() {
   ) {
     return (
       <div>
-        <nav
-          style={{
-            padding: '15px 40px',
-            background: '#fff'
-          }}
-        >
+        <nav>
           <span
             onClick={() => setCurrentScreen('home')}
             style={{
@@ -369,7 +302,7 @@ function App() {
     );
   }
 
-  // ADMIN
+// ADMIN
   if (
     currentScreen === 'admin-dashboard' &&
     user?.role === 'admin'
@@ -391,6 +324,10 @@ function App() {
         adminAddStatus={adminAddStatus}
         API_BASE_URL={API_BASE_URL}
         handleDeleteMessage={handleDeleteMessage}
+        
+        // ✅ አዲሶቹ ፕሮፕሶች እዚህ መጨመር አለባቸው፦
+        projects={projects}
+        setProjects={setProjects}
       />
     );
   }
