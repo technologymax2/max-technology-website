@@ -6,14 +6,14 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]); 
-  const [hrList, setHrList] = useState([]); // 🏢 የ HR ዝርዝር
+  const [hrList, setHrList] = useState([]); 
   const [activeTab, setActiveTab] = useState('messages');
 
+  // እነዚህን ተጠቅመናቸዋል (ስለዚህ ESLint ኤርር አያመጣም)
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '' });
   const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
 
-  // 🏢 አዲስ HR መመዝገቢያ ፎርም
   const [hrForm, setHrForm] = useState({ name: '', email: '', password: '' });
   const [hrStatus, setHrStatus] = useState('');
 
@@ -71,7 +71,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🏢 HRዎችን ከባክኤንድ ማምጫ
   const fetchHRs = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/hrs`);
@@ -84,7 +83,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🏢 አዲስ HR በአድሚን መመዝገቢያ
   const handleHrSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -106,7 +104,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🏢 HR መሰረዣ
   const handleDeleteHR = async (id) => {
     if (!window.confirm('ይህንን HR ከሲስተሙ ማጥፋት ይፈልጋሉ?')) return;
     try {
@@ -119,6 +116,43 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       }
     } catch (err) {
       alert('ማጥፋት አልተቻለም');
+    }
+  };
+
+  // 🛠️ የተጠየቀው handleUpdateAdmin (ተጠቃሚ እንዲኖረው ተደርጓል)
+  const handleUpdateAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/update/${editingAdmin}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      if (res.ok) {
+        alert('የአድሚን መረጃ ተስተካክሏል!');
+        setEditingAdmin(null);
+        fetchAdmins();
+      }
+    } catch (err) {
+      alert('ማስተካከል አልተሳካም');
+    }
+  };
+
+  // 🛠️ የተጠየቀው handleResetPassword (ተጠቃሚ እንዲኖረው ተደርጓል)
+  const handleResetPassword = async (id) => {
+    if (!passwordReset.newPassword || passwordReset.id !== id) return alert('እባክዎ አዲስ ፓስወርድ ይጻፉ!');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/reset-password/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: passwordReset.newPassword })
+      });
+      if (res.ok) {
+        alert('ፓስወርዱ ተቀይሯል!');
+        setPasswordReset({ id: '', newPassword: '' });
+      }
+    } catch (err) {
+      alert('መቀየር አልተቻለም');
     }
   };
 
@@ -172,41 +206,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       }
     } catch (err) { 
       alert('ስህተት ተፈጥሯል'); 
-    }
-  };
-
-  const handleUpdateAdmin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/update/${editingAdmin}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      });
-      if (res.ok) {
-        alert('የአድሚን መረጃ ተስተካክሏል!');
-        setEditingAdmin(null);
-        fetchAdmins();
-      }
-    } catch (err) {
-      alert('ማስተካከል አልተሳካም');
-    }
-  };
-
-  const handleResetPassword = async (id) => {
-    if (!passwordReset.newPassword || passwordReset.id !== id) return alert('እባክዎ አዲስ ፓስወርድ ይጻፉ!');
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/reset-password/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newPassword: passwordReset.newPassword })
-      });
-      if (res.ok) {
-        alert('ፓስወርዱ ተቀይሯል!');
-        setPasswordReset({ id: '', newPassword: '' });
-      }
-    } catch (err) {
-      alert('መቀየር አልተቻለም');
     }
   };
 
@@ -322,7 +321,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* Tab: HR Management (Admin creates HR accounts) */}
+      {/* Tab: HR Management */}
       {activeTab === 'hr_management' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
@@ -420,7 +419,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* Tab: Admins */}
+      {/* Tab: Admins (እዚህ ጋር handleResetPassword እና setEditForm በመጠቀም ሙሉ በሙሉ ተካተዋል) */}
       {activeTab === 'admins' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
@@ -434,11 +433,12 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           </div>
           <div className="lg:col-span-2 bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto">
             <h3 className="text-xl font-bold mb-4 text-blue-400">📋 አድሚኖች ዝርዝር</h3>
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[500px]">
               <thead>
                 <tr className="border-b border-gray-700 text-gray-400 text-sm">
                   <th className="p-3">ስም</th>
                   <th className="p-3">ዩዘርኔም</th>
+                  <th className="p-3">ፓስወርድ መቀየሪያ</th>
                   <th className="p-3">እርምጃ</th>
                 </tr>
               </thead>
@@ -448,7 +448,14 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
                     <td className="p-3">{adm.name}</td>
                     <td className="p-3">{adm.email}</td>
                     <td className="p-3">
-                      <button onClick={() => handleDeleteAdmin(adm._id)} className="p-2 bg-red-600 text-white rounded-lg">🗑</button>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="አዲስ ፓስወርድ" value={passwordReset.id === adm._id ? passwordReset.newPassword : ''} onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })} className="p-2 bg-gray-900 border border-gray-700 rounded text-white text-sm w-28" />
+                        <button onClick={() => handleResetPassword(adm._id)} className="px-3 py-1 bg-green-600 text-white rounded text-sm">ቀይር</button>
+                      </div>
+                    </td>
+                    <td className="p-3 flex gap-2">
+                      <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="p-2 bg-yellow-600 text-white rounded">✏</button>
+                      <button onClick={() => handleDeleteAdmin(adm._id)} className="p-2 bg-red-600 text-white rounded">🗑</button>
                     </td>
                   </tr>
                 ))}
@@ -487,6 +494,24 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           </table>
         </div>
       )}
+
+      {/* Edit Admin Modal (handleUpdateAdmin የሚጠቀመው ሞዳል) */}
+      {editingAdmin && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl border border-gray-700">
+            <h3 className="text-xl font-bold mb-4 text-blue-400">📝 የአድሚን መረጃ ማስተካከያ</h3>
+            <form onSubmit={handleUpdateAdmin} className="flex flex-col gap-4">
+              <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+              <input type="text" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+              <div className="flex gap-3 mt-2">
+                <button type="submit" className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl">አስቀምጥ</button>
+                <button type="button" onClick={() => setEditingAdmin(null)} className="flex-1 py-3 bg-gray-700 text-white font-bold rounded-xl">አቁም</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
