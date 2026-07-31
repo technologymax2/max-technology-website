@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true }, // እንደ ዩዘርኔም የሚያገለግል
   password: { type: String, required: true },
-  role: { type: String, default: 'normal' }, // 'normal' ወይም 'admin'
+  role: { type: String, default: 'normal' }, // 'normal', 'admin', ወይም 'employee'
   isBlocked: { type: Boolean, default: false } // 🚫 ለብሎክ ማድረጊያ የተጨመረ
 });
 const User = mongoose.model('User', userSchema);
@@ -47,6 +47,21 @@ const contactSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now }
 });
 const Contact = mongoose.model('Contact', contactSchema);
+
+// 🏢 ሐ. የሰራተኞች (Employee) ስኬማ (ለዲጂታል መታወቂያ እና ኤችአር)
+const employeeSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  phone: { type: String, required: true },
+  position: { type: String, required: true },
+  department: { type: String, required: true },
+  idNumber: { type: String, required: true, unique: true },
+  photoUrl: { type: String, default: '' },
+  role: { type: String, default: 'employee' },
+  date: { type: Date, default: Date.now }
+});
+const Employee = mongoose.model('Employee', employeeSchema);
 
 // ==========================================
 // 2. የመጀመሪያው አድሚን መፍጠሪያ (SEEDING)
@@ -71,6 +86,7 @@ async function seedFirstAdmin() {
     console.error('ዋናውን አድሚን መፍጠር አልተቻለም:', error);
   }
 }
+
 // አዲስ የፕሮጀክት ስኪማ
 const projectSchema = new mongoose.Schema({
   title: String,
@@ -98,6 +114,7 @@ app.delete('/api/admin/projects/:id', async (req, res) => {
   await Project.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });
+
 // ==========================================
 // 3. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
 // ==========================================
@@ -129,7 +146,20 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    
+    // መጀመሪያ በ User (አድሚን ወይም መደበኛ) መፈለግ
+    let user = await User.findOne({ email });
+    let role = user ? user.role : null;
+
+    // በ User ካልተገኘ በ Employee (ሰራተኛ) መፈለግ
+    if (!user) {
+      const employee = await Employee.findOne({ email });
+      if (employee) {
+        user = employee;
+        role = 'employee';
+      }
+    }
+
     if (!user) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
 
     // 🚫 ተጠቃሚው በአድሚን ታግዶ ከሆነ መግቢያ መከልከል
@@ -142,7 +172,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: role }
     });
   } catch (error) {
     res.status(500).json({ success: false, error: 'የመግባት ስህተት ተፈጥሯል' });
@@ -254,19 +284,67 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 });
 
 // ==========================================
-// 5. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// 5. የሰራተኞች ማስተዳደሪያ (HR / EMPLOYEE ROUTES)
 // ==========================================
 
-// 1. ቻት ያደረጉ እና የተመዘገቡ ሰዎችን በሙሉ አዋህዶ የሚያመጣ ስማርት መስመር (Users Tab እንዲሰራ)
+// አዲስ ሰራተኛ መመዝገቢያ
+app.post('/api/hr/employees', async (req, res) => {
+  try {
+    const { name, email, password, phone, position, department, idNumber, photoUrl } = req.body;
+    
+    const existingEmployee = await Employee.findOne({ email });
+    if (existingEmployee) {
+      return res.status(400).json({ success: false, error: 'ይህ ኢሜይል ቀድሞ ተመዝግቧል!' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newEmployee = new Employee({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      position,
+      department,
+      idNumber,
+      photoUrl,
+      role: 'employee'
+    });
+
+    await newEmployee.save();
+    res.status(201).json({ success: true, message: 'ሰራተኛው በስኬት ተመዝግቧል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ኢሜይል ወይም መታወቂያ ቁጥር ቀድሞ ተመዝግቧል!' });
+  }
+});
+
+// ሰራተኞችን ማምጫ
+app.get('/api/hr/employees', async (req, res) => {
+  try {
+    const employees = await Employee.find().sort({ date: -1 });
+    res.status(200).json({ success: true, employees });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ሰራተኞችን ማምጣት አልተቻለም' });
+  }
+});
+
+// ሰራተኛን መሰረዣ
+app.delete('/api/hr/employees/:id', async (req, res) => {
+  try {
+    await Employee.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ሰራተኛው ተሰርዟል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ሰራተኛውን ማጥፋት አልተቻለም' });
+  }
+});
+
+// ==========================================
+// 6. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// ==========================================
+
 app.get('/api/admin/users', async (req, res) => {
   try {
-    // ሀ. በዳታቤዝ ውስጥ 'normal' የሆኑትን ተጠቃሚዎች በሙሉ ማምጣት
     const registeredUsers = await User.find({ role: 'normal' }).select('-password').lean();
-
-    // ለ. በ Contact (መልዕክቶች) ውስጥ ብቻ ያሉ ግን ያልተመዘገቡ ሰዎችንም ለማካተት ከቻት ላይ ኢሜይሎችን መሰብሰብ
     const chatEmails = await Contact.distinct('email');
-
-    // ሐ. ሁለቱንም ዝርዝሮች ማዋሃድ
     let finalUsersList = [...registeredUsers];
 
     for (const email of chatEmails) {
@@ -293,7 +371,6 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
-// 2. ተጠቃሚን ብሎክ / አንብሎክ ማድረጊያ መስመር (Block/Unblock API)
 app.put('/api/admin/users/block/:id', async (req, res) => {
   try {
     const { isBlocked } = req.body;
@@ -323,18 +400,14 @@ app.put('/api/admin/users/block/:id', async (req, res) => {
   }
 });
 
-// 3. ተጠቃሚን ሙሉ በሙሉ መሰረዣ መስመር (Delete Regular User Account)
 app.delete('/api/admin/users/delete/:id', async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId);
     
     if (user) {
-      // አካውንቱን ካጠፋን በኋላ የላካቸውን መልዕክቶችም ጭምር ማጽዳት ከፈለግክ ከስር ያለውን መስመር መክፈት ትችላለህ፦
-      // await Contact.deleteMany({ email: user.email });
       await User.findByIdAndDelete(userId);
     } else {
-      // ከቻት ብቻ የመጣ ከሆነ መልዕክቱን ማጥፋት
       await Contact.findByIdAndDelete(userId);
     }
     
@@ -345,15 +418,13 @@ app.delete('/api/admin/users/delete/:id', async (req, res) => {
 });
 
 // ==========================================
-// 6. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
+// 7. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
 // ==========================================
 
-// ሰ. ደንበኞች አዲስ ማዘዣ የሚያስገቡበት
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
     
-    // 🚫 ደንበኛው በኢሜይሉ ታግዶ እንደሆነ መፈተሽ
     const checkUser = await User.findOne({ email });
     if (checkUser && checkUser.isBlocked) {
       return res.status(403).json({ success: false, error: 'አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!' });
@@ -367,7 +438,6 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// ሸ. ደንበኛ የራሱን ማዘዣዎችና የተሰጡትን ምላሾች ብቻ የሚያይበት መስመር
 app.get('/api/user/orders/:email', async (req, res) => {
   try {
     const orders = await Contact.find({ email: req.params.email }).sort({ date: -1 });
@@ -377,7 +447,6 @@ app.get('/api/user/orders/:email', async (req, res) => {
   }
 });
 
-// ✏️ የላኩትን መልዕክት ማስተካከያ ኤፒአይ
 app.put('/api/user/orders/edit/:id', async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -399,7 +468,6 @@ app.put('/api/user/orders/edit/:id', async (req, res) => {
   }
 });
 
-// 🗑️ የላኩትን መልዕክት ማጥፊያ ኤፒአይ
 app.delete('/api/user/orders/delete/:id', async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -414,7 +482,7 @@ app.delete('/api/user/orders/delete/:id', async (req, res) => {
     res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
   }
 });
-// 💬 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት ለደንበኛ የሚልክበት አዲስ መስመር
+
 app.post('/api/admin/send-new-message', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -423,13 +491,11 @@ app.post('/api/admin/send-new-message', async (req, res) => {
       return res.status(400).json({ success: false, error: 'እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!' });
     }
 
-    // አድሚኑ የጻፈውን መልዕክት በቀጥታ እንደ አዲስ የኮንታክት ሬከርድ እንመዘግበዋለን
-    // ለይቶ ለማወቅ 'message' ላይ የአድሚኑን ጽሑፍ አድርገን፣ 'reply' ላይ ራሱን እንደገመገመ እናደርገዋለን
     const adminNewOrder = new Contact({
       name: name,
       email: email,
       message: `[የባለሙያ መልዕክት]፦ ${message}`, 
-      reply: message, // ለደንበኛው በምላሽ መልክ እንዲታየው
+      reply: message, 
       status: 'ምላሽ ተሰጥቷል'
     });
 
@@ -439,8 +505,9 @@ app.post('/api/admin/send-new-message', async (req, res) => {
     res.status(500).json({ success: false, error: 'መልዕክት መላክ አልተቻለም' });
   }
 });
+
 // ==========================================
-// 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
+// 8. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'ሰርቨሩ ዝግጁ ነው!' });
