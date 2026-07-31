@@ -357,7 +357,6 @@ function AdminDashboard({
             gap: "10px",
             height: "fit-content",
             boxSizing: "border-box",
-            /* በስልክ ስክሪን ላይ እንደ ድሮወር (Drawer) እንዲሰራ */
             transition: "all 0.3s ease",
           }}
         >
@@ -611,7 +610,7 @@ function AdminDashboard({
             </>
           )}
 
-          {/* 3. አድሚኖች አስተዳደር (ለሞባይል በካርድ መልክ እንዲታይ የተስተካከለ) */}
+          {/* 3. አድሚኖች አስተዳደር */}
           {activeTab === "admins" && (
             <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "15px" }}>
               <div className="card admin-form-card">
@@ -657,7 +656,6 @@ function AdminDashboard({
                 {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
               </div>
 
-              {/* ሠንጠረዡ በስልክ ስክሪን ላይ እንዳይጣበቅ በካርድ (Card Grid) መልክ እንዲወርድ ተደርጓል */}
               <div className="card admin-table-card">
                 <h3>📋 ያሉ አድሚኖች ዝርዝር</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
@@ -837,4 +835,4 @@ function AdminDashboard({
   );
 }
 
-In AdminDashboard;
+export default AdminDashboard;
