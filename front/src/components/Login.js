@@ -1,5 +1,4 @@
 import React from 'react';
-import Footer from './Footer';
 
 function Login({ 
   authMode, 
@@ -10,86 +9,119 @@ function Login({
   authStatus, 
   logoImg 
 }) {
-  const isLogin = authMode === 'login';
-
   return (
-    <div className="min-h-screen bg-[#222831] flex flex-col justify-between">
-      <div className="flex-grow flex items-center justify-center p-5">
-        <div className="w-full max-w-[420px] p-8 sm:p-10 bg-[#393e46] border border-yellow-500/10 rounded-[20px] text-center shadow-[0_15px_35px_rgba(0,0,0,0.4)] animate-[authFadeIn_0.6s_ease-out_forwards]">
-          
-          {/* Logo */}
+    <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 w-full">
+      {/* ሎጎ እና ራእስ */}
+      <div className="text-center mb-8">
+        {logoImg && (
           <img 
             src={logoImg} 
-            alt="Max Technology Logo" 
-            className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-yellow-400 transition-all duration-400 hover:scale-110 hover:rotate-6" 
+            alt="Logo" 
+            className="w-16 h-16 rounded-full mx-auto mb-3 object-cover shadow-md border-2 border-blue-500" 
           />
-          
-          {/* Header Title */}
-          <h2 className="text-white text-2xl font-bold mb-8">
-            {isLogin ? 'ወደ Max Technology ይግቡ' : 'የደንበኛ አካውንት ይክፈቱ'}
-          </h2>
-          
-          {/* Auth Form */}
-          <form onSubmit={handleAuthSubmit} className="flex flex-col gap-4">
-            {!isLogin && (
-              <input 
-                type="text" 
-                name="name" 
-                value={authForm?.name || ''}
-                placeholder="ሙሉ ስም" 
-                onChange={handleAuthChange} 
-                required 
-                className="w-full p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-yellow-400 transition text-sm sm:text-base" 
-              />
-            )}
-            
+        )}
+        <h2 className="text-2xl font-bold text-gray-800">
+          {authMode === 'login' ? 'እንኳን ደህና መጡ!' : 'አዲስ አካውንት ይፍጠሩ'}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          {authMode === 'login' 
+            ? 'ለመቀጠል መረጃዎትን ያስገቡ' 
+            : 'መረጃዎትን በመሞላት ይመዝገቡ'}
+        </p>
+      </div>
+
+      {/* የሁኔታ ማሳወቂያ (Error / Success message) */}
+      {authStatus && (
+        <div className={`mb-4 p-3 rounded-lg text-sm font-medium text-center ${
+          authStatus.includes('✅') 
+            ? 'bg-green-50 text-green-700 border border-green-200' 
+            : 'bg-red-50 text-red-600 border border-red-200'
+        }`}>
+          {authStatus}
+        </div>
+      )}
+
+      {/* ዋናው ፎርም */}
+      <form onSubmit={handleAuthSubmit} className="space-y-4">
+        {authMode === 'signup' && (
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+              ሙሉ ስም
+            </label>
             <input 
               type="text" 
-              name="email" 
-              value={authForm?.email || ''}
-              placeholder="ኢሜይል ወይም የተጠቃሚ ስም" 
-              onChange={handleAuthChange} 
+              name="name" 
               required 
-              className="w-full p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-yellow-400 transition text-sm sm:text-base" 
+              placeholder="እባክዎ ሙሉ ስምዎትን ያስገቡ"
+              value={authForm.name || ''} 
+              onChange={handleAuthChange}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
             />
-            
-            <input 
-              type="password" 
-              name="password" 
-              value={authForm?.password || ''}
-              placeholder="ፓስወርድ" 
-              onChange={handleAuthChange} 
-              required 
-              className="w-full p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-yellow-400 transition text-sm sm:text-base" 
-            />
-            
-            <button 
-              type="submit" 
-              className="w-full py-3.5 mt-2 bg-yellow-400 hover:bg-transparent text-gray-900 hover:text-yellow-400 font-bold rounded-xl border-2 border-yellow-400 transition-all duration-300 shadow-md cursor-pointer"
-            >
-              {isLogin ? 'ይግቡ' : 'ይመዝገቡ'}
-            </button>
-          </form>
+          </div>
+        )}
 
-          {/* Status / Error Message */}
-          {authStatus && (
-            <p className="mt-4 bg-red-500/10 text-red-500 font-bold p-2.5 rounded-lg text-sm border border-red-500/20">
-              {authStatus}
-            </p>
-          )}
-          
-          {/* Mode Toggle Switch */}
-          <button 
-            type="button"
-            onClick={() => setAuthMode(isLogin ? 'signup' : 'login')}
-            className="mt-6 text-yellow-400 font-semibold text-sm sm:text-base cursor-pointer bg-transparent border-none transition hover:underline hover:-translate-y-0.5"
-          >
-            {isLogin ? 'አካውንት የለዎትም? ይመዝገቡ' : 'ቀድሞ አካውንት አለዎት? ይግቡ'}
-          </button>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+            ኢሜይል / ዩዘርኔም
+          </label>
+          <input 
+            type="text" 
+            name="email" 
+            required 
+            placeholder="example@mail.com"
+            value={authForm.email || ''} 
+            onChange={handleAuthChange}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+          />
         </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+            ፓስወርድ
+          </label>
+          <input 
+            type="password" 
+            name="password" 
+            required 
+            placeholder="••••••••"
+            value={authForm.password || ''} 
+            onChange={handleAuthChange}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-700 active:scale-[0.98] transition duration-200 text-sm mt-2"
+        >
+          {authMode === 'login' ? 'ግባ (Login)' : 'ተመዝገብ (Sign Up)'}
+        </button>
+      </form>
+
+      {/* ሁነቶችን (Modes) መቀየሪያ */}
+      <div className="mt-6 text-center text-sm text-gray-600">
+        {authMode === 'login' ? (
+          <p>
+            አካውንት የለዎትም?{' '}
+            <button 
+              onClick={() => setAuthMode('signup')} 
+              className="text-blue-600 font-semibold hover:underline focus:outline-none"
+            >
+              ተመዝገብ
+            </button>
+          </p>
+        ) : (
+          <p>
+            ቀድሞ አካውንት አለዎት?{' '}
+            <button 
+              onClick={() => setAuthMode('login')} 
+              className="text-blue-600 font-semibold hover:underline focus:outline-none"
+            >
+              ግባ
+            </button>
+          </p>
+        )}
       </div>
-      
-      <Footer />
     </div>
   );
 }
