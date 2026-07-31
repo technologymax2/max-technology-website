@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
@@ -105,7 +106,7 @@ function HrDashboard({ handleLogout, API_BASE_URL }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Registration Form */}
+        
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
           <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ (እንግሊዝኛ እና አማርኛ)</h3>
           <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-3">
