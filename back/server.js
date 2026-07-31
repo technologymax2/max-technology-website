@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: "normal" },
+  role: { type: String, default: "normal" }, // 'normal', 'admin', 'hr'
   isBlocked: { type: Boolean, default: false },
 });
 const User = mongoose.model("User", userSchema);
@@ -49,7 +49,7 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// ከ HRDashboard ፎርም ጋር ሙሉውን የሚጣጣም የሰራተኛ ሞዴል
+// ከ HRDashboard ፎርም ጋር 100% የሚጣጣም የሰራተኛ ሞዴል
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
@@ -87,7 +87,7 @@ const Project = mongoose.model("Project", projectSchema);
 // ==========================================
 async function seedFirstAdmin() {
   try {
-    const adminEmail = "mamaruanmaw@1925";
+    const adminEmail = "mamaruanmaw@1925"; // በትንሽ ፊደል እንዲሆን ተስተካክሏል
     const existingAdmin = await User.findOne({ email: adminEmail });
 
     if (!existingAdmin) {
@@ -147,7 +147,9 @@ app.post("/api/auth/signup", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res.status(400).json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
+      return res
+        .status(400)
+        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -176,20 +178,26 @@ app.post("/api/auth/login", async (req, res) => {
       const employee = await Employee.findOne({ email: cleanEmail });
       if (employee) {
         user = employee;
-        role = "hr";
+        role = employee.role || "hr";
       }
     }
 
     if (!user)
-      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res
+        .status(400)
+        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     if (user.isBlocked) {
-      return res.status(403).json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል!" });
+      return res
+        .status(403)
+        .json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res
+        .status(400)
+        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     res.status(200).json({
       success: true,
@@ -215,7 +223,9 @@ app.post("/api/admin/add-admin", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
+      return res
+        .status(400)
+        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new User({
@@ -306,10 +316,10 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
 });
 
 // ==========================================
-// 6. የሰራተኞች ማስተዳደሪያ መስመሮች (HR EMPLOYEE ROUTES)
+// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች (HRDashboard Compatible)
 // ==========================================
 
-// አዲስ ሰራተኛ መመዝገቢያ (POST)
+// አዲስ ሰራተኛ መመዝገቢያ (POST) - ከ HRDashboard የሚላከውን መረጃ ይቀበላል
 app.post("/api/hr/employees", async (req, res) => {
   try {
     const { faydaNumber } = req.body;
@@ -331,7 +341,7 @@ app.post("/api/hr/employees", async (req, res) => {
   }
 });
 
-// ሰራተኞችን ማምጫ (GET)
+// ሰራተኞችን ማምጫ (GET) - HRDashboard ዝርዝሩን እንዲያመጣ ያስችላል
 app.get("/api/hr/employees", async (req, res) => {
   try {
     const employees = await Employee.find().sort({ date: -1 });
@@ -352,11 +362,13 @@ app.delete("/api/hr/employees/:id", async (req, res) => {
 });
 
 // ==========================================
-// 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT)
+// 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
 // ==========================================
 app.get("/api/admin/users", async (req, res) => {
   try {
-    const registeredUsers = await User.find({ role: "normal" }).select("-password").lean();
+    const registeredUsers = await User.find({ role: "normal" })
+      .select("-password")
+      .lean();
     const chatEmails = await Contact.distinct("email");
     let finalUsersList = [...registeredUsers];
 
@@ -380,7 +392,9 @@ app.get("/api/admin/users", async (req, res) => {
 
     res.status(200).json({ success: true, users: finalUsersList });
   } catch (error) {
-    res.status(500).json({ success: false, error: "የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም" });
+    res
+      .status(500)
+      .json({ success: false, error: "የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም" });
   }
 });
 
@@ -431,7 +445,7 @@ app.delete("/api/admin/users/delete/:id", async (req, res) => {
 });
 
 // ==========================================
-// 8. የደንበኞች ማዘዣ መስመሮች (CONTACT / ORDER ROUTES)
+// 8. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
 // ==========================================
 app.post("/api/contact", async (req, res) => {
   try {
@@ -440,7 +454,9 @@ app.post("/api/contact", async (req, res) => {
 
     const checkUser = await User.findOne({ email: cleanEmail });
     if (checkUser && checkUser.isBlocked) {
-      return res.status(403).json({ success: false, error: "አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!" });
+      return res
+        .status(403)
+        .json({ success: false, error: "አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!" });
     }
 
     const newContact = new Contact({ name, email: cleanEmail, message });
@@ -448,6 +464,30 @@ app.post("/api/contact", async (req, res) => {
     res.status(201).json({ success: true, message: "ትዕዛዝዎ በስኬት ተቀምጧል!" });
   } catch (error) {
     res.status(500).json({ success: false, error: "ትዕዛዙን ማስቀመጥ አልተቻለም" });
+  }
+});
+
+app.post("/api/admin/send-new-message", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!email || !message) {
+      return res
+        .status(400)
+        .json({ success: false, error: "እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!" });
+    }
+    const cleanEmail = email.toLowerCase().trim();
+
+    const adminNewOrder = new Contact({
+      name: name,
+      email: cleanEmail,
+      message: `[የባለሙያ መልዕክት]፦ ${message}`,
+      reply: message,
+      status: "ምላሽ ተሰጥቷል",
+    });
+    await adminNewOrder.save();
+    res.status(201).json({ success: true, message: "መልዕክትዎ ለደንበኛው ተልኳል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "መልዕክት መላክ አልተቻለም" });
   }
 });
 
