@@ -1,25 +1,25 @@
-Const express = require('express');
-Const mongoose = require('mongoose');
-Const cors = require('cors');
-Const bcrypt = require('bcryptjs');
-Require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-Const app = express();
-App.use(express.json());
+const app = express();
+app.use(express.json());
 
 // የ CORS አደረጃጀት - ማንኛውንም ግንኙነት እንዳያግድ ክፍት ተደርጓል
-App.use(cors({
-  Origin: '*',
-  Methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
-  Credentials: true
+app.use(cors({
+  origin: '*',
+  methods: ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
 }));
 
 // MongoDB የግንኙነት መስመር
-Const MONGO_URI = process.env.MONGO_URI;
-Mongoose.connect(MONGO_URI)
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI)
   .then(() => {
-    Console.log('✅ MongoDB በስኬት ተገናኝቷል!');
-    SeedFirstAdmin(); // ዳታቤዙ እንደተገናኘ የመጀመሪያውን አድሚን ይፈትሻል/ይፈጥራል
+    console.log('✅ MongoDB በስኬት ተገናኝቷል!');
+    seedFirstAdmin(); // ዳታቤዙ እንደተገናኘ የመጀመሪያውን አድሚን ይፈትሻል/ይፈጥራል
   })
   .catch(err => console.error('❌ የዳታቤዝ ግንኙነት ስህተት:', err));
 
@@ -28,17 +28,17 @@ Mongoose.connect(MONGO_URI)
 // ==========================================
 
 // ሀ. የተጠቃሚዎች (User) ስኬማ
-Const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   Name: { type: String, required: true },
   Email: { type: String, required: true, unique: true }, // እንደ ዩዘርኔም የሚያገለግል
   Password: { type: String, required: true },
   Role: { type: String, default: 'normal' }, // 'normal', 'admin', ወይም 'hr'/'employee'
   IsBlocked: { type: Boolean, default: false } // 🚫 ለብሎክ ማድረጊያ የተጨመረ
 });
-Const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
 
 // ለ. የማዘዣዎች/መልዕክቶች (Contact/Order) ስኬማ
-Const contactSchema = new mongoose.Schema({
+const contactSchema = new mongoose.Schema({
   Name: { type: String, required: true },
   Email: { type: String, required: true }, // ከደንበኛው email ጋር የሚገናኝበት
   Message: { type: String, required: true },
@@ -46,10 +46,10 @@ Const contactSchema = new mongoose.Schema({
   Status: { type: String, default: 'በጥበቃ ላይ' }, // 'በጥበቃ ላይ' ወይም 'ምላሽ ተሰጥቷል'
   Date: { type: Date, default: Date.now }
 });
-Const Contact = mongoose.model('Contact', contactSchema);
+const Contact = mongoose.model('Contact', contactSchema);
 
 // 🏢 ሐ. የሰራተኞች (Employee) ስኬማ (ለዲጂታል መታወቂያ እና ኤችአር)
-Const employeeSchema = new mongoose.Schema({
+const employeeSchema = new mongoose.Schema({
   Name: { type: String, required: true },
   Email: { type: String, required: true, unique: true },
   Password: { type: String, required: true },
@@ -61,58 +61,58 @@ Const employeeSchema = new mongoose.Schema({
   Role: { type: String, default: 'employee' }, // 'hr' ወይም 'employee' ሊሆን ይችላል
   Date: { type: Date, default: Date.now }
 });
-Const Employee = mongoose.model('Employee', employeeSchema);
+const Employee = mongoose.model('Employee', employeeSchema);
 
 // ==========================================
 // 2. የመጀመሪያው አድሚን መፍጠሪያ (SEEDING)
 // ==========================================
-Async function seedFirstAdmin() {
-  Try {
-    Const adminEmail = 'mamaruAnmaw@1925';
-    Const existingAdmin = await User.findOne({ email: adminEmail });
+async function seedFirstAdmin() {
+  try {
+    const adminEmail = 'mamaruAnmaw@1925';
+    const existingAdmin = await User.findOne({ Email: adminEmail });
     
-    If (!existingAdmin) {
-      Const hashedPassword = await bcrypt.hash('mame192513', 10);
-      Const firstAdmin = new User({
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('mame192513', 10);
+      const firstAdmin = new User({
         Name: 'Mamaru Anmaw (Main Admin)',
         Email: adminEmail,
         Password: hashedPassword,
         Role: 'admin'
       });
       await firstAdmin.save();
-      Console.log('👑 የመጀመሪያው ዋና አድሚን በስኬት ዳታቤዝ ውስጥ ተፈጥሯል!');
+      console.log('👑 የመጀመሪያው ዋና አድሚን በስኬት ዳታቤዝ ውስጥ ተፈጥሯል!');
     }
   } catch (error) {
-    Console.error('ዋናውን አድሚን መፍጠር አልተቻለም:', error);
+    console.error('ዋናውን አድሚን መፍጠር አልተቻለም:', error);
   }
 }
 
 // አዲስ የፕሮጀክት ስኪማ
-Const projectSchema = new mongoose.Schema({
+const projectSchema = new mongoose.Schema({
   Title: String,
   Link: String,
   ImageUrl: String,
   Date: { type: Date, default: Date.now }
 });
-Const Project = mongoose.model('Project', projectSchema);
+const Project = mongoose.model('Project', projectSchema);
 
 // አዲስ ሲስተም መመዝገቢያ (POST)
-App.post('/api/admin/projects', async (req, res) => {
-  Const newProject = new Project(req.body);
+app.post('/api/admin/projects', async (req, res) => {
+  const newProject = new Project(req.body);
   await newProject.save();
-  Res.json({ success: true });
+  res.json({ success: true });
 });
 
 // ሲስተሞችን ማምጫ (GET)
-App.get('/api/projects', async (req, res) => {
-  Const projects = await Project.find().sort({ date: -1 });
-  Res.json({ success: true, projects });
+app.get('/api/projects', async (req, res) => {
+  const projects = await Project.find().sort({ Date: -1 });
+  res.json({ success: true, projects });
 });
 
 // ሲስተሞችን ማጥፊያ (DELETE)
-App.delete('/api/admin/projects/:id', async (req, res) => {
-  Await Project.findByIdAndDelete(req.params.id);
-  Res.json({ success: true });
+app.delete('/api/admin/projects/:id', async (req, res) => {
+  await Project.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
 });
 
 // ==========================================
@@ -120,62 +120,68 @@ App.delete('/api/admin/projects/:id', async (req, res) => {
 // ==========================================
 
 // ሀ. መደበኛ ደንበኞች መመዝገቢያ (SIGNUP)
-App.post('/api/auth/signup', async (req, res) => {
-  Try {
-    Const { name, email, password } = req.body;
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
     
-    Const existingUser = await User.findOne({ email });
-    If (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
+    const existingUser = await User.findOne({ Email: email });
+    if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
 
-    Const hashedPassword = await bcrypt.hash(password, 10);
-    Const newUser = new User({
-      Name,
-      Email,
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      Name: name,
+      Email: email,
       Password: hashedPassword,
       Role: 'normal'
     });
 
-    Await newUser.save();
-    Res.status(201).json({ success: true, message: 'ምዝገባው በስኬት ተጠናቋል!' });
+    await newUser.save();
+    res.status(201).json({ success: true, message: 'ምዝገባው በስኬት ተጠናቋል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'የምዝገባ ስህተት ተፈጥሯል' });
+    res.status(500).json({ success: false, error: 'የምዝገባ ስህተት ተፈጥሯል' });
   }
 });
 
 // ለ. ተጠቃሚዎች መግቢያ (LOGIN) - (የታገዱ ሰዎችን ይከለክላል)
-App.post('/api/auth/login', async (req, res) => {
-  Try {
-    Const { email, password } = req.body;
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
     
     // መጀመሪያ በ User (አድሚን ወይም መደበኛ) መፈለግ
-    Let user = await User.findOne({ email });
-    Let role = user ? user.role : null;
+    let user = await User.findOne({ Email: email });
+    let role = user ? user.Role : null;
 
     // በ User ካልተገኘ በ Employee (ሰራተኛ) መፈለግ
-    If (!user) {
-      Const employee = await Employee.findOne({ email });
-      If (employee) {
-        User = employee;
-        Role = employee.role || 'employee'; // 👈 የሰራተኛውን ትክክለኛ ሚና (hr ወይም employee) መውሰድ
+    if (!user) {
+      const employee = await Employee.findOne({ Email: email });
+      if (employee) {
+        user = employee;
+        role = employee.Role || 'employee'; // 👈 የሰራተኛውን ትክክለኛ ሚና (hr ወይም employee) መውሰድ
       }
     }
 
-    If (!user) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
+    if (!user) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
 
     // 🚫 ተጠቃሚው በአድሚን ታግዶ ከሆነ መግቢያ መከልከል
-    If (user.isBlocked) {
+    if (user.IsBlocked || user.isBlocked) {
       return res.status(403).json({ success: false, error: 'አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።' });
     }
 
-    Const isMatch = await bcrypt.compare(password, user.password);
-    If (!isMatch) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
+    const isMatch = await bcrypt.compare(password, user.Password);
+    if (!isMatch) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
 
-    Res.status(200).json({
-      Success: true,
-      User: { id: user._id, name: user.name, email: user.email, role: role }
+    res.status(200).json({
+      success: true,
+      user: { 
+        id: user._id, 
+        name: user.Name, 
+        email: user.Email, 
+        role: role ? role.toLowerCase().trim() : 'normal' 
+      }
     });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'የመግባት ስህተት ተፈጥሯል' });
+    console.error("Login Error:", error);
+    res.status(500).json({ success: false, error: 'የመግባት ስህተት ተፈጥሯል' });
   }
 });
 
@@ -184,102 +190,102 @@ App.post('/api/auth/login', async (req, res) => {
 // ==========================================
 
 // ሐ. አዲስ ረዳት አድሚን መመዝገቢያ
-App.post('/api/admin/add-admin', async (req, res) => {
-  Try {
-    Const { name, email, password } = req.body;
+app.post('/api/admin/add-admin', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-    Const existingUser = await User.findOne({ email });
-    If (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
+    const existingUser = await User.findOne({ Email: email });
+    if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
 
-    Const hashedPassword = await bcrypt.hash(password, 10);
-    Const newAdmin = new User({
-      Name,
-      Email,
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newAdmin = new User({
+      Name: name,
+      Email: email,
       Password: hashedPassword,
       Role: 'admin'
     });
 
-    Await newAdmin.save();
-    Res.status(201).json({ success: true, message: 'አዲሱ አድሚን በስኬት ተመዝግቧል!' });
+    await newAdmin.save();
+    res.status(201).json({ success: true, message: 'አዲሱ አድሚን በስኬት ተመዝግቧል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'አድሚን መፍጠር አልተቻለም' });
+    res.status(500).json({ success: false, error: 'አድሚን መፍጠር አልተቻለም' });
   }
 });
 
 // የተመዘገቡ አድሚኖችን ዝርዝር ማያ
-App.get('/api/admin/list', async (req, res) => {
-  Try {
-    Const admins = await User.find({ role: 'admin' }).select('-password');
-    Res.status(200).json({ success: true, admins });
+app.get('/api/admin/list', async (req, res) => {
+  try {
+    const admins = await User.find({ Role: 'admin' }).select('-Password');
+    res.status(200).json({ success: true, admins });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'የአድሚኖችን ዝርዝር ማምጣት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'የአድሚኖችን ዝርዝር ማምጣት አልተቻለም' });
   }
 });
 
 // የአድሚን መረጃ ማስተካከያ (PUT)
-App.put('/api/admin/update/:id', async (req, res) => {
-  Try {
-    Const { name, email } = req.body;
-    Await User.findByIdAndUpdate(req.params.id, { name, email });
-    Res.status(200).json({ success: true, message: 'የአድሚን መረጃ ተስተካክሏል!' });
+app.put('/api/admin/update/:id', async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { Name: name, Email: email });
+    res.status(200).json({ success: true, message: 'የአድሚን መረጃ ተስተካክሏል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ማስተካከሉ አልተሳካም' });
+    res.status(500).json({ success: false, error: 'ማስተካከሉ አልተሳካም' });
   }
 });
 
 // የአድሚን ፓስወርድ መለወጫ (PUT)
-App.put('/api/admin/reset-password/:id', async (req, res) => {
-  Try {
-    Const { newPassword } = req.body;
-    Const hashedPassword = await bcrypt.hash(newPassword, 10);
-    Await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
-    Res.status(200).json({ success: true, message: 'የአድሚኑ ፓስወርድ በስኬት ተለውጧል!' });
+app.put('/api/admin/reset-password/:id', async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { Password: hashedPassword });
+    res.status(200).json({ success: true, message: 'የአድሚኑ ፓስወርድ በስኬት ተለውጧል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ፓስወርድ መቀየር አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ፓስወርድ መቀየር አልተቻለም' });
   }
 });
 
 // 🗑️ ረዳት አድሚን ሙሉ በሙሉ መሰረዣ ኤፒአይ
-App.delete('/api/admin/delete/:id', async (req, res) => {
-  Try {
-    Await User.findByIdAndDelete(req.params.id);
-    Res.status(200).json({ success: true, message: 'አድሚኑ በተሳካ ሁኔታ ተሰርዟል!' });
+app.delete('/api/admin/delete/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'አድሚኑ በተሳካ ሁኔታ ተሰርዟል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'አድሚኑን ማጥፋት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'አድሚኑን ማጥፋት አልተቻለም' });
   }
 });
 
 // መ. አድሚን ሁሉንም የደንበኞች ማዘዣዎች የሚያيበት
-App.get('/api/admin/messages', async (req, res) => {
-  Try {
-    Const messages = await Contact.find().sort({ date: -1 });
-    Res.status(200).json({ success: true, messages });
+app.get('/api/admin/messages', async (req, res) => {
+  try {
+    const messages = await Contact.find().sort({ Date: -1 });
+    res.status(200).json({ success: true, messages });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'መረጃዎችን ማምጣት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'መረጃዎችን ማምጣት አልተቻለም' });
   }
 });
 
 // ሠ. አድሚን ለደንበኛ ማዘዣ መልስ (Reply) የሚጽፍበት መስመር
-App.post('/api/admin/reply/:id', async (req, res) => {
-  Try {
-    Const { reply } = req.body;
-    Await Contact.findByIdAndUpdate(req.params.id, { 
+app.post('/api/admin/reply/:id', async (req, res) => {
+  try {
+    const { reply } = req.body;
+    await Contact.findByIdAndUpdate(req.params.id, { 
       Reply: reply, 
       Status: 'ምላሽ ተሰጥቷል' 
     });
-    Res.status(200).json({ success: true, message: 'ምላሽዎ በተሳካ ሁኔታ ተልኳል!' });
+    res.status(200).json({ success: true, message: 'ምላሽዎ በተሳካ ሁኔታ ተልኳል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ምላሽ መላክ አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ምላሽ መላክ አልተቻለም' });
   }
 });
 
 // ረ. አድሚን ማዘዣ የሚያጠፋበት (ከቻት ቦክስ ላይ)
-App.delete('/api/admin/messages/:id', async (req, res) => {
-  Try {
-    Await Contact.findByIdAndDelete(req.params.id);
-    Res.status(200).json({ success: true, message: 'ማዘዣው ተሰርዟል!' });
+app.delete('/api/admin/messages/:id', async (req, res) => {
+  try {
+    await Contact.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ማዘዣው ተሰርዟል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ማጥፋት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ማጥፋት አልተቻለም' });
   }
 });
 
@@ -288,56 +294,56 @@ App.delete('/api/admin/messages/:id', async (req, res) => {
 // ==========================================
 
 // አዲስ ሰራተኛ መመዝገቢያ (HR ወይም Employee በራስ ሰር እንዲለይ ተደርጓል)
-App.post('/api/hr/employees', async (req, res) => {
-  Try {
-    Const { name, email, password, phone, position, department, idNumber, photoUrl } = req.body;
+app.post('/api/hr/employees', async (req, res) => {
+  try {
+    const { name, email, password, phone, position, department, idNumber, photoUrl } = req.body;
     
-    Const existingEmployee = await Employee.findOne({ email });
-    If (existingEmployee) {
+    const existingEmployee = await Employee.findOne({ Email: email });
+    if (existingEmployee) {
       return res.status(400).json({ success: false, error: 'ይህ ኢሜይል ቀድሞ ተመዝግቧል!' });
     }
 
-    Const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     
     // 🔍 ፖዚሽኑ ወይም ዲፓርትመንቱ 'hr' የሚል ቃል ከያዘ ሮሉን 'hr' እናደርገዋለን
-    Const assignedRole = (position.toLowerCase().includes('hr') || department.toLowerCase().includes('hr')) ? 'hr' : 'employee';
+    const assignedRole = (position.toLowerCase().includes('hr') || department.toLowerCase().includes('hr')) ? 'hr' : 'employee';
 
-    Const newEmployee = new Employee({
-      Name,
-      Email,
+    const newEmployee = new Employee({
+      Name: name,
+      Email: email,
       Password: hashedPassword,
-      Phone,
-      Position,
-      Department,
-      IdNumber,
-      PhotoUrl,
-      Role: assignedRole // 👈 እዚህ ጋር ተስተካክሏል
+      Phone: phone,
+      Position: position,
+      Department: department,
+      IdNumber: idNumber,
+      PhotoUrl: photoUrl,
+      Role: assignedRole 
     });
 
-    Await newEmployee.save();
-    Res.status(201).json({ success: true, message: 'ሰራተኛው በስኬት ተመዝግቧል!' });
+    await newEmployee.save();
+    res.status(201).json({ success: true, message: 'ሰራተኛው በስኬት ተመዝግቧል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ኢሜይል ወይም መታወቂያ ቁጥር ቀድሞ ተመዝግቧል!' });
+    res.status(500).json({ success: false, error: 'ኢሜይል ወይም መታወቂያ ቁጥር ቀድሞ ተመዝግቧል!' });
   }
 });
 
 // ሰራተኞችን ማምጫ
-App.get('/api/hr/employees', async (req, res) => {
-  Try {
-    Const employees = await Employee.find().sort({ date: -1 });
-    Res.status(200).json({ success: true, employees });
+app.get('/api/hr/employees', async (req, res) => {
+  try {
+    const employees = await Employee.find().sort({ Date: -1 });
+    res.status(200).json({ success: true, employees });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ሰራተኞችን ማምጣት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ሰራተኞችን ማምጣት አልተቻለም' });
   }
 });
 
 // ሰራተኛን መሰረዣ
-App.delete('/api/hr/employees/:id', async (req, res) => {
-  Try {
-    Await Employee.findByIdAndDelete(req.params.id);
-    Res.status(200).json({ success: true, message: 'ሰራተኛው ተሰርዟል!' });
+app.delete('/api/hr/employees/:id', async (req, res) => {
+  try {
+    await Employee.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ሰራተኛው ተሰርዟል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ሰራተኛውን ማጥፋት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ሰራተኛውን ማጥፋት አልተቻለም' });
   }
 });
 
@@ -345,22 +351,22 @@ App.delete('/api/hr/employees/:id', async (req, res) => {
 // 6. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
 // ==========================================
 
-App.get('/api/admin/users', async (req, res) => {
-  Try {
-    Const registeredUsers = await User.find({ role: 'normal' }).select('-password').lean();
-    Const chatEmails = await Contact.distinct('email');
-    Let finalUsersList = [...registeredUsers];
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const registeredUsers = await User.find({ Role: 'normal' }).select('-Password').lean();
+    const chatEmails = await Contact.distinct('Email');
+    let finalUsersList = [...registeredUsers];
 
-    For (const email of chatEmails) {
-      Const alreadyExists = finalUsersList.some(u => u.email === email);
-      Const isMainAdmin = email === 'mamaruAnmaw@1925'; 
+    for (const email of chatEmails) {
+      const alreadyExists = finalUsersList.some(u => u.Email === email);
+      const isMainAdmin = email === 'mamaruAnmaw@1925'; 
 
-      If (!alreadyExists && !isMainAdmin) {
-        Const sampleContact = await Contact.findOne({ email });
-        If (sampleContact) {
-          FinalUsersList.push({
+      if (!alreadyExists && !isMainAdmin) {
+        const sampleContact = await Contact.findOne({ Email: email });
+        if (sampleContact) {
+          finalUsersList.push({
             _id: sampleContact._id, 
-            Name: sampleContact.name || 'ስም የሌለው ደንበኛ',
+            Name: sampleContact.Name || 'ስም የሌለው ደንበኛ',
             Email: email,
             IsBlocked: false,
             IsChatOnly: true   
@@ -369,27 +375,27 @@ App.get('/api/admin/users', async (req, res) => {
       }
     }
 
-    Res.status(200).json({ success: true, users: finalUsersList });
+    res.status(200).json({ success: true, users: finalUsersList });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም' });
+    res.status(500).json({ success: false, error: 'የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም' });
   }
 });
 
-App.put('/api/admin/users/block/:id', async (req, res) => {
-  Try {
-    Const { isBlocked } = req.body;
-    Const userId = req.params.id;
+app.put('/api/admin/users/block/:id', async (req, res) => {
+  try {
+    const { isBlocked } = req.body;
+    const userId = req.params.id;
 
-    Const user = await User.findById(userId);
-    If (user) {
-      Await User.findByIdAndUpdate(userId, { isBlocked });
+    const user = await User.findById(userId);
+    if (user) {
+      await User.findByIdAndUpdate(userId, { IsBlocked: isBlocked });
     } else {
-      Const contactData = await Contact.findById(userId);
-      If (contactData) {
-        Const dummyPassword = await bcrypt.hash('BLOCKED_USER_PASS_123', 10);
-        Const blockedUser = new User({
-          Name: contactData.name,
-          Email: contactData.email,
+      const contactData = await Contact.findById(userId);
+      if (contactData) {
+        const dummyPassword = await bcrypt.hash('BLOCKED_USER_PASS_123', 10);
+        const blockedUser = new User({
+          Name: contactData.Name,
+          Email: contactData.Email,
           Password: dummyPassword,
           Role: 'normal',
           IsBlocked: isBlocked
@@ -398,26 +404,26 @@ App.put('/api/admin/users/block/:id', async (req, res) => {
       }
     }
 
-    Res.status(200).json({ success: true, message: 'የተጠቃሚው የብሎክ ሁኔታ ተቀይሯል!' });
+    res.status(200).json({ success: true, message: 'የተጠቃሚው የብሎክ ሁኔታ ተቀይሯል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ብሎክ ማድረግ አልተሳካም' });
+    res.status(500).json({ success: false, error: 'ብሎክ ማድረግ አልተሳካም' });
   }
 });
 
-App.delete('/api/admin/users/delete/:id', async (req, res) => {
-  Try {
-    Const userId = req.params.id;
-    Const user = await User.findById(userId);
+app.delete('/api/admin/users/delete/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
     
-    If (user) {
-      Await User.findByIdAndDelete(userId);
+    if (user) {
+      await User.findByIdAndDelete(userId);
     } else {
-      Await Contact.findByIdAndDelete(userId);
+      await Contact.findByIdAndDelete(userId);
     }
     
-    Res.status(200).json({ success: true, message: 'ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!' });
+    res.status(200).json({ success: true, message: 'ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ተጠቃሚውን ማጥፋት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ተጠቃሚውን ማጥፋት አልተቻለም' });
   }
 });
 
@@ -425,77 +431,77 @@ App.delete('/api/admin/users/delete/:id', async (req, res) => {
 // 7. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
 // ==========================================
 
-App.post('/api/contact', async (req, res) => {
-  Try {
-    Const { name, email, message } = req.body;
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
     
-    Const checkUser = await User.findOne({ email });
-    If (checkUser && checkUser.isBlocked) {
+    const checkUser = await User.findOne({ Email: email });
+    if (checkUser && checkUser.IsBlocked) {
       return res.status(403).json({ success: false, error: 'አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!' });
     }
 
-    Const newContact = new Contact({ name, email, message });
+    const newContact = new Contact({ Name: name, Email: email, Message: message });
     await newContact.save();
-    Res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተቀምጧል!' });
+    res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተቀምጧል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
   }
 });
 
-App.get('/api/user/orders/:email', async (req, res) => {
-  Try {
-    Const orders = await Contact.find({ email: req.params.email }).sort({ date: -1 });
-    Res.status(200).json({ success: true, orders });
+app.get('/api/user/orders/:email', async (req, res) => {
+  try {
+    const orders = await Contact.find({ Email: req.params.email }).sort({ Date: -1 });
+    res.status(200).json({ success: true, orders });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'ማዘዣዎችዎን ማምጣት አልተቻለም' });
+    res.status(500).json({ success: false, error: 'ማዘዣዎችዎን ማምጣት አልተቻለም' });
   }
 });
 
-App.put('/api/user/orders/edit/:id', async (req, res) => {
-  Try {
-    Const orderId = req.params.id;
-    Const { message } = req.body;
+app.put('/api/user/orders/edit/:id', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { message } = req.body;
 
-    Const updatedOrder = await Contact.findByIdAndUpdate(
-      OrderId,
-      { message: message },
+    const updatedOrder = await Contact.findByIdAndUpdate(
+      orderId,
+      { Message: message },
       { new: true }
     );
 
-    If (!updatedOrder) {
+    if (!updatedOrder) {
       return res.status(404).json({ success: false, message: "መልዕክቱ አልተገኘም" });
     }
 
-    Res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ተስተካክሏል", order: updatedOrder });
+    res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ተስተካክሏል", order: updatedOrder });
   } catch (err) {
-    Res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
+    res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
   }
 });
 
-App.delete('/api/user/orders/delete/:id', async (req, res) => {
-  Try {
-    Const orderId = req.params.id;
-    Const deletedOrder = await Contact.findByIdAndDelete(orderId);
+app.delete('/api/user/orders/delete/:id', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const deletedOrder = await Contact.findByIdAndDelete(orderId);
 
-    If (!deletedOrder) {
+    if (!deletedOrder) {
       return res.status(404).json({ success: false, message: "መልዕክቱ አልተገኘም" });
     }
 
-    Res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ጠፍቷል" });
+    res.json({ success: true, message: "መልዕክቱ በተሳካ ሁኔታ ጠፍቷል" });
   } catch (err) {
-    Res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
+    res.status(500).json({ success: false, message: "የባክኤንድ ስህተት ገጥሟል" });
   }
 });
 
-App.post('/api/admin/send-new-message', async (req, res) => {
-  Try {
-    Const { name, email, message } = req.body;
+app.post('/api/admin/send-new-message', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
     
-    If (!email || !message) {
+    if (!email || !message) {
       return res.status(400).json({ success: false, error: 'እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!' });
     }
 
-    Const adminNewOrder = new Contact({
+    const adminNewOrder = new Contact({
       Name: name,
       Email: email,
       Message: `[የባለሙያ መልዕክት]፦ ${message}`, 
@@ -503,19 +509,19 @@ App.post('/api/admin/send-new-message', async (req, res) => {
       Status: 'ምላሽ ተሰጥቷል'
     });
 
-    Await adminNewOrder.save();
-    Res.status(201).json({ success: true, message: 'መልዕክትዎ ለደንበኛው ተልኳል!' });
+    await adminNewOrder.save();
+    res.status(201).json({ success: true, message: 'መልዕክትዎ ለደንበኛው ተልኳል!' });
   } catch (error) {
-    Res.status(500).json({ success: false, error: 'መልዕክት መላክ አልተቻለም' });
+    res.status(500).json({ success: false, error: 'መልዕክት መላክ አልተቻለም' });
   }
 });
 
 // ==========================================
 // 8. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
-App.get('/api/health', (req, res) => {
-  Res.status(200).json({ success: true, message: 'ሰርቨሩ ዝግጁ ነው!' });
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ success: true, message: 'ሰርቨሩ ዝግጁ ነው!' });
 });
 
-Const PORT = process.env.PORT || 10000;
-App.listen(PORT, () => console.log(`🚀 ሰርቨር በፖርት ${PORT} ላይ ስራ ጀመረ!`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`🚀 ሰርቨር በፖርት ${PORT} ላይ ስራ ጀመረ!`));
