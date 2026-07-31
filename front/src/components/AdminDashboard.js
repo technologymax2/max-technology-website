@@ -24,6 +24,8 @@ function AdminDashboard({
 
   // ንቁ ታብ
   const [activeTab, setActiveTab] = useState("messages");
+  // ለሞባይል የሚሆን የጎን ምናሌ (Sidebar Menu) ክፍት/ዝግ መቆጣጠሪያ
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
@@ -319,498 +321,479 @@ function AdminDashboard({
   };
 
   return (
-    <div className="admin-dashboard-container" style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", padding: "10px", boxSizing: "border-box" }}>
-      <div className="admin-header" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-        <h2>👑 ዋናውን መቆጣጠሪያ ማዕከል (Admin Panel)</h2>
-        <button onClick={handleLogout} className="btn-logout">
+    <div className="admin-dashboard-container" style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", padding: "10px", boxSizing: "border-box", position: "relative" }}>
+      
+      {/* 📱 የሞባይል ፔጅ አናት ሄደር (ከሜኑ አዝራር ጋር) */}
+      <div className="admin-header" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "10px", padding: "10px 0", borderBottom: "1px solid #30363d", marginBottom: "15px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{ background: "#ffd700", color: "#0d0f12", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "18px", cursor: "pointer", fontWeight: "bold" }}
+            title="ምናሌ ክፈት"
+          >
+            ☰
+          </button>
+          <h2 style={{ fontSize: "17px", margin: 0, color: "#fff" }}>👑 ዋናው መቆጣጠሪያ</h2>
+        </div>
+        <button onClick={handleLogout} className="btn-logout" style={{ padding: "6px 12px", fontSize: "13px" }}>
           ውጣ (Logout)
         </button>
       </div>
 
-      {/* ሪስፖንሲቭ የሆኑ ታቦች (ስክሪን ሲያንስ በራሳቸው እንዲሰለፉ) */}
-      <div className="admin-tabs-nav" style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "15px 0" }}>
-        <button
-          className={`tab-nav-btn ${activeTab === "messages" ? "active-tab" : ""}`}
-          onClick={() => setActiveTab("messages")}
+      {/* 🗂️ የጎን ምናሌ (Collapsible Menu Sidebar / Drawer) ለሞባይል እና ዴስክቶፕ */}
+      <div style={{ display: "flex", gap: "20px", position: "relative" }}>
+        
+        {/* የጎን ምናሌ ዝርዝር */}
+        <div 
+          className={`admin-sidebar-menu ${sidebarOpen ? "open" : ""}`}
+          style={{
+            width: "240px",
+            background: "#161b22",
+            border: "1px solid #30363d",
+            borderRadius: "10px",
+            padding: "15px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            height: "fit-content",
+            boxSizing: "border-box",
+            /* በስልክ ስክሪን ላይ እንደ ድሮወር (Drawer) እንዲሰራ */
+            transition: "all 0.3s ease",
+          }}
         >
-          💬 መልዕክቶች
-        </button>
-        <button
-          className={`tab-nav-btn ${activeTab === "projects" ? "active-tab" : ""}`}
-          onClick={() => setActiveTab("projects")}
-        >
-          📁 ፕሮጀክቶች
-        </button>
-        <button
-          className={`tab-nav-btn ${activeTab === "admins" ? "active-tab" : ""}`}
-          onClick={() => setActiveTab("admins")}
-        >
-          👑 አድሚኖች
-        </button>
-        <button
-          className={`tab-nav-btn ${activeTab === "hrs" ? "active-tab" : ""}`}
-          onClick={() => setActiveTab("hrs")}
-        >
-          👥 የሰው ሃብት (HR)
-        </button>
-        <button
-          className={`tab-nav-btn ${activeTab === "users" ? "active-tab" : ""}`}
-          onClick={() => setActiveTab("users")}
-        >
-          👤 ደንበኞች
-        </button>
-      </div>
-
-      {/* 1. ፕሮጀክቶች */}
-      {activeTab === "projects" && (
-        <div className="card">
-          <h3>📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
-          <div
-            className="project-form-section"
-            style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px", paddingBottom: "20px", borderBottom: "1px solid #333" }}
-          >
-            <input
-              type="text"
-              placeholder="የፕሮጀክት ስም"
-              value={projectForm.title}
-              onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-              className="input-field"
-            />
-            <input
-              type="url"
-              placeholder="የፕሮጀክት ሊንክ"
-              value={projectForm.link}
-              onChange={(e) => setProjectForm({ ...projectForm, link: e.target.value })}
-              className="input-field"
-            />
-            <input type="file" onChange={handleImageUpload} className="input-field" />
-            <button onClick={handleProjectSubmit} className="btn-action" disabled={uploading}>
-              {uploading ? "በመጫን ላይ..." : "መዝግብ"}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+            <span style={{ fontSize: "14px", fontWeight: "bold", color: "#8b949e" }}>ምናሌዎች (Menu)</span>
+            <button 
+              onClick={() => setSidebarOpen(false)} 
+              style={{ background: "transparent", border: "none", color: "#fff", fontSize: "16px", cursor: "pointer" }}
+              className="mobile-close-sidebar"
+            >
+              ✕
             </button>
           </div>
-          <h3>📋 ያሉ ፕሮጀክቶች</h3>
-          <div className="admin-projects-list" style={{ display: "grid", gap: "15px" }}>
-            {projects && projects.length > 0 ? (
-              projects.map((p) => (
-                <div
-                  key={p._id}
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "10px",
-                    padding: "10px",
-                    background: "#161b22",
-                    borderRadius: "8px",
-                    border: "1px solid #30363d",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <img
-                      src={p.imageUrl}
-                      alt={p.title}
-                      style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
-                    />
-                    <span>{p.title}</span>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteProject(p._id)}
-                    style={{
-                      background: "#ff4444",
-                      color: "white",
-                      border: "none",
-                      padding: "8px 15px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    🗑️ አጥፋ
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>ምንም ፕሮጀክት የለም</p>
-            )}
-          </div>
+
+          <button
+            className={`tab-nav-btn ${activeTab === "messages" ? "active-tab" : ""}`}
+            onClick={() => { setActiveTab("messages"); setSidebarOpen(false); }}
+            style={{ width: "100%", textAlign: "left", padding: "10px", background: activeTab === "messages" ? "#ffd700" : "transparent", color: activeTab === "messages" ? "#000" : "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            💬 መልዕክቶች
+          </button>
+          <button
+            className={`tab-nav-btn ${activeTab === "projects" ? "active-tab" : ""}`}
+            onClick={() => { setActiveTab("projects"); setSidebarOpen(false); }}
+            style={{ width: "100%", textAlign: "left", padding: "10px", background: activeTab === "projects" ? "#ffd700" : "transparent", color: activeTab === "projects" ? "#000" : "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            📁 ፕሮጀክቶች
+          </button>
+          <button
+            className={`tab-nav-btn ${activeTab === "admins" ? "active-tab" : ""}`}
+            onClick={() => { setActiveTab("admins"); setSidebarOpen(false); }}
+            style={{ width: "100%", textAlign: "left", padding: "10px", background: activeTab === "admins" ? "#ffd700" : "transparent", color: activeTab === "admins" ? "#000" : "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            👑 አድሚኖች
+          </button>
+          <button
+            className={`tab-nav-btn ${activeTab === "hrs" ? "active-tab" : ""}`}
+            onClick={() => { setActiveTab("hrs"); setSidebarOpen(false); }}
+            style={{ width: "100%", textAlign: "left", padding: "10px", background: activeTab === "hrs" ? "#ffd700" : "transparent", color: activeTab === "hrs" ? "#000" : "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            👥 የሰው ሃብት (HR)
+          </button>
+          <button
+            className={`tab-nav-btn ${activeTab === "users" ? "active-tab" : ""}`}
+            onClick={() => { setActiveTab("users"); setSidebarOpen(false); }}
+            style={{ width: "100%", textAlign: "left", padding: "10px", background: activeTab === "users" ? "#ffd700" : "transparent", color: activeTab === "users" ? "#000" : "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            👤 ደንበኞች
+          </button>
         </div>
-      )}
 
-      {/* 2. መልዕክቶች (Telegram Split Mode - ለሞባይል የተስተካከለ) */}
-      {activeTab === "messages" && (
-        <>
-          <h3 className="admin-section-heading">
-            💬 የደንበኞች መልዕክት ዝርዝር (Telegram Split Mode)
-          </h3>
-          <div className="telegram-admin-layout" style={{ display: "flex", flexWrap: "wrap", gap: "15px" }}>
-            <div className="telegram-sidebar" style={{ flex: "1 1 250px", minWidth: "250px" }}>
-              <div className="sidebar-header">👥 ተጠቃሚዎች ({uniqueUsers.length})</div>
-              <div className="sidebar-users-list">
-                {uniqueUsers.map((u) => (
-                  <div
-                    key={u.email}
-                    className={`sidebar-user-item ${
-                      selectedUserEmail === u.email ? "active-chat-user" : ""
-                    }`}
-                    onClick={() => setSelectedUserEmail(u.email)}
-                  >
-                    <span className="sidebar-avatar">👤</span>
-                    <div className="sidebar-user-details">
-                      <h4>{u.name}</h4>
-                      <p>{u.email}</p>
-                    </div>
-                  </div>
-                ))}
-                {uniqueUsers.length === 0 && (
-                  <p className="no-chats-text">ምንም ቻት የለም</p>
-                )}
+        {/* ዋናው የይዘት ማሳያ አካባቢ */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+
+          {/* 1. ፕሮጀክቶች */}
+          {activeTab === "projects" && (
+            <div className="card">
+              <h3>📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
+              <div
+                className="project-form-section"
+                style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px", paddingBottom: "20px", borderBottom: "1px solid #333" }}
+              >
+                <input
+                  type="text"
+                  placeholder="የፕሮጀክት ስም"
+                  value={projectForm.title}
+                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
+                  className="input-field"
+                />
+                <input
+                  type="url"
+                  placeholder="የፕሮጀክት ሊንክ"
+                  value={projectForm.link}
+                  onChange={(e) => setProjectForm({ ...projectForm, link: e.target.value })}
+                  className="input-field"
+                />
+                <input type="file" onChange={handleImageUpload} className="input-field" />
+                <button onClick={handleProjectSubmit} className="btn-action" disabled={uploading}>
+                  {uploading ? "በመጫን ላይ..." : "መዝግብ"}
+                </button>
               </div>
-            </div>
-
-            <div className="telegram-chat-window" style={{ flex: "2 1 400px", minWidth: "280px" }}>
-              {selectedUserEmail ? (
-                <>
-                  <div className="chat-window-header">
-                    💬 ከ <strong>{uniqueUsers.find((u) => u.email === selectedUserEmail)?.name}</strong> ጋር መልዕክቶች
-                  </div>
-                  <div className="chat-window-body">
-                    {filteredMessages.map((msg) => (
-                      <div key={msg._id} className="admin-chat-block">
-                        {!msg.message.startsWith("[አድሚን መልዕክት]") && (
-                          <div className="admin-user-msg-bubble">
-                            <p>{msg.message}</p>
-                            <span className="chat-block-time">
-                              🕒 {new Date(msg.date).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                        {msg.reply && (
-                          <div className="admin-reply-msg-bubble">
-                            <span className="reply-label">አድሚን ምላሽ፦</span>
-                            <p>{msg.reply}</p>
-                          </div>
-                        )}
-                        <div className="admin-msg-delete-row">
-                          <button
-                            onClick={() => handleDeleteMessage(msg._id)}
-                            className="admin-delete-msg-btn"
-                          >
-                            🗑️ መልዕክቱን አጥፊ
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div
-                    className="admin-chat-footer-input"
-                    style={{
-                      padding: "15px",
-                      background: "#161b22",
-                      borderTop: "1px solid #30363d",
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "10px",
-                    }}
-                  >
-                    <input
-                      type="text"
-                      placeholder="መልዕክትዎ ይጻፉ..."
-                      value={replyText["global_admin_chat"] || ""}
-                      onChange={(e) =>
-                        setReplyText({ ...replyText, global_admin_chat: e.target.value })
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSendAdminMessage();
-                      }}
-                      className="input-field"
+              <h3>📋 ያሉ ፕሮጀክቶች</h3>
+              <div className="admin-projects-list" style={{ display: "grid", gap: "15px" }}>
+                {projects && projects.length > 0 ? (
+                  projects.map((p) => (
+                    <div
+                      key={p._id}
                       style={{
-                        flex: 1,
-                        minWidth: "180px",
-                        padding: "12px",
-                        background: "#0d0f12",
-                        color: "#fff",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "10px",
+                        padding: "10px",
+                        background: "#161b22",
+                        borderRadius: "8px",
                         border: "1px solid #30363d",
-                        borderRadius: "10px",
-                      }}
-                    />
-                    <button
-                      onClick={handleSendAdminMessage}
-                      className="btn-action"
-                      style={{
-                        background: "#ffd700",
-                        color: "#0d0f12",
-                        padding: "0 20px",
-                        border: "none",
-                        borderRadius: "10px",
-                        fontWeight: "bold",
-                        cursor: "pointer",
                       }}
                     >
-                      ላክ
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="select-chat-placeholder">
-                  <p>እባክዎ ተጠቃሚ ይምረጡ</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 3. አድሚኖች አስተዳደር */}
-      {activeTab === "admins" && (
-        <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
-          <div className="card admin-form-card">
-            <h3>➕ አዲስ አድሚን ይፍጠሩ</h3>
-            <form
-              onSubmit={(e) => {
-                handleAddAdminSubmit(e);
-                setTimeout(fetchAdmins, 1000);
-              }}
-              className="form-group admin-form-top"
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="የአድሚን ስም"
-                value={newAdminForm.name}
-                onChange={handleNewAdminChange}
-                required
-                className="input-field admin-input-bottom"
-              />
-              <input
-                type="text"
-                name="email"
-                placeholder="የአድሚን ኢሜይል"
-                value={newAdminForm.email}
-                onChange={handleNewAdminChange}
-                required
-                className="input-field admin-input-bottom"
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="የሚስጥር ቃል"
-                value={newAdminForm.password}
-                onChange={handleNewAdminChange}
-                required
-                className="input-field admin-input-large-bottom"
-              />
-              <button type="submit" className="submit-btn" style={{ width: "100%" }}>
-                አድሚኑን መዝግብ
-              </button>
-            </form>
-            {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
-          </div>
-
-          <div className="card admin-table-card" style={{ overflowX: "auto" }}>
-            <h3>📋 ያሉ አድሚኖች ዝርዝር</h3>
-            <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "450px" }}>
-              <thead>
-                <tr>
-                  <th>ስም</th>
-                  <th>ኢሜይል</th>
-                  <th>የሚስጥር ቃል ማስተካከያ</th>
-                  <th>ድርጊት</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adminList.map((adm) => (
-                  <tr key={adm._id}>
-                    <td data-label="ስም">
-                      <strong>{adm.name}</strong>
-                    </td>
-                    <td data-label="ኢሜይል">{adm.email}</td>
-                    <td data-label="የሚስጥር ቃል ማስተካከያ">
-                      <div className="admin-inline-flex admin-wrap-fix">
-                        <input
-                          type="text"
-                          placeholder="አዲስ የሚስጥር ቃል"
-                          value={
-                            passwordReset.id === adm._id
-                              ? passwordReset.newPassword
-                              : ""
-                          }
-                          onChange={(e) =>
-                            setPasswordReset({
-                              id: adm._id,
-                              newPassword: e.target.value,
-                            })
-                          }
-                          className="input-field admin-table-input"
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
                         />
-                        <button
-                          onClick={() => handleResetPassword(adm._id)}
-                          className="btn-action btn-edit btn-padding-fix"
-                        >
-                          ቀይር
-                        </button>
+                        <span>{p.title}</span>
                       </div>
-                    </td>
-                    <td data-label="ድርጊት">
-                      <div className="admin-inline-flex">
-                        <button
-                          onClick={() => {
-                            setEditingAdmin(adm._id);
-                            setEditForm({ name: adm.name, email: adm.email });
-                          }}
-                          className="btn-action btn-reply btn-padding-fix"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAdmin(adm._id)}
-                          className="btn-action btn-delete btn-padding-fix"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* 4. የሰው ሃብት (HR) አስተዳደር */}
-      {activeTab === "hrs" && (
-        <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
-          <div className="card admin-form-card">
-            <h3>👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
-            <form onSubmit={handleAddHRSubmit} className="form-group admin-form-top">
-              <input
-                type="text"
-                placeholder="የሰራተኛው ስም"
-                value={hrForm.name}
-                onChange={(e) => setHrForm({ ...hrForm, name: e.target.value })}
-                required
-                className="input-field admin-input-bottom"
-              />
-              <input
-                type="email"
-                placeholder="ኢሜይል አድራሻ"
-                value={hrForm.email}
-                onChange={(e) => setHrForm({ ...hrForm, email: e.target.value })}
-                required
-                className="input-field admin-input-bottom"
-              />
-              <input
-                type="password"
-                placeholder="ፓስወርድ"
-                value={hrForm.password}
-                onChange={(e) => setHrForm({ ...hrForm, password: e.target.value })}
-                required
-                className="input-field admin-input-large-bottom"
-              />
-              <button type="submit" className="submit-btn" style={{ width: "100%" }}>
-                HR መዝግብ
-              </button>
-            </form>
-          </div>
-
-          <div className="card admin-table-card" style={{ overflowX: "auto" }}>
-            <h3>📋 የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
-            <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "450px" }}>
-              <thead>
-                <tr>
-                  <th>ስም</th>
-                  <th>ኢሜይል</th>
-                  <th>ፓስወርድ መቀየሪያ</th>
-                  <th>ድርጊት</th>
-                </tr>
-              </thead>
-              <tbody>
-                {hrList.map((hr) => (
-                  <tr key={hr._id}>
-                    <td data-label="ስም">
-                      <strong>{hr.name}</strong>
-                    </td>
-                    <td data-label="ኢሜይል">{hr.email}</td>
-                    <td data-label="ፓስወርድ መቀየሪያ">
                       <button
-                        onClick={() => handleResetHRPassword(hr._id)}
-                        className="btn-action btn-edit btn-padding-fix"
-                      >
-                        ፓስወርድ ቀይር
-                      </button>
-                    </td>
-                    <td data-label="ድርጊት">
-                      <button
-                        onClick={() => handleDeleteHR(hr._id)}
-                        className="btn-action btn-delete btn-padding-fix"
+                        onClick={() => handleDeleteProject(p._id)}
+                        style={{
+                          background: "#ff4444",
+                          color: "white",
+                          border: "none",
+                          padding: "8px 15px",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                        }}
                       >
                         🗑️ አጥፋ
                       </button>
-                    </td>
-                  </tr>
-                ))}
-                {hrList.length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="admin-empty-text">
-                      ምንም HR ባለሙያ አልተመዘገበም
-                    </td>
-                  </tr>
+                    </div>
+                  ))
+                ) : (
+                  <p>ምንም ፕሮጀክት የለም</p>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
 
-      {/* 5. ደንበኞች */}
-      {activeTab === "users" && (
-        <div className="card admin-full-width-card" style={{ overflowX: "auto" }}>
-          <h3>👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
-          <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "500px" }}>
-            <thead>
-              <tr>
-                <th>ተጠቃሚ ስም</th>
-                <th>ኢሜይል</th>
-                <th>ሁኔታ (Status)</th>
-                <th>ድርጊቶች</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userList.map((u) => (
-                <tr key={u._id} className={u.isBlocked ? "blocked-user-row" : ""}>
-                  <td data-label="ተጠቃሚ ስም">
-                    <strong>{u.name}</strong>
-                  </td>
-                  <td data-label="ኢሜይል">{u.email}</td>
-                  <td data-label="ሁኔታ">
-                    <span className={`status-badge ${u.isBlocked ? "badge-blocked" : "badge-active"}`}>
-                      {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ"}
-                    </span>
-                  </td>
-                  <td data-label="ድርጊቶች">
-                    <div className="admin-inline-flex" style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+          {/* 2. መልዕክቶች (Telegram Split Mode) */}
+          {activeTab === "messages" && (
+            <>
+              <h3 className="admin-section-heading" style={{ fontSize: "15px", marginBottom: "10px" }}>
+                💬 የደንበኞች መልዕክት ዝርዝር
+              </h3>
+              <div className="telegram-admin-layout" style={{ display: "flex", flexWrap: "wrap", gap: "15px" }}>
+                <div className="telegram-sidebar" style={{ flex: "1 1 220px", minWidth: "100%" }}>
+                  <div className="sidebar-header" style={{ fontSize: "13px" }}>👥 ተጠቃሚዎች ({uniqueUsers.length})</div>
+                  <div className="sidebar-users-list" style={{ maxHeight: "200px", overflowY: "auto" }}>
+                    {uniqueUsers.map((u) => (
+                      <div
+                        key={u.email}
+                        className={`sidebar-user-item ${
+                          selectedUserEmail === u.email ? "active-chat-user" : ""
+                        }`}
+                        onClick={() => setSelectedUserEmail(u.email)}
+                      >
+                        <span className="sidebar-avatar">👤</span>
+                        <div className="sidebar-user-details">
+                          <h4>{u.name}</h4>
+                          <p>{u.email}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {uniqueUsers.length === 0 && (
+                      <p className="no-chats-text">ምንም ቻት የለም</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="telegram-chat-window" style={{ flex: "2 1 100%", minWidth: "100%" }}>
+                  {selectedUserEmail ? (
+                    <>
+                      <div className="chat-window-header" style={{ fontSize: "13px" }}>
+                        💬 ከ <strong>{uniqueUsers.find((u) => u.email === selectedUserEmail)?.name}</strong> ጋር
+                      </div>
+                      <div className="chat-window-body">
+                        {filteredMessages.map((msg) => (
+                          <div key={msg._id} className="admin-chat-block">
+                            {!msg.message.startsWith("[አድሚን መልዕክት]") && (
+                              <div className="admin-user-msg-bubble">
+                                <p>{msg.message}</p>
+                                <span className="chat-block-time">
+                                  🕒 {new Date(msg.date).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            {msg.reply && (
+                              <div className="admin-reply-msg-bubble">
+                                <span className="reply-label">አድሚን ምላሽ፦</span>
+                                <p>{msg.reply}</p>
+                              </div>
+                            )}
+                            <div className="admin-msg-delete-row">
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                className="admin-delete-msg-btn"
+                              >
+                                🗑️ መልዕክቱን አጥፊ
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className="admin-chat-footer-input"
+                        style={{
+                          padding: "10px",
+                          background: "#161b22",
+                          borderTop: "1px solid #30363d",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
+                        <input
+                          type="text"
+                          placeholder="መልዕክትዎ ይጻፉ..."
+                          value={replyText["global_admin_chat"] || ""}
+                          onChange={(e) =>
+                            setReplyText({ ...replyText, global_admin_chat: e.target.value })
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSendAdminMessage();
+                          }}
+                          className="input-field"
+                          style={{
+                            flex: 1,
+                            minWidth: "140px",
+                            padding: "10px",
+                            background: "#0d0f12",
+                            color: "#fff",
+                            border: "1px solid #30363d",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <button
+                          onClick={handleSendAdminMessage}
+                          className="btn-action"
+                          style={{
+                            background: "#ffd700",
+                            color: "#0d0f12",
+                            padding: "0 15px",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                        >
+                          ላክ
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="select-chat-placeholder">
+                      <p>እባክዎ ተጠቃሚ ይምረጡ</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 3. አድሚኖች አስተዳደር (ለሞባይል በካርድ መልክ እንዲታይ የተስተካከለ) */}
+          {activeTab === "admins" && (
+            <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "15px" }}>
+              <div className="card admin-form-card">
+                <h3>➕ አዲስ አድሚን ይፍጠሩ</h3>
+                <form
+                  onSubmit={(e) => {
+                    handleAddAdminSubmit(e);
+                    setTimeout(fetchAdmins, 1000);
+                  }}
+                  className="form-group admin-form-top"
+                >
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="የአድሚን ስም"
+                    value={newAdminForm.name}
+                    onChange={handleNewAdminChange}
+                    required
+                    className="input-field admin-input-bottom"
+                  />
+                  <input
+                    type="text"
+                    name="email"
+                    placeholder="የአድሚን ኢሜይል"
+                    value={newAdminForm.email}
+                    onChange={handleNewAdminChange}
+                    required
+                    className="input-field admin-input-bottom"
+                  />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="የሚስጥር ቃል"
+                    value={newAdminForm.password}
+                    onChange={handleNewAdminChange}
+                    required
+                    className="input-field admin-input-large-bottom"
+                  />
+                  <button type="submit" className="submit-btn" style={{ width: "100%" }}>
+                    አድሚኑን መዝግብ
+                  </button>
+                </form>
+                {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
+              </div>
+
+              {/* ሠንጠረዡ በስልክ ስክሪን ላይ እንዳይጣበቅ በካርድ (Card Grid) መልክ እንዲወርድ ተደርጓል */}
+              <div className="card admin-table-card">
+                <h3>📋 ያሉ አድሚኖች ዝርዝር</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                  {adminList.map((adm) => (
+                    <div key={adm._id} style={{ background: "#161b22", padding: "12px", borderRadius: "8px", border: "1px solid #30363d", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div><strong>ስም:</strong> {adm.name}</div>
+                      <div><strong>ኢሜይል:</strong> {adm.email}</div>
+                      <div>
+                        <strong>ፓስወርድ መቀየሪያ:</strong>
+                        <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
+                          <input
+                            type="text"
+                            placeholder="አዲስ ፓስወርድ"
+                            value={passwordReset.id === adm._id ? passwordReset.newPassword : ""}
+                            onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })}
+                            className="input-field"
+                            style={{ padding: "6px", fontSize: "12px" }}
+                          />
+                          <button onClick={() => handleResetPassword(adm._id)} className="btn-action btn-edit" style={{ padding: "6px 10px", fontSize: "12px" }}>
+                            ቀይር
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "5px", justifyContent: "flex-end", marginTop: "5px" }}>
+                        <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="btn-action btn-reply" style={{ padding: "6px 10px" }}>
+                          ✏️ አስተካክል
+                        </button>
+                        <button onClick={() => handleDeleteAdmin(adm._id)} className="btn-action btn-delete" style={{ padding: "6px 10px" }}>
+                          🗑️ አጥፋ
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. የሰው ሃብት (HR) አስተዳደር */}
+          {activeTab === "hrs" && (
+            <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "15px" }}>
+              <div className="card admin-form-card">
+                <h3>👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
+                <form onSubmit={handleAddHRSubmit} className="form-group admin-form-top">
+                  <input
+                    type="text"
+                    placeholder="የሰራተኛው ስም"
+                    value={hrForm.name}
+                    onChange={(e) => setHrForm({ ...hrForm, name: e.target.value })}
+                    required
+                    className="input-field admin-input-bottom"
+                  />
+                  <input
+                    type="email"
+                    placeholder="ኢሜይል አድራሻ"
+                    value={hrForm.email}
+                    onChange={(e) => setHrForm({ ...hrForm, email: e.target.value })}
+                    required
+                    className="input-field admin-input-bottom"
+                  />
+                  <input
+                    type="password"
+                    placeholder="ፓስወርድ"
+                    value={hrForm.password}
+                    onChange={(e) => setHrForm({ ...hrForm, password: e.target.value })}
+                    required
+                    className="input-field admin-input-large-bottom"
+                  />
+                  <button type="submit" className="submit-btn" style={{ width: "100%" }}>
+                    HR መዝግብ
+                  </button>
+                </form>
+              </div>
+
+              <div className="card admin-table-card">
+                <h3>📋 የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                  {hrList.map((hr) => (
+                    <div key={hr._id} style={{ background: "#161b22", padding: "12px", borderRadius: "8px", border: "1px solid #30363d", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div><strong>ስም:</strong> {hr.name}</div>
+                      <div><strong>ኢሜይል:</strong> {hr.email}</div>
+                      <div style={{ display: "flex", gap: "8px", marginTop: "5px" }}>
+                        <button onClick={() => handleResetHRPassword(hr._id)} className="btn-action btn-edit" style={{ flex: 1, padding: "8px", fontSize: "12px" }}>
+                          ፓስወርድ ቀይር
+                        </button>
+                        <button onClick={() => handleDeleteHR(hr._id)} className="btn-action btn-delete" style={{ flex: 1, padding: "8px", fontSize: "12px" }}>
+                          🗑️ አጥፋ
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {hrList.length === 0 && <p className="admin-empty-text">ምንም HR ባለሙያ አልተመዘገበም</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 5. ደንበኞች */}
+          {activeTab === "users" && (
+            <div className="card admin-full-width-card">
+              <h3>👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+                {userList.map((u) => (
+                  <div key={u._id} className={u.isBlocked ? "blocked-user-row" : ""} style={{ background: "#161b22", padding: "12px", borderRadius: "8px", border: "1px solid #30363d", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div><strong>ተጠቃሚ ስም:</strong> {u.name}</div>
+                    <div><strong>ኢሜይል:</strong> {u.email}</div>
+                    <div>
+                      <strong>ሁኔታ:</strong>{" "}
+                      <span className={`status-badge ${u.isBlocked ? "badge-blocked" : "badge-active"}`} style={{ marginLeft: "5px", padding: "2px 6px", borderRadius: "4px", fontSize: "12px" }}>
+                        {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ"}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", marginTop: "5px" }}>
                       <button
                         onClick={() => handleToggleBlockUser(u._id, u.isBlocked)}
                         className={`btn-action ${u.isBlocked ? "btn-unblock" : "btn-block-action"}`}
-                        style={{ padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
+                        style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         {u.isBlocked ? "🔓 ክፈት" : "🚫 አግድ"}
                       </button>
                       <button
                         onClick={() => handleDeleteUser(u._id)}
                         className="btn-action btn-delete"
-                        style={{ padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
+                        style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         🗑️ አጥፋ
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
-      )}
+      </div>
 
       {editingAdmin && (
         <div className="modal-overlay">
@@ -854,4 +837,4 @@ function AdminDashboard({
   );
 }
 
-export default AdminDashboard;
+In AdminDashboard;
