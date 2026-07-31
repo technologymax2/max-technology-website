@@ -91,13 +91,13 @@ function App() {
       if (response.ok && data.success) {
         if (currentScreen === 'login') {
           setUser(data.user);
-          // 🚀 የተጠቃሚው ሮል 'admin', 'employee' ወይም 'normal' መሆኑን በማየት ወደየቦታው መምራት
+          // 🚀 የሮል (Role) ሁኔታዎችን በመለየት ወደየሚገባቸው ገጽ ማዘዋወር
           if (data.user.role === 'admin') {
             setCurrentScreen('admin-dashboard');
           } else if (data.user.role === 'employee') {
-            setCurrentScreen('order-page'); // ወይም ለሰራተኛ የተዘጋጀ ገጽ ካለ መቀየር ይቻላል
+            setCurrentScreen('employee-dashboard'); // የሰራተኛ ገጽ
           } else {
-            setCurrentScreen('order-page');
+            setCurrentScreen('order-page'); // መደበኛ ደንበኛ
           }
         } else {
           setAuthStatus('✅ ምዝገባው ተሳክቷል! አሁን መግባት ይችላሉ።');
@@ -290,7 +290,32 @@ function App() {
     );
   }
 
-  // ORDER PAGE / EMPLOYEE PAGE
+  // EMPLOYEE DASHBOARD (የሰራተኛ ገጽ)
+  if (currentScreen === 'employee-dashboard' && user?.role === 'employee') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm mb-6">
+            <h2 className="text-xl font-bold text-gray-800">👤 የሰራተኛ ዳሽቦርድ (Employee Dashboard)</h2>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition"
+            >
+              ውጣ (Logout)
+            </button>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">እንኳን ደህና መጡ፣ {user.name}!</h3>
+            <p className="text-gray-600">ኢሜይል: {user.email}</p>
+            <p className="text-gray-600 mt-4">እዚህ ጋር የዲጂታል መታወቂያዎን ወይም የሰራተኛ መረጃዎችዎን ማየት ይችላሉ።</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ORDER PAGE (FOR NORMAL USERS)
   if (currentScreen === 'order-page' && user) {
     return (
       <OrderPage
