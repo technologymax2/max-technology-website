@@ -172,8 +172,8 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans text-right" dir="rtl">
-      {/* Mobile Sidebar Backdrop / Toggle */}
+    <div className="flex h-screen bg-gray-100 font-sans text-left">
+      {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
         <div 
           onClick={() => setSidebarOpen(false)}
@@ -184,7 +184,7 @@ const AdminDashboard = () => {
       {/* Notification Toast */}
       {notification.message && (
         <div
-          className={`fixed top-5 left-5 z-50 px-6 py-3 rounded-lg shadow-xl text-white font-medium transition-all ${
+          className={`fixed top-5 right-5 z-50 px-6 py-3 rounded-lg shadow-xl text-white font-medium transition-all ${
             notification.type === "error" ? "bg-red-500" : "bg-green-600"
           }`}
         >
@@ -194,8 +194,8 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 right-0 z-40 w-64 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static shadow-2xl flex flex-col`}
       >
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
@@ -296,12 +296,12 @@ const AdminDashboard = () => {
                   const Icon = stat.icon;
                   return (
                     <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                        <h3 className="text-3xl font-bold text-gray-800 mt-2">{stat.count}</h3>
-                      </div>
                       <div className={`p-4 rounded-xl text-white shadow-md ${stat.color}`}>
                         <Icon size={24} />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+                        <h3 className="text-3xl font-bold text-gray-800 mt-2">{stat.count}</h3>
                       </div>
                     </div>
                   );
@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                 <h3 className="text-lg font-bold text-gray-800">የተመዝገቡ ተጠቃሚዎች እና ደንበኞች</h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-right border-collapse">
+                <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-sm font-semibold border-b border-gray-100">
                       <th className="p-4">ስም</th>
@@ -420,7 +420,7 @@ const AdminDashboard = () => {
                   <h3 className="text-lg font-bold text-gray-800">የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-right border-collapse">
+                  <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50 text-gray-600 text-sm font-semibold border-b border-gray-100">
                         <th className="p-4">ስም</th>
