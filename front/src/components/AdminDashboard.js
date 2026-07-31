@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Footer from './Footer';
 
 const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
@@ -35,11 +35,8 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [loading, setLoading] = useState(false);
   const [selectedIdCard, setSelectedIdCard] = useState(null);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, [API_BASE_URL]);
-
-  const fetchEmployees = async () => {
+  // 🔄 የተስተካከለ fetchEmployees በ useCallback (ESLint Warning እንዳይፈጥር)
+  const fetchEmployees = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
       const data = await res.json();
@@ -49,7 +46,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     } catch (err) {
       console.error('Error fetching employees', err);
     }
-  };
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -327,7 +328,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 Dual-Language ID Card Modal (ልክ እንደ ቀደመው ናሙና በሁለቱም ቋንቋ የተዋቀረ) */}
+      {/* 🪪 Dual-Language ID Card Modal */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border-4 border-[#1e3a60] overflow-hidden relative">
