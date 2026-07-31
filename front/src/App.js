@@ -91,7 +91,14 @@ function App() {
       if (response.ok && data.success) {
         if (currentScreen === 'login') {
           setUser(data.user);
-          setCurrentScreen(data.user.role === 'admin' ? 'admin-dashboard' : 'order-page');
+          // 🚀 የተጠቃሚው ሮል 'admin', 'employee' ወይም 'normal' መሆኑን በማየት ወደየቦታው መምራት
+          if (data.user.role === 'admin') {
+            setCurrentScreen('admin-dashboard');
+          } else if (data.user.role === 'employee') {
+            setCurrentScreen('order-page'); // ወይም ለሰራተኛ የተዘጋጀ ገጽ ካለ መቀየር ይቻላል
+          } else {
+            setCurrentScreen('order-page');
+          }
         } else {
           setAuthStatus('✅ ምዝገባው ተሳክቷል! አሁን መግባት ይችላሉ።');
           setCurrentScreen('login');
@@ -283,7 +290,7 @@ function App() {
     );
   }
 
-  // ORDER PAGE
+  // ORDER PAGE / EMPLOYEE PAGE
   if (currentScreen === 'order-page' && user) {
     return (
       <OrderPage
