@@ -1,604 +1,908 @@
-import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import {
-  Users,
-  Briefcase,
-  Mail,
-  UserPlus,
-  Trash2,
-  Send,
-  Menu,
-  X,
-  LogOut,
-  Settings,
-  RefreshCw
-} from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import "./AdminDashboard.css";
+import Footer from "./Footer";
+import { uploadImageToImgBB } from "./imageUploading";
 
-const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  const [stats, setStats] = useState({ users: 0, projects: 0, messages: 0, hrs: 0 });
-  const [users, setUsers] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [hrs, setHrs] = useState([]);
-  
-  const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
-  const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
+function AdminDashboard({
+  user,
+  handleLogout,
+  adminMessages,
+  fetchMessages,
+  newAdminForm,
+  handleNewAdminChange,
+  handleAddAdminSubmit,
+  adminAddStatus,
+  API_BASE_URL,
+  handleDeleteMessage,
+  projects,
+  setProjects,
+}) {
   const [replyText, setReplyText] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState({ message: "", type: "" });
+  const [adminList, setAdminList] = useState([]);
+  const [userList, setUserList] = useState([]);
+  const [hrList, setHrList] = useState([]); // የ HR ዝርዝር ማከማቻ
 
-  const API_BASE = "https://your-backend-url.com/api";
+  // ንቁ ታብ (messages, admins, users, hrs, projects)
+  const [activeTab, setActiveTab] = useState("messages");
 
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification({ message: "", type: "" }), 4000);
-  };
+  // አድሚን ማስተካከያ (Editing Admin)
+  const [editingAdmin, setEditingAdmin] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [passwordReset, setPasswordReset] = useState({ id: "", newPassword: "" });
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [usersRes, projectsRes, messagesRes, hrsRes] = await Promise.all([
-        axios.get(`${API_BASE}/admin/users`).catch(() => ({ data: { users: [] } })),
-        axios.get(`${API_BASE}/projects`).catch(() => ({ data: { projects: [] } })),
-        axios.get(`${API_BASE}/admin/messages`).catch(() => ({ data: { messages: [] } })),
-        axios.get(`${API_BASE}/admin/hrs`).catch(() => ({ data: { hrs: [] } })),
-      ]);
+  // የ HR መመዝገቢያ ፎርም ስቴት
+  const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
 
-      setUsers(usersRes.data.users || []);
-      setProjects(projectsRes.data.projects || []);
-      setMessages(messagesRes.data.messages || []);
-      setHrs(hrsRes.data.hrs || []);
+  // ቻት ስታይል ዩዘሮች (Telegram Style)
+  const [selectedUserEmail, setSelectedUserEmail] = useState(null);
 
-      setStats({
-        users: (usersRes.data.users || []).length,
-        projects: (projectsRes.data.projects || []).length,
-        messages: (messagesRes.data.messages || []).length,
-        hrs: (hrsRes.data.hrs || []).length,
-      });
-    } catch (error) {
-      showNotification("መረጃዎችን ማምጣት አልተቻለም።", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE]);
+  // ፕሮጀክት መመዝገቢያ ስቴት
+  const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchMessages();
+    fetchAdmins();
+    fetchUsers();
+    fetchHrs(); // HRዎችን ማምጫ
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 5000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE_URL]);
 
-  const handleAddProject = async (e) => {
+  // Unique Users for Chat
+  const uniqueUsers = useMemo(() => {
+    const users = [];
+    const seenEmails = new Set();
+    adminMessages.forEach((msg) => {
+      if (!seenEmails.has(msg.email)) {
+        seenEmails.add(msg.email);
+        users.push({ name: msg.name, email: msg.email });
+      }
+    });
+    return users;
+  }, [adminMessages]);
+
+  useEffect(() => {
+    if (uniqueUsers.length > 0 && !selectedUserEmail) {
+      setSelectedUserEmail(uniqueUsers[0].email);
+    }
+  }, [uniqueUsers, selectedUserEmail]);
+
+  const filteredMessages = adminMessages.filter(
+    (msg) => msg.email === selectedUserEmail
+  );
+
+  // አድሚኖችን ማምጫ
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/list`);
+      const data = await res.json();
+      if (data.success) setAdminList(data.admins);
+    } catch (err) {
+      console.error("አድሚኖችን ማምጣት አልተቻለም");
+    }
+  };
+
+  // ተጠቃሚዎችን ማምጫ
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
+      const data = await res.json();
+      if (data.success) setUserList(data.users);
+    } catch (err) {
+      console.error("ተጠቃሚዎችን ማምጣት አልተቻለም");
+    }
+  };
+
+  // HRዎችን ማምጫ (አዲስ የተጨመረ)
+  const fetchHrs = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/hrs`);
+      const data = await res.json();
+      if (data.success) setHrList(data.hrs);
+    } catch (err) {
+      console.error("HR ማምጣት አልተቻለም");
+    }
+  };
+
+  // መልዕክት መላኪያ
+  const handleSendAdminMessage = async () => {
+    const txt = replyText["global_admin_chat"];
+    if (!txt || !txt.trim()) return alert("እባክዎ ትክክለኛ መልዕክት ይጻፉ!");
+    const activeUser = uniqueUsers.find((u) => u.email === selectedUserEmail);
+    if (!activeUser) return alert("እባክዎ ትክክለኛ ደንበኛ ይምረጡ!");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/send-new-message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: activeUser.name,
+          email: selectedUserEmail,
+          message: txt,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReplyText((prev) => ({ ...prev, global_admin_chat: "" }));
+        fetchMessages();
+      }
+    } catch (err) {
+      alert("መልዕክቱን መላክ አልተቻለም። ድንገተኛ ስህተት አጋጥሟል");
+    }
+  };
+
+  // ፎቶ መጫኛ
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    try {
+      const imageUrl = await uploadImageToImgBB(file, setUploading);
+      setProjectForm((prev) => ({ ...prev, imageUrl: imageUrl }));
+      alert("ፎቶው በስኬት ተጭኗል!");
+    } catch (err) {
+      alert("ፎቶ ማውረድ አልተቻለም፦ " + err.message);
+    }
+  };
+
+  // ፕሮጀክት መመዝገቢያ
+  const handleProjectSubmit = async (e) => {
+    e.preventDefault();
+    if (!projectForm.imageUrl) return alert("እባክዎ ትክክለኛ ፎቶ ያስገቡ!");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(projectForm),
+      });
+      if (res.ok) {
+        alert("ፖርትፎሊዮ/ፕሮጀክት በተሳካ ሁኔታ ተመዝግቧል!");
+        setProjectForm({ title: "", link: "", imageUrl: "" });
+      }
+    } catch (err) {
+      alert("ስህተት አጋጥሟል ወይምሰርቨር ጋር መገናኘት አልተቻለም");
+    }
+  };
+
+  // HR መመዝገቢያ (አዲስ የተጨመረ)
+  const handleAddHRCtl = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE}/admin/projects`, projectForm);
-      showNotification("ፕሮጀክት በስኬት ተመዝግቧል!");
-      setProjectForm({ title: "", link: "", imageUrl: "" });
-      fetchData();
-    } catch (error) {
-      showNotification("ፕሮጀክት መመዝገብ አልተቻለም", "error");
+      const res = await fetch(`${API_BASE_URL}/api/admin/hrs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(hrForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("HR በስኬት ተመዝግቧል!");
+        setHrForm({ name: "", email: "", password: "" });
+        fetchHrs();
+      } else {
+        alert(data.error || "HR መመዝገብ አልተቻለም");
+      }
+    } catch (err) {
+      alert("ስህተት ተፈጥሯል");
     }
   };
 
-  const handleDeleteProject = async (id) => {
-    if (!window.confirm("ይህንን ፕሮጀክት ማጥፋት ይፈልጋሉ?")) return;
-    try {
-      await axios.delete(`${API_BASE}/admin/projects/${id}`);
-      showNotification("ፕሮጀክቱ ተሰርዟል!");
-      fetchData();
-    } catch (error) {
-      showNotification("ማጥፋት አልተቻለም", "error");
-    }
-  };
-
-  const handleAddHR = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API_BASE}/admin/hrs`, hrForm);
-      showNotification("HR በስኬት ተመዝግቧል!");
-      setHrForm({ name: "", email: "", password: "" });
-      fetchData();
-    } catch (error) {
-      showNotification(error.response?.data?.error || "HR መመዝገብ አልተቻለም", "error");
-    }
-  };
-
+  // HR ማጥፊያ (አዲስ የተጨመረ)
   const handleDeleteHR = async (id) => {
     if (!window.confirm("ይህንን HR ማጥፋት ይፈልጋሉ?")) return;
     try {
-      await axios.delete(`${API_BASE}/admin/hrs/${id}`);
-      showNotification("HR ተሰርዟል!");
-      fetchData();
-    } catch (error) {
-      showNotification("ማጥፋት አልተቻለም", "error");
+      const res = await fetch(`${API_BASE_URL}/api/admin/hrs/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("HR ተሰርዟል!");
+        fetchHrs();
+      }
+    } catch (err) {
+      alert("HR ማጥፋት አልተቻለም");
     }
   };
 
+  // የ HR ፓስወርድ መቀየሪያ (አዲስ የተጨመረ)
   const handleResetHRPassword = async (id) => {
     const newPassword = prompt("ለዚህ HR አዲስ ፓስወርድ ያስገቡ (ቢያንስ 6 ፊደላት):");
     if (!newPassword) return;
     try {
-      await axios.put(`${API_BASE}/admin/hrs/reset-password/${id}`, { newPassword });
-      showNotification("የ HR ፓስወርድ ተቀይሯል!");
-    } catch (error) {
-      showNotification(error.response?.data?.error || "ፓስወርድ መቀየር አልተቻለም", "error");
+      const res = await fetch(`${API_BASE_URL}/api/admin/hrs/reset-password/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("የ HR ፓስወርድ በስኬት ተለውጧል!");
+      } else {
+        alert(data.error || "ፓስወርድ መቀየር አልተቻለም");
+      }
+    } catch (err) {
+      alert("የ HR ፓስወርድ መቀየር አልተቻለም");
     }
   };
 
-  const handleToggleBlock = async (id, currentStatus) => {
+  const handleUpdateAdmin = async (e) => {
+    e.preventDefault();
     try {
-      await axios.put(`${API_BASE}/admin/users/block/${id}`, { isBlocked: !currentStatus });
-      showNotification("የተጠቃሚው ሁኔታ ተቀይሯል!");
-      fetchData();
-    } catch (error) {
-      showNotification("ክዋኔው አልተሳካም", "error");
+      const res = await fetch(
+        `${API_BASE_URL}/api/admin/update/${editingAdmin}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editForm),
+        }
+      );
+      if (res.ok) {
+        alert("አድሚን መረጃ ተስተካክሏል!");
+        setEditingAdmin(null);
+        fetchAdmins();
+      }
+    } catch (err) {
+      alert("ማስተካከሉ አልተሳካም");
+    }
+  };
+
+  const handleResetPassword = async (id) => {
+    if (!passwordReset.newPassword || passwordReset.id !== id)
+      return alert("እባክዎ ትክክለኛ ፓስወርድ ይጻፉ!");
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/admin/reset-password/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newPassword: passwordReset.newPassword }),
+        }
+      );
+      if (res.ok) {
+        alert("አድሚኑ ፓስወርድ ሰክሰስፉሊ ተቀይሯል!");
+        setPasswordReset({ id: "", newPassword: "" });
+      }
+    } catch (err) {
+      alert("ፓስወርድ መቀየር አልተቻለም");
+    }
+  };
+
+  const handleDeleteAdmin = async (id) => {
+    if (!window.confirm("እርግጠኛ ነዎት አድሚኑን ከሰርቨር ላይ ማጥፋት ይፈልጋሉ?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/delete/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("አድሚኑ ተሰርዟል!");
+        fetchAdmins();
+      }
+    } catch (err) {
+      alert("ማጥፋት አልተቻለም");
+    }
+  };
+
+  const handleToggleBlockUser = async (id, isBlocked) => {
+    const actionText = isBlocked ? "ክፈት (Unblock)" : "አግድ (Block)";
+    if (!window.confirm(`እርግጠኛ ነዎት ተጠቃሚውን ${actionText} ማድረግ ይፈልጋሉ?`))
+      return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/block/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isBlocked: !isBlocked }),
+      });
+      if (res.ok) {
+        alert(`ተጠቃሚው በተሳካ ሁኔታ ${isBlocked ? "እንዲከፈት ተደርጓል" : "ታግዷል"}!`);
+        fetchUsers();
+      }
+    } catch (err) {
+      alert("ክዋኔው አልተሳካም");
     }
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("ይህንን ተጠቃሚ ሙሉ በሙሉ ማጥፋት ይፈልጋሉ?")) return;
+    if (!window.confirm("እርግጠኛ ነዎት ተጠቃሚውን ሙሉ በሙሉ ማጥፋት ይፈልጋሉ?")) return;
     try {
-      await axios.delete(`${API_BASE}/admin/users/delete/${id}`);
-      showNotification("ተጠቃሚው ተሰርዟል!");
-      fetchData();
-    } catch (error) {
-      showNotification("ማጥፋት አልተቻለም", "error");
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/delete/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!");
+        fetchUsers();
+        fetchMessages();
+      }
+    } catch (err) {
+      alert("ተጠቃሚውን ማጥፋት አልተቻለም");
     }
   };
 
-  const handleSendReply = async (id) => {
-    const reply = replyText[id];
-    if (!reply) return showNotification("እባክዎ ምላሽ ይጻፉ!", "error");
-    try {
-      await axios.post(`${API_BASE}/admin/reply/${id}`, { reply });
-      showNotification("ምላሹ ተልኳል!");
-      setReplyText({ ...replyText, [id]: "" });
-      fetchData();
-    } catch (error) {
-      showNotification("ምላሽ መላክ አልተቻለም", "error");
-    }
-  };
-
-  const handleDeleteMessage = async (id) => {
-    if (!window.confirm("መልዕክቱን ማጥፋት ይፈልጋሉ?")) return;
-    try {
-      await axios.delete(`${API_BASE}/admin/messages/${id}`);
-      showNotification("መልዕክቱ ተሰርዟል!");
-      fetchData();
-    } catch (error) {
-      showNotification("ማጥፋት አልተቻለም", "error");
+  const handleDeleteProject = async (id) => {
+    if (window.confirm("እርግጠኛ ነዎት ፖርትፎሊዮውን ማጥፋት ይፈልጋሉ?")) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          alert("ፖርትፎሊዮው ተሰርዟል!");
+          setProjects((prev) => prev.filter((p) => p._id !== id));
+        }
+      } catch (err) {
+        alert("ማጥፋት አልተቻለም");
+      }
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans text-left">
-      {/* Mobile Sidebar Backdrop */}
-      {sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-        />
-      )}
+    <div className="admin-dashboard-container">
+      <div className="admin-header">
+        <h2>👑 ዋናውን መቆጣጠሪያ ማዕከል (Admin Panel)</h2>
+        <button onClick={handleLogout} className="btn-logout">
+          ውጣ (Logout)
+        </button>
+      </div>
 
-      {/* Notification Toast */}
-      {notification.message && (
-        <div
-          className={`fixed top-5 right-5 z-50 px-6 py-3 rounded-lg shadow-xl text-white font-medium transition-all ${
-            notification.type === "error" ? "bg-red-500" : "bg-green-600"
-          }`}
+      {/* የዳሽቦርድ ታቦች መምረጫ */}
+      <div className="admin-tabs-nav">
+        <button
+          className={`tab-nav-btn ${activeTab === "messages" ? "active-tab" : ""}`}
+          onClick={() => setActiveTab("messages")}
         >
-          {notification.message}
+          💬 መልዕክቶች
+        </button>
+        <button
+          className={`tab-nav-btn ${activeTab === "projects" ? "active-tab" : ""}`}
+          onClick={() => setActiveTab("projects")}
+        >
+          📁 ፕሮጀክቶች
+        </button>
+        <button
+          className={`tab-nav-btn ${activeTab === "admins" ? "active-tab" : ""}`}
+          onClick={() => setActiveTab("admins")}
+        >
+          👑 አድሚኖች
+        </button>
+        <button
+          className={`tab-nav-btn ${activeTab === "hrs" ? "active-tab" : ""}`}
+          onClick={() => setActiveTab("hrs")}
+        >
+          👥 የሰው ሃብት (HR)
+        </button>
+        <button
+          className={`tab-nav-btn ${activeTab === "users" ? "active-tab" : ""}`}
+          onClick={() => setActiveTab("users")}
+        >
+          👤 ደንበኞች
+        </button>
+      </div>
+
+      {/* 1. ፕሮጀክቶች */}
+      {activeTab === "projects" && (
+        <div className="card">
+          <h3>📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
+          <div
+            className="project-form-section"
+            style={{ marginBottom: "30px", paddingBottom: "20px", borderBottom: "1px solid #333" }}
+          >
+            <input
+              type="text"
+              placeholder="የፕሮጀክት ስም"
+              value={projectForm.title}
+              onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
+              className="input-field"
+            />
+            <input
+              type="url"
+              placeholder="የፕሮጀክት ሊንክ"
+              value={projectForm.link}
+              onChange={(e) => setProjectForm({ ...projectForm, link: e.target.value })}
+              className="input-field"
+            />
+            <input type="file" onChange={handleImageUpload} className="input-field" />
+            <button onClick={handleProjectSubmit} className="btn-action" disabled={uploading}>
+              {uploading ? "በመጫን ላይ..." : "መዝግብ"}
+            </button>
+          </div>
+          <h3>📋 ያሉ ፕሮጀክቶች</h3>
+          <div className="admin-projects-list" style={{ display: "grid", gap: "15px" }}>
+            {projects && projects.length > 0 ? (
+              projects.map((p) => (
+                <div
+                  key={p._id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px",
+                    background: "#161b22",
+                    borderRadius: "8px",
+                    border: "1px solid #30363d",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <img
+                      src={p.imageUrl}
+                      alt={p.title}
+                      style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
+                    />
+                    <span>{p.title}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteProject(p._id)}
+                    style={{
+                      background: "#ff4444",
+                      color: "white",
+                      border: "none",
+                      padding: "8px 15px",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    🗑️ አጥፋ
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p>ምንም ፕሮጀክት የለም</p>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static shadow-2xl flex flex-col`}
-      >
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Settings className="text-blue-500" /> የአድሚን ፓነል
-          </h1>
-          <button 
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
-          {[
-            { id: "overview", label: "አጠቃላይ እይታ", icon: Users },
-            { id: "users", label: "ተጠቃሚዎች እና ደንበኞች", icon: Users },
-            { id: "hrs", label: "የሰው ሃብት (HR) አስተዳደር", icon: UserPlus },
-            { id: "projects", label: "ፖርትፎሊዮ / ፕሮጀክቶች", icon: Briefcase },
-            { id: "messages", label: "መልዕክቶች እና ትዕዛዞች", icon: Mail },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
-                  activeTab === item.id
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                    : "hover:bg-slate-800 text-slate-400 hover:text-white"
-                }`}
-              >
-                <Icon size={20} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = "/login";
-            }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition-all font-medium"
-          >
-            <LogOut size={20} />
-            <span>ውጣ (Logout)</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full">
-        {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 shadow-sm">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 bg-blue-600 text-white rounded-md shadow-md"
-            >
-              <Menu size={22} />
-            </button>
-            <h2 className="text-lg lg:text-xl font-bold text-gray-800 truncate">
-              {activeTab === "overview" && "ዳሽቦርድ አጠቃላይ መረጃ"}
-              {activeTab === "users" && "የተጠቃሚዎች ዝርዝር እና መቆጣጠሪያ"}
-              {activeTab === "hrs" && "የ HR ባለሙያዎች ማስተዳደሪያ"}
-              {activeTab === "projects" && "የፖርትፎሊዮ ፕሮጀክቶች አስተዳደር"}
-              {activeTab === "messages" && "የደንበኞች መልዕክቶች እና ትዕዛዞች"}
-            </h2>
-          </div>
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all text-sm font-medium"
-          >
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            <span className="hidden sm:inline">አድስ</span>
-          </button>
-        </header>
-
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gray-50">
-          {activeTab === "overview" && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { title: "ጠቅላላ ተጠቃሚዎች", count: stats.users, icon: Users, color: "bg-blue-500" },
-                  { title: "ፕሮጀክቶች", count: stats.projects, icon: Briefcase, color: "bg-purple-500" },
-                  { title: "የመጡ መልዕክቶች", count: stats.messages, icon: Mail, color: "bg-amber-500" },
-                  { title: "የ HR ባለሙያዎች", count: stats.hrs, icon: UserPlus, color: "bg-emerald-500" },
-                ].map((stat, i) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                      <div className={`p-4 rounded-xl text-white shadow-md ${stat.color}`}>
-                        <Icon size={24} />
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                        <h3 className="text-3xl font-bold text-gray-800 mt-2">{stat.count}</h3>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">እንኳን ደህና መጡ!</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  ይህ የሲስተሙ ዋና መቆጣጠሪያ ማዕከል ነው። ከဘေး ሜኑ (Sidebar) ላይ በመምረጥ ተጠቃሚዎችን ማገድ፣ የ HR ባለሙያዎችን መመዝገብ፣ አዳዲስ ፕሮጀክቶችን መጨመር እና ለተጠቃሚዎች መልዕክት መመለስ ይችላሉ።
-                </p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "users" && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">የተመዝገቡ ተጠቃሚዎች እና ደንበኞች</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-600 text-sm font-semibold border-b border-gray-100">
-                      <th className="p-4">ስም</th>
-                      <th className="p-4">ኢሜይል</th>
-                      <th className="p-4">ሁኔታ</th>
-                      <th className="p-4">ድርጊቶች</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                    {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-gray-50/50">
-                        <td className="p-4 font-medium">{u.name}</td>
-                        <td className="p-4 text-gray-500">{u.email}</td>
-                        <td className="p-4">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              u.isBlocked ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                            }`}
-                          >
-                            {u.isBlocked ? "ታግዷል" : "ንቁ (Active)"}
-                          </span>
-                        </td>
-                        <td className="p-4 flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleBlock(u._id, u.isBlocked)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all ${
-                              u.isBlocked ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-500 hover:bg-amber-600"
-                            }`}
-                          >
-                            {u.isBlocked ? "ክፈት" : "አግድ"}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(u._id)}
-                            className="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {users.length === 0 && (
-                      <tr>
-                        <td colSpan="4" className="p-6 text-center text-gray-400">ምንም ተጠቃሚ የለም</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "hrs" && (
-            <div className="space-y-8">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">አዲስ የ HR ባለሙያ መመዝገቢያ</h3>
-                <form onSubmit={handleAddHR} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    placeholder="የሰራተኛው ስም"
-                    value={hrForm.name}
-                    onChange={(e) => setHrForm({ ...hrForm, name: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <input
-                    type="email"
-                    placeholder="ኢሜይል አድራሻ"
-                    value={hrForm.email}
-                    onChange={(e) => setHrForm({ ...hrForm, email: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <input
-                    type="password"
-                    placeholder="ፓስወርድ"
-                    value={hrForm.password}
-                    onChange={(e) => setHrForm({ ...hrForm, password: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <div className="md:col-span-3">
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md"
-                    >
-                      HR መዝግብ
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-800">የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 text-gray-600 text-sm font-semibold border-b border-gray-100">
-                        <th className="p-4">ስም</th>
-                        <th className="p-4">ኢሜይል</th>
-                        <th className="p-4">ድርጊቶች</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                      {hrs.map((hr) => (
-                        <tr key={hr._id} className="hover:bg-gray-50/50">
-                          <td className="p-4 font-medium">{hr.name}</td>
-                          <td className="p-4 text-gray-500">{hr.email}</td>
-                          <td className="p-4 flex items-center gap-2">
-                            <button
-                              onClick={() => handleResetHRPassword(hr._id)}
-                              className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-xs font-medium transition-all"
-                            >
-                              ፓስወርድ ቀይር
-                            </button>
-                            <button
-                              onClick={() => handleDeleteHR(hr._id)}
-                              className="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {hrs.length === 0 && (
-                        <tr>
-                          <td colSpan="3" className="p-6 text-center text-gray-400">ምንም HR አልተመዘገበም</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "projects" && (
-            <div className="space-y-8">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">አዲስ ፕሮጀክት መመዝገቢያ</h3>
-                <form onSubmit={handleAddProject} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    placeholder="የፕሮጀክቱ ርዕስ"
-                    value={projectForm.title}
-                    onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="የፕሮጀክት ሊንክ (URL)"
-                    value={projectForm.link}
-                    onChange={(e) => setProjectForm({ ...projectForm, link: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="የፎቶ ሊንክ (Image URL)"
-                    value={projectForm.imageUrl}
-                    onChange={(e) => setProjectForm({ ...projectForm, imageUrl: e.target.value })}
-                    required
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                  <div className="md:col-span-3">
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md"
-                    >
-                      ፕሮጀክት መዝግብ
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-800">የተመዘገቡ ፕሮጀክቶች</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-                  {projects.map((proj) => (
-                    <div key={proj._id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm bg-gray-50 flex flex-col justify-between">
-                      <div>
-                        {proj.imageUrl && (
-                          <img src={proj.imageUrl} alt={proj.title} className="w-full h-40 object-cover" />
-                        )}
-                        <div className="p-4">
-                          <h4 className="font-bold text-gray-800 text-base mb-1">{proj.title}</h4>
-                          <a href={proj.link} target="_blank" rel="noreferrer" className="text-blue-600 text-xs hover:underline truncate block">
-                            {proj.link}
-                          </a>
-                        </div>
-                      </div>
-                      <div className="p-4 border-t border-gray-100 flex justify-end">
-                        <button
-                          onClick={() => handleDeleteProject(proj._id)}
-                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs font-medium transition-all flex items-center gap-1"
-                        >
-                          <Trash2 size={14} /> አጥፋ
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {projects.length === 0 && (
-                    <p className="text-gray-400 col-span-3 text-center py-6">ምንም ፕሮጀክት የለም</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "messages" && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">የደንበኞች መልዕክቶች እና ትዕዛዞች</h3>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {messages.map((msg) => (
-                  <div key={msg._id} className="p-6 space-y-4 hover:bg-gray-50/50 transition-all">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-gray-800">{msg.name}</h4>
-                        <p className="text-sm text-gray-500">{msg.email}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${msg.status === "ምላሽ ተሰጥቷል" ? "bg-green-100 text-green-600" : "bg-amber-100 text-amber-600"}`}>
-                          {msg.status}
-                        </span>
-                        <button onClick={() => handleDeleteMessage(msg._id)} className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-700">
-                      <p className="font-medium text-gray-500 mb-1">የላከው መልዕክት፦</p>
-                      <p>{msg.message}</p>
-                    </div>
-
-                    {msg.reply && (
-                      <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 border border-blue-100">
-                        <p className="font-medium text-blue-600 mb-1">የተሰጠ ምላሽ፦</p>
-                        <p>{msg.reply}</p>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-3 pt-2">
-                      <input
-                        type="text"
-                        placeholder="ምላሽ ይጻፉ..."
-                        value={replyText[msg._id] || ""}
-                        onChange={(e) => setReplyText({ ...replyText, [msg._id]: e.target.value })}
-                        className="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                      />
-                      <button
-                        onClick={() => handleSendReply(msg._id)}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md flex items-center gap-2"
-                      >
-                        <Send size={16} /> ላክ
-                      </button>
+      {/* 2. መልዕክቶች (Telegram Split Mode) */}
+      {activeTab === "messages" && (
+        <>
+          <h3 className="admin-section-heading">
+            💬 የደንበኞች መልዕክት ዝርዝር (Telegram Split Mode)
+          </h3>
+          <div className="telegram-admin-layout">
+            <div className="telegram-sidebar">
+              <div className="sidebar-header">👥 ተጠቃሚዎች ({uniqueUsers.length})</div>
+              <div className="sidebar-users-list">
+                {uniqueUsers.map((u) => (
+                  <div
+                    key={u.email}
+                    className={`sidebar-user-item ${
+                      selectedUserEmail === u.email ? "active-chat-user" : ""
+                    }`}
+                    onClick={() => setSelectedUserEmail(u.email)}
+                  >
+                    <span className="sidebar-avatar">👤</span>
+                    <div className="sidebar-user-details">
+                      <h4>{u.name}</h4>
+                      <p>{u.email}</p>
                     </div>
                   </div>
                 ))}
-                {messages.length === 0 && (
-                  <p className="p-6 text-center text-gray-400">ምንም መልዕክት የለም</p>
+                {uniqueUsers.length === 0 && (
+                  <p className="no-chats-text">ምንም ቻት የለም</p>
                 )}
               </div>
             </div>
-          )}
+
+            <div className="telegram-chat-window">
+              {selectedUserEmail ? (
+                <>
+                  <div className="chat-window-header">
+                    💬 ከ <strong>{uniqueUsers.find((u) => u.email === selectedUserEmail)?.name}</strong> ጋር መልዕክቶች
+                  </div>
+                  <div className="chat-window-body">
+                    {filteredMessages.map((msg) => (
+                      <div key={msg._id} className="admin-chat-block">
+                        {!msg.message.startsWith("[አድሚን መልዕክት]") && (
+                          <div className="admin-user-msg-bubble">
+                            <p>{msg.message}</p>
+                            <span className="chat-block-time">
+                              🕒 {new Date(msg.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                        {msg.reply && (
+                          <div className="admin-reply-msg-bubble">
+                            <span className="reply-label">አድሚን ምላሽ፦</span>
+                            <p>{msg.reply}</p>
+                          </div>
+                        )}
+                        <div className="admin-msg-delete-row">
+                          <button
+                            onClick={() => handleDeleteMessage(msg._id)}
+                            className="admin-delete-msg-btn"
+                          >
+                            🗑️ መልዕክቱን አጥፊ
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    className="admin-chat-footer-input"
+                    style={{
+                      padding: "20px",
+                      background: "#161b22",
+                      borderTop: "1px solid #30363d",
+                      display: "flex",
+                      gap: "10px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="መልዕክትዎ ይጻፉ... (ለመላክ Enter ይጫኑ)"
+                      value={replyText["global_admin_chat"] || ""}
+                      onChange={(e) =>
+                        setReplyText({ ...replyText, global_admin_chat: e.target.value })
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSendAdminMessage();
+                      }}
+                      className="input-field"
+                      style={{
+                        flex: 1,
+                        padding: "14px",
+                        background: "#0d0f12",
+                        color: "#fff",
+                        border: "1px solid #30363d",
+                        borderRadius: "10px",
+                      }}
+                    />
+                    <button
+                      onClick={handleSendAdminMessage}
+                      className="btn-action"
+                      style={{
+                        background: "#ffd700",
+                        color: "#0d0f12",
+                        padding: "0 25px",
+                        border: "none",
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      📁 ላክ
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="select-chat-placeholder">
+                  <p>እባክዎ ከဘራውዘር ዝርዝር ውስጥ ተጠቃሚ ይምረጡ</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 3. አድሚኖች አስተዳደር */}
+      {activeTab === "admins" && (
+        <div className="grid admin-grid-gap">
+          <div className="card admin-form-card">
+            <h3>➕ አዲስ አድሚን ይፍጠሩ</h3>
+            <form
+              onSubmit={(e) => {
+                handleAddAdminSubmit(e);
+                setTimeout(fetchAdmins, 1000);
+              }}
+              className="form-group admin-form-top"
+            >
+              <input
+                type="text"
+                name="name"
+                placeholder="የአድሚን ስም"
+                value={newAdminForm.name}
+                onChange={handleNewAdminChange}
+                required
+                className="input-field admin-input-bottom"
+              />
+              <input
+                type="text"
+                name="email"
+                placeholder="የአድሚን ኢሜይል"
+                value={newAdminForm.email}
+                onChange={handleNewAdminChange}
+                required
+                className="input-field admin-input-bottom"
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="የሚስጥር ቃል"
+                value={newAdminForm.password}
+                onChange={handleNewAdminChange}
+                required
+                className="input-field admin-input-large-bottom"
+              />
+              <button type="submit" className="submit-btn">
+                አድሚኑን መዝግብ
+              </button>
+            </form>
+            {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
+          </div>
+
+          <div className="card admin-table-card">
+            <h3>📋 ያሉ አድሚኖች ዝርዝር</h3>
+            <table className="custom-table responsive-table">
+              <thead>
+                <tr>
+                  <th>ስም</th>
+                  <th>ኢሜይል</th>
+                  <th>የሚስጥር ቃል ማስተካከያ</th>
+                  <th>ድርጊት</th>
+                </tr>
+              </thead>
+              <tbody>
+                {adminList.map((adm) => (
+                  <tr key={adm._id}>
+                    <td data-label="ስም">
+                      <strong>{adm.name}</strong>
+                    </td>
+                    <td data-label="ኢሜይል">{adm.email}</td>
+                    <td data-label="የሚስጥር ቃል ማስተካከያ">
+                      <div className="admin-inline-flex admin-wrap-fix">
+                        <input
+                          type="text"
+                          placeholder="አዲስ የሚስጥር ቃል"
+                          value={
+                            passwordReset.id === adm._id
+                              ? passwordReset.newPassword
+                              : ""
+                          }
+                          onChange={(e) =>
+                            setPasswordReset({
+                              id: adm._id,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          className="input-field admin-table-input"
+                        />
+                        <button
+                          onClick={() => handleResetPassword(adm._id)}
+                          className="btn-action btn-edit btn-padding-fix"
+                        >
+                          ቀይር
+                        </button>
+                      </div>
+                    </td>
+                    <td data-label="ድርጊት">
+                      <div className="admin-inline-flex">
+                        <button
+                          onClick={() => {
+                            setEditingAdmin(adm._id);
+                            setEditForm({ name: adm.name, email: adm.email });
+                          }}
+                          className="btn-action btn-reply btn-padding-fix"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAdmin(adm._id)}
+                          className="btn-action btn-delete btn-padding-fix"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* 4. የሰው ሃብት (HR) አስተዳደር (አዲስ የተጨመረ) */}
+      {activeTab === "hrs" && (
+        <div className="grid admin-grid-gap">
+          <div className="card admin-form-card">
+            <h3>👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
+            <form onSubmit={handleAddHRCtl} className="form-group admin-form-top">
+              <input
+                type="text"
+                placeholder="የሰራተኛው ስም"
+                value={hrForm.name}
+                onChange={(e) => setHrForm({ ...hrForm, name: e.target.value })}
+                required
+                className="input-field admin-input-bottom"
+              />
+              <input
+                type="email"
+                placeholder="ኢሜይል አድራሻ"
+                value={hrForm.email}
+                onChange={(e) => setHrForm({ ...hrForm, email: e.target.value })}
+                required
+                className="input-field admin-input-bottom"
+              />
+              <input
+                type="password"
+                placeholder="ፓስወርድ"
+                value={hrForm.password}
+                onChange={(e) => setHrForm({ ...hrForm, password: e.target.value })}
+                required
+                className="input-field admin-input-large-bottom"
+              />
+              <button type="submit" className="submit-btn">
+                HR መዝግብ
+              </button>
+            </form>
+          </div>
+
+          <div className="card admin-table-card">
+            <h3>📋 የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
+            <table className="custom-table responsive-table">
+              <thead>
+                <tr>
+                  <th>ስም</th>
+                  <th>ኢሜይል</th>
+                  <th>ፓስወርድ መቀየሪያ</th>
+                  <th>ድርጊት</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hrList.map((hr) => (
+                  <tr key={hr._id}>
+                    <td data-label="ስም">
+                      <strong>{hr.name}</strong>
+                    </td>
+                    <td data-label="ኢሜይል">{hr.email}</td>
+                    <td data-label="ፓስወርድ መቀየሪያ">
+                      <button
+                        onClick={() => handleResetHRPassword(hr._id)}
+                        className="btn-action btn-edit btn-padding-fix"
+                      >
+                        ፓስወርድ ቀይር
+                      </button>
+                    </td>
+                    <td data-label="ድርጊት">
+                      <button
+                        onClick={() => handleDeleteHR(hr._id)}
+                        className="btn-action btn-delete btn-padding-fix"
+                      >
+                        🗑️ አጥፋ
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {hrList.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="admin-empty-text">
+                      ምንም HR አልተመዘገበም
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 5. ደንበኞች / ተጠቃሚዎች አስተዳደር */}
+      {activeTab === "users" && (
+        <div className="card admin-full-width-card">
+          <h3>
+            👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች (ብሎክ እና ማጥፊያ ማዕከል)
+          </h3>
+          <table className="custom-table responsive-table">
+            <thead>
+              <tr>
+                <th>ተጠቃሚ ስም</th>
+                <th>ኢሜይል</th>
+                <th>ሁኔታ (Status)</th>
+                <th>ድርጊቶች</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userList.map((u) => (
+                <tr key={u._id} className={u.isBlocked ? "blocked-user-row" : ""}>
+                  <td data-label="ተጠቃሚ ስም">
+                    <strong>{u.name}</strong>
+                  </td>
+                  <td data-label="ኢሜይል">
+                    {u.email}{" "}
+                    {u.isChatOnly && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "#ffd700",
+                          background: "#222",
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          marginLeft: "5px",
+                        }}
+                      >
+                        💬 ቻት ብቻ
+                      </span>
+                    )}
+                  </td>
+                  <td data-label="ሁኔታ">
+                    <span
+                      className={`status-badge ${
+                        u.isBlocked ? "badge-blocked" : "badge-active"
+                      }`}
+                    >
+                      {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ (Active)"}
+                    </span>
+                  </td>
+                  <td data-label="ድርጊቶች">
+                    <div className="admin-inline-flex">
+                      <button
+                        onClick={() => handleToggleBlockUser(u._id, u.isBlocked)}
+                        className={`btn-action ${
+                          u.isBlocked ? "btn-unblock" : "btn-block-action"
+                        }`}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: "6px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {u.isBlocked ? "🔓 ክፈት" : "🚫 አግድ"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(u._id)}
+                        className="btn-action btn-delete"
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: "6px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                        }}
+                      >
+                        🗑️ አጥፋ
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {userList.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="admin-empty-text">
+                    ምንም ተጠቃሚ አልተገኘም
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* አድሚን ማስተካከያ ሞዳል (Modal) */}
+      {editingAdmin && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>✏️ አድሚን ማስተካከያ</h3>
+            <form onSubmit={handleUpdateAdmin} className="form-group admin-form-top">
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                required
+                className="input-field"
+              />
+              <input
+                type="text"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                required
+                className="input-field"
+              />
+              <div className="admin-inline-flex admin-form-top">
+                <button type="submit" className="btn-action btn-reply btn-flex-one">
+                  አስተካክል
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingAdmin(null)}
+                  className="btn-action btn-delete btn-flex-one"
+                >
+                  ሰርዝ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <Footer />
     </div>
   );
-};
+}
 
 export default AdminDashboard;
