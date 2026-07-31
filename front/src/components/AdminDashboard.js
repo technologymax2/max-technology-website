@@ -6,6 +6,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]); 
+  const [employeeList, setEmployeeList] = useState([]); // 🏢 የሰራተኞች ዝርዝር
   const [activeTab, setActiveTab] = useState('messages');
 
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -14,25 +15,32 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
   const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
+  
+  // 🏢 አዲስ ሰራተኛ መመዝገቢያ ፎርም ስቴት
+  const [employeeForm, setEmployeeForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    position: '',
+    department: '',
+    idNumber: '',
+    photoUrl: '',
+    password: ''
+  });
+  const [employeeStatus, setEmployeeStatus] = useState('');
+  const [selectedIdCard, setSelectedIdCard] = useState(null); // ለዲጂታል መታወቂያ መመልከቻ
   const [uploading, setUploading] = useState(false);
+  const [empUploading, setEmpUploading] = useState(false);
 
   useEffect(() => {
     fetchMessages();
     fetchAdmins();
     fetchUsers();
+    fetchEmployees();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [API_BASE_URL]);
-
-  useEffect(() => {
-    fetchMessages();
-    fetchAdmins();
-    fetchUsers();
-    const interval = setInterval(() => { fetchMessages(); }, 5000); 
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const uniqueUsers = useMemo(() => {
     const users = [];
@@ -74,6 +82,19 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
+  // 🏢 ሰራተኞችን ከባክኤንድ ማምጫ
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
+      const data = await res.json();
+      if (data.success) {
+        setEmployeeList(data.employees);
+      }
+    } catch (err) {
+      console.error('ሰራተኞችን ማምጣት አልተቻለም', err);
+    }
+  };
+
   const handleSendAdminMessage = async () => {
     const txt = replyText['global_admin_chat'];
     if (!txt || !txt.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
@@ -110,6 +131,67 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       alert('📸 ምስሉ በስኬት ተጭኗል!');
     } catch (err) {
       alert('ምስል መጫን አልተቻለም፡ ' + err.message);
+    }
+  };
+
+  // 🏢 የሰራተኛ ፎቶ መጫኛ
+  const handleEmployeePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const imageUrl = await uploadImageToImgBB(file, setEmpUploading);
+      setEmployeeForm(prev => ({ ...prev, photoUrl: imageUrl }));
+      alert('📸 የሰራተኛው ፎቶ በስኬት ተጭኗል!');
+    } catch (err) {
+      alert('ፎቶ መጫን አልተቻለም፡ ' + err.message);
+    }
+  };
+
+  // 🏢 አዲስ ሰራተኛ መመዝገቢያ (Role: employee)
+  const handleEmployeeSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(employeeForm)
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEmployeeStatus('✅ ሰራተኛው በስኬት ተመዝግቧል (Digital ID ተዘጋጅቷል)!');
+        setEmployeeForm({
+          name: '',
+          email: '',
+          phone: '',
+          position: '',
+          department: '',
+          idNumber: '',
+          photoUrl: '',
+          password: ''
+        });
+        fetchEmployees();
+      } else {
+        setEmployeeStatus(data.error || 'ስህተት ተፈጥሯል');
+      }
+    } catch (err) {
+      setEmployeeStatus('የሰርቨር ስህተት!');
+    }
+  };
+
+  // 🏢 ሰራተኛን መሰረዣ
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm('ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        alert('ሰራተኛው ተሰርዟል!');
+        fetchEmployees();
+      }
+    } catch (err) {
+      alert('ማጥፋት አልተቻለም');
     }
   };
 
@@ -250,6 +332,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         {[
           { id: 'messages', label: '💬 መልዕክቶች' },
           { id: 'projects', label: '🚀 ፖርትፎሊዮ' },
+          { id: 'employees', label: '🏢 ሰራተኞች & ID' },
           { id: 'admins', label: '👥 አድሚኖች' },
           { id: 'users', label: '👤 ደንበኞች' }
         ].map((tab) => (
@@ -325,7 +408,141 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* Tab 2: Messages (Telegram Style Split Layout) */}
+      {/* Tab 2: HR / Employees Management */}
+      {activeTab === 'employees' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Registration Form */}
+          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
+            <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ (Employee)</h3>
+            <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-4">
+              <input 
+                type="text" 
+                placeholder="ሙሉ ስም" 
+                value={employeeForm.name} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, name: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="email" 
+                placeholder="ኢሜይል አድራሻ (Username)" 
+                value={employeeForm.email} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, email: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="password" 
+                placeholder="የምስጢር ቃል (Password)" 
+                value={employeeForm.password} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="text" 
+                placeholder="ስልክ ቁጥር" 
+                value={employeeForm.phone} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, phone: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="text" 
+                placeholder="የስራ መደብ (Position, e.g. Developer)" 
+                value={employeeForm.position} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, position: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="text" 
+                placeholder="ክፍል (Department, e.g. IT)" 
+                value={employeeForm.department} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, department: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <input 
+                type="text" 
+                placeholder="መታወቂያ ቁጥር (ID Number, e.g. MAX-001)" 
+                value={employeeForm.idNumber} 
+                onChange={(e) => setEmployeeForm({ ...employeeForm, idNumber: e.target.value })} 
+                required 
+                className="p-3.5 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500" 
+              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-400">የሰራተኛ ፎቶ ይጫኑ (ወይም ሊንክ ያስገቡ)</label>
+                <input 
+                  type="file" 
+                  onChange={handleEmployeePhotoUpload} 
+                  className="p-2 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white cursor-pointer" 
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={empUploading}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow disabled:opacity-50"
+              >
+                {empUploading ? 'ፎቶ በመጫን ላይ...' : 'ሰራተኛውን መዝግብ (Role: Employee)'}
+              </button>
+            </form>
+            {employeeStatus && <p className="mt-4 text-center font-medium text-green-400 text-sm">{employeeStatus}</p>}
+          </div>
+
+          {/* Employees List Table */}
+          <div className="lg:col-span-2 bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto">
+            <h3 className="text-xl font-bold mb-4 text-blue-400">📋 የተመዘገቡ ሰራተኞች ዝርዝር እና ዲጂታል መታወቂያ</h3>
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                  <th className="p-3">ስም</th>
+                  <th className="p-3">የስራ መደብ</th>
+                  <th className="p-3">መታወቂያ ቁጥር</th>
+                  <th className="p-3">እርምጃዎች</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {employeeList.map((emp) => (
+                  <tr key={emp._id} className="hover:bg-gray-700/30">
+                    <td className="p-3 font-semibold flex items-center gap-3">
+                      <img 
+                        src={emp.photoUrl || 'https://via.placeholder.com/40'} 
+                        alt={emp.name} 
+                        className="w-10 h-10 rounded-full object-cover border border-blue-500" 
+                      />
+                      {emp.name}
+                    </td>
+                    <td className="p-3 text-gray-300">{emp.position}</td>
+                    <td className="p-3 text-blue-300 font-mono">{emp.idNumber}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setSelectedIdCard(emp)} 
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition"
+                        >
+                          🪪 ዲጂታል መታወቂያ
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteEmployee(emp._id)} 
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition"
+                        >
+                          🗑 አጥፋ
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {employeeList.length === 0 && (
+                  <tr><td colSpan="4" className="p-6 text-center text-gray-500">ምንም የተመዘገበ ሰራተኛ የለም።</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Messages (Telegram Style Split Layout) */}
       {activeTab === 'messages' && (
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-bold text-blue-400">💬 የደንበኞች የቻት ማዘዣዎች (Telegram Split Mode)</h3>
@@ -423,7 +640,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* Tab 3: Admins Management */}
+      {/* Tab 4: Admins Management */}
       {activeTab === 'admins' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
@@ -473,7 +690,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* Tab 4: Users Management */}
+      {/* Tab 5: Users Management */}
       {activeTab === 'users' && (
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto">
           <h3 className="text-xl font-bold mb-4 text-blue-400">👤 የተመዘገቡ እና ቻት ያደረጉ ደንበኞች</h3>
@@ -517,6 +734,63 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 🪪 Digital ID Card Modal */}
+      {selectedIdCard && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gradient-to-br from-blue-900 via-gray-900 to-indigo-950 p-6 rounded-3xl w-full max-w-sm shadow-2xl border-2 border-blue-500/50 text-center relative">
+            <button 
+              onClick={() => setSelectedIdCard(null)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-xl bg-gray-800/80 w-8 h-8 rounded-full flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            {/* ID Card Header */}
+            <div className="mb-4">
+              <h2 className="text-xl font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
+              <p className="text-xs text-blue-300 uppercase tracking-widest">Official Employee Digital ID</p>
+            </div>
+
+            {/* Employee Photo */}
+            <div className="flex justify-center mb-4">
+              <img 
+                src={selectedIdCard.photoUrl || 'https://via.placeholder.com/120'} 
+                alt={selectedIdCard.name} 
+                className="w-28 h-28 rounded-2xl object-cover border-4 border-blue-400 shadow-lg" 
+              />
+            </div>
+
+            {/* Employee Info */}
+            <div className="mb-6 space-y-1">
+              <h3 className="text-2xl font-bold text-white">{selectedIdCard.name}</h3>
+              <p className="text-blue-400 font-semibold">{selectedIdCard.position}</p>
+              <p className="text-xs text-gray-300 bg-white/10 py-1 px-3 rounded-full inline-block mt-1">
+                Dept: {selectedIdCard.department}
+              </p>
+            </div>
+
+            {/* ID Details */}
+            <div className="bg-black/40 p-3 rounded-xl border border-white/10 flex justify-between items-center text-xs text-gray-300 mb-6">
+              <div>
+                <span className="block text-gray-500 text-[10px]">ID NUMBER</span>
+                <span className="font-mono font-bold text-white text-sm">{selectedIdCard.idNumber}</span>
+              </div>
+              <div>
+                <span className="block text-gray-500 text-[10px]">PHONE</span>
+                <span className="font-semibold text-white">{selectedIdCard.phone}</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => window.print()} 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg text-sm"
+            >
+              🖨 መታወቂያውን አትም (Print ID)
+            </button>
+          </div>
         </div>
       )}
 
