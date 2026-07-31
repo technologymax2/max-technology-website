@@ -19,7 +19,7 @@ function App() {
   });
   const [authStatus, setAuthStatus] = useState('');
 
-  // Admin
+  
   const [adminMessages, setAdminMessages] = useState([]);
   const [newAdminForm, setNewAdminForm] = useState({
     name: '',
