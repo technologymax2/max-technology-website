@@ -1,651 +1,410 @@
-import React, { useState, useEffect, useMemo } from "react";
-import Footer from "./Footer";
-import { uploadImageToImgBB } from "./imageUploading";
+import React, { useState, useEffect, useRef } from 'react';
+import Footer from './Footer';
 
-function AdminDashboard({
-  user,
-  handleLogout,
-  adminMessages,
-  fetchMessages,
-  newAdminForm,
-  handleNewAdminChange,
-  handleAddAdminSubmit,
-  adminAddStatus,
-  API_BASE_URL,
-  handleDeleteMessage,
-  projects,
-  setProjects,
-}) {
-  const [replyText, setReplyText] = useState({});
-  const [adminList, setAdminList] = useState([]);
-  const [userList, setUserList] = useState([]);
-  const [hrList, setHrList] = useState([]);
+const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
 
-  // ንቁ ታብ
-  const [activeTab, setActiveTab] = useState("messages");
-  // ለሞባይል የሚሆን የጎን ምናሌ (Sidebar Menu) ክፍት/ዝግ መቆጣጠሪያ
+function HRDashboard({ user, handleLogout, API_BASE_URL }) {
+  const [employeeList, setEmployeeList] = useState([]);
+  const [activeTab, setActiveTab] = useState('employees');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const [employeeForm, setEmployeeForm] = useState({
+    nameAmh: '',
+    nameEng: '',
+    age: '',
+    faydaNumber: '',
+    dateOfIssue: '',
+    expireDate: '',
+    addressAmh: '',
+    addressEng: '',
+    zone: '',
+    city: '',
+    nationality: '',
+    phoneNumber: '',
+    woreda: '',
+    positionAmh: '',
+    positionEng: '',
+    orgPhoneNumber: ''
+  });
 
-  const [editingAdmin, setEditingAdmin] = useState(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "" });
-  const [passwordReset, setPasswordReset] = useState({ id: "", newPassword: "" });
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
-  // HR Form state
-  const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
-
-  const [selectedUserEmail, setSelectedUserEmail] = useState(null);
-  const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
-  const [uploading, setUploading] = useState(false);
+  const [employeeStatus, setEmployeeStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [selectedIdCard, setSelectedIdCard] = useState(null);
 
   useEffect(() => {
-    fetchMessages();
-    fetchAdmins();
-    fetchUsers();
-    fetchHrs();
-    const interval = setInterval(() => {
-      fetchMessages();
-    }, 5000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchEmployees();
   }, [API_BASE_URL]);
 
-  const uniqueUsers = useMemo(() => {
-    const users = [];
-    const seenEmails = new Set();
-    adminMessages.forEach((msg) => {
-      if (!seenEmails.has(msg.email)) {
-        seenEmails.add(msg.email);
-        users.push({ name: msg.name, email: msg.email });
-      }
-    });
-    return users;
-  }, [adminMessages]);
-
-  useEffect(() => {
-    if (uniqueUsers.length > 0 && !selectedUserEmail) {
-      setSelectedUserEmail(uniqueUsers[0].email);
-    }
-  }, [uniqueUsers, selectedUserEmail]);
-
-  const filteredMessages = adminMessages.filter(
-    (msg) => msg.email === selectedUserEmail
-  );
-
-  const fetchAdmins = async () => {
+  const fetchEmployees = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/list`);
-      const data = await res.json();
-      if (data.success) setAdminList(data.admins);
-    } catch (err) {
-      console.error("አድሚኖችን ማምጣት አልተቻለም");
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
-      const data = await res.json();
-      if (data.success) setUserList(data.users);
-    } catch (err) {
-      console.error("ተጠቃሚዎችን ማምጣት አልተቻለም");
-    }
-  };
-
-  const fetchHrs = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/hrs`);
-      const data = await res.json();
-      if (data.success) setHrList(data.hrs);
-    } catch (err) {
-      console.error("HR ማምጣት አልተቻለም");
-    }
-  };
-
-  const handleSendAdminMessage = async () => {
-    const txt = replyText["global_admin_chat"];
-    if (!txt || !txt.trim()) return alert("እባክዎ ትክክለኛ መልዕክት ይጻፉ!");
-    const activeUser = uniqueUsers.find((u) => u.email === selectedUserEmail);
-    if (!activeUser) return alert("እባክዎ ትክክለኛ ደንበኛ ይምረጡ!");
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/send-new-message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: activeUser.name,
-          email: selectedUserEmail,
-          message: txt,
-        }),
-      });
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
       const data = await res.json();
       if (data.success) {
-        setReplyText((prev) => ({ ...prev, global_admin_chat: "" }));
-        fetchMessages();
+        setEmployeeList(data.employees);
       }
     } catch (err) {
-      alert("መልዕክቱን መላክ አልተቻለም።");
+      console.error('Error fetching employees', err);
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
-    try {
-      const imageUrl = await uploadImageToImgBB(file, setUploading);
-      setProjectForm((prev) => ({ ...prev, imageUrl: imageUrl }));
-      alert("ፎቶው በስኬት ተጭኗል!");
-    } catch (err) {
-      alert("ፎቶ ማውረድ አልተቻለም፦ " + err.message);
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setEmployeeStatus("");
     }
   };
 
-  const handleProjectSubmit = async (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "faydaNumber") {
+      const cleanValue = value.replace(/\D/g, "").slice(0, 16);
+      setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
+    } else if (name === "phoneNumber") {
+      const cleanValue = value.replace(/\D/g, "").slice(0, 10);
+      setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
+    } else {
+      setEmployeeForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
-    if (!projectForm.imageUrl) return alert("እባክዎ ትክክለኛ ፎቶ ያስገቡ!");
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(projectForm),
-      });
-      if (res.ok) {
-        alert("ፕሮጀክት በተሳካ ሁኔታ ተመዝግቧል!");
-        setProjectForm({ title: "", link: "", imageUrl: "" });
-      }
-    } catch (err) {
-      alert("ስህተት አጋጥሟል");
-    }
-  };
 
-  const handleAddHRSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/hrs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(hrForm),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("HR በስኬት ተመዝግቧል!");
-        setHrForm({ name: "", email: "", password: "" });
-        fetchHrs();
-      } else {
-        alert(data.error || "HR መመዝገብ አልተቻለም");
-      }
-    } catch (err) {
-      alert("ስህተት ተፈጥሯል");
-    }
-  };
-
-  const handleDeleteHR = async (id) => {
-    if (!window.confirm("ይህንን HR ማጥፋት ይፈልጋሉ?")) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/hrs/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        alert("HR ተሰርዟል!");
-        fetchHrs();
-      }
-    } catch (err) {
-      alert("ማጥፋት አልተቻለም");
-    }
-  };
-
-  const handleResetHRPassword = async (id) => {
-    const newPassword = prompt("ለዚህ HR አዲስ ፓስወርድ ያስገቡ:");
-    if (!newPassword) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/hrs/reset-password/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("የ HR ፓስወርድ ተቀይሯል!");
-      } else {
-        alert(data.error || "ፓስወርድ መቀየር አልተቻለም");
-      }
-    } catch (err) {
-      alert("ስህተት አጋጥሟል");
-    }
-  };
-
-  const handleUpdateAdmin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/update/${editingAdmin}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editForm),
-        }
-      );
-      if (res.ok) {
-        alert("አድሚን መረጃ ተስተካክሏል!");
-        setEditingAdmin(null);
-        fetchAdmins();
-      }
-    } catch (err) {
-      alert("ማስተካከሉ አልተሳካም");
-    }
-  };
-
-  const handleResetPassword = async (id) => {
-    if (!passwordReset.newPassword || passwordReset.id !== id)
-      return alert("እባክዎ ትክክለኛ ፓስወርድ ይጻፉ!");
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/reset-password/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ newPassword: passwordReset.newPassword }),
-        }
-      );
-      if (res.ok) {
-        alert("አድሚኑ ፓስወርድ ተቀይሯል!");
-        setPasswordReset({ id: "", newPassword: "" });
-      }
-    } catch (err) {
-      alert("ፓስወርድ መቀየር አልተቻለም");
-    }
-  };
-
-  const handleDeleteAdmin = async (id) => {
-    if (!window.confirm("እርግጠኛ ነዎት አድሚኑን ማጥፋት ይፈልጋሉ?")) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/delete/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        alert("አድሚኑ ተሰርዟል!");
-        fetchAdmins();
-      }
-    } catch (err) {
-      alert("ማጥፋት አልተቻለም");
-    }
-  };
-
-  const handleToggleBlockUser = async (id, isBlocked) => {
-    const actionText = isBlocked ? "ክፈት" : "አግድ";
-    if (!window.confirm(`እርግጠኛ ነዎት ተጠቃሚውን ${actionText} ማድረግ ይፈልጋሉ?`))
+    if (!image) {
+      setEmployeeStatus("⚠️ እባክዎ የሰራተኛውን ፎቶ ይምረጡ!");
       return;
+    }
+
+    if (employeeForm.faydaNumber.length !== 16) {
+      setEmployeeStatus("❌ ስህተት፡ የፋይዳ ቁጥር በትክክል 16 አሃዝ መሆን አለበት!");
+      return;
+    }
+
+    if (employeeForm.phoneNumber.length !== 10) {
+      setEmployeeStatus("❌ ስህተት፡ ስልክ ቁጥር በትክክል 10 አሃዝ መሆን አለበት!");
+      return;
+    }
+
+    setLoading(true);
+    setEmployeeStatus("⏳ ፎቶ እና መረጃ በመጫን ላይ...");
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/block/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isBlocked: !isBlocked }),
+      const imgData = new FormData();
+      imgData.append("image", image);
+
+      const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: imgData,
       });
-      if (res.ok) {
-        alert("ተጠቃሚው ተስተካክሏል!");
-        fetchUsers();
+      const imgResult = await imgRes.json();
+      if (!imgResult.success) throw new Error("ፎቶውን ወደ Cloud ማከማቻ መላክ አልተቻለም");
+
+      const finalData = {
+        ...employeeForm,
+        imageUrl: imgResult.data.url,
+        status: 'approved',
+        approved: true
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalData)
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEmployeeStatus("✅ ሰራተኛው በስኬት ተመዝግቧል እና መታወቂያው ተዘጋጅቷል!");
+        setEmployeeForm({
+          nameAmh: '',
+          nameEng: '',
+          age: '',
+          faydaNumber: '',
+          dateOfIssue: '',
+          expireDate: '',
+          addressAmh: '',
+          addressEng: '',
+          zone: '',
+          city: '',
+          nationality: '',
+          phoneNumber: '',
+          woreda: '',
+          positionAmh: '',
+          positionEng: '',
+          orgPhoneNumber: ''
+        });
+        setImage(null);
+        setImagePreview(null);
+        fetchEmployees();
+      } else {
+        setEmployeeStatus(data.error || "የሰርቨር ስህተት!");
       }
     } catch (err) {
-      alert("ክዋኔው አልተሳካም");
+      setEmployeeStatus(`❌ ስህተት፡ ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    if (!window.confirm("እርግጠኛ ነዎት ተጠቃሚውን ማጥፋት ይፈልጋሉ?")) return;
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm("ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/delete/${id}`, {
-        method: "DELETE",
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees/${id}`, {
+        method: 'DELETE'
       });
       if (res.ok) {
-        alert("ተጠቃሚው ተሰርዟል!");
-        fetchUsers();
-        fetchMessages();
+        alert("ሰራተኛው ተሰርዟል!");
+        fetchEmployees();
       }
     } catch (err) {
       alert("ማጥፋት አልተቻለም");
-    }
-  };
-
-  const handleDeleteProject = async (id) => {
-    if (window.confirm("እርግጠኛ ነዎት ፖርትፎሊዮውን ማጥፋት ይፈልጋሉ?")) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
-          method: "DELETE",
-        });
-        if (res.ok) {
-          alert("ፖርትፎሊዮው ተሰርዟል!");
-          setProjects((prev) => prev.filter((p) => p._id !== id));
-        }
-      } catch (err) {
-        alert("ማጥፋት አልተቻለም");
-      }
     }
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-2 sm:p-4 box-border relative text-white bg-[#0d0f12] min-h-screen">
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative">
       
-      {/* 📱 ሄደር (ከሜኑ አዝራር ጋር) */}
-      <div className="flex flex-wrap justify-between items-center gap-3 py-3 px-2 border-b border-[#30363d] mb-4">
+      {/* ሄደር */}
+      <div className="flex flex-wrap justify-between items-center bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-md gap-4 mb-6">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="bg-yellow-400 text-gray-900 border-none p-2 px-3 rounded-md text-lg cursor-pointer font-bold hover:bg-yellow-500 transition"
-            title="ምናሌ ክፈት"
+            className="bg-yellow-400 text-gray-900 border-none p-2 px-3 rounded-xl text-lg cursor-pointer font-bold hover:bg-yellow-500 transition"
           >
             ☰
           </button>
-          <h2 className="text-lg sm:text-xl font-bold m-0 text-white">👑 ዋናው መቆጣጠሪያ</h2>
+          <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
+            🏢 HR ዳሽቦርድ - እንኳን ደህና መጡ {user?.name || ''}
+          </h2>
         </div>
-        <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition">
+        <button onClick={handleLogout} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition shadow text-sm">
           ውጣ (Logout)
         </button>
       </div>
 
-      {/* ዋናው አካባቢ ከሳይድባር ጋር */}
-      <div className="flex relative gap-4">
-        
-        {/* የሞባይል ዳርክ ባክግራውንድ ማደብዘዣ (Backdrop) */}
+      <div className="flex relative gap-6 items-start flex-1">
         {sidebarOpen && (
-          <div 
-            onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 z-40 md:hidden"
-          ></div>
+          <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 bg-black/60 z-40 lg:hidden"></div>
         )}
 
-        {/* 🗂️ የጎን ምናሌ (Sidebar Menu / Drawer) */}
-        <div 
-          className={`fixed md:relative top-0 left-0 h-full md:h-auto w-64 bg-[#161b22] border-r md:border border-[#30363d] rounded-none md:rounded-xl p-4 flex flex-col gap-2 z-50 transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }`}
-        >
-          <div className="flex justify-between items-center mb-2 md:hidden">
-            <span className="text-sm font-bold text-gray-400">ምናሌዎች (Menu)</span>
-            <button 
-              onClick={() => setSidebarOpen(false)} 
-              className="bg-transparent border-none text-white text-xl cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-
-          <button
-            onClick={() => { setActiveTab("messages"); setSidebarOpen(false); }}
-            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
-              activeTab === "messages" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
-            }`}
-          >
-            💬 መልዕክቶች
-          </button>
-          <button
-            onClick={() => { setActiveTab("projects"); setSidebarOpen(false); }}
-            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
-              activeTab === "projects" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
-            }`}
-          >
-            📁 ፕሮጀክቶች
-          </button>
-          <button
-            onClick={() => { setActiveTab("admins"); setSidebarOpen(false); }}
-            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
-              activeTab === "admins" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
-            }`}
-          >
-            👑 አድሚኖች
-          </button>
-          <button
-            onClick={() => { setActiveTab("hrs"); setSidebarOpen(false); }}
-            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
-              activeTab === "hrs" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
-            }`}
-          >
-            👥 የሰው ሃብት (HR)
-          </button>
-          <button
-            onClick={() => { setActiveTab("users"); setSidebarOpen(false); }}
-            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
-              activeTab === "users" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
-            }`}
-          >
-            👤 ደንበኞች
-          </button>
+        <div className={`fixed lg:relative top-0 left-0 h-full lg:h-auto w-64 bg-gray-800 border-r lg:border border-gray-700 rounded-none lg:rounded-2xl p-4 flex flex-col gap-2 z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+          <button onClick={() => { setActiveTab('employees'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'employees' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>📋 ሰራተኞች ዝርዝር</button>
+          <button onClick={() => { setActiveTab('register'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>➕ አዲስ ሰራተኛ መመዝገቢያ</button>
         </div>
 
-        {/* ዋናው የይዘት ማሳያ አካባቢ */}
-        <div className="flex-1 min-w-0">
-
-          {/* 1. ፕሮጀክቶች */}
-          {activeTab === "projects" && (
-            <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 sm:p-6">
-              <h3 className="text-base font-bold mb-4">📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
-              <div className="flex flex-col gap-3 mb-6 pb-6 border-b border-[#333]">
-                <input
-                  type="text"
-                  placeholder="የፕሮጀክት ስም"
-                  value={projectForm.title}
-                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                  className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400"
-                />
-                <input
-                  type="url"
-                  placeholder="የፕሮጀክት ሊንክ"
-                  value={projectForm.link}
-                  onChange={(e) => setProjectForm({ ...projectForm, link: e.target.value })}
-                  className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400"
-                />
-                <input type="file" onChange={handleImageUpload} className="bg-[#0d0f12] border border-[#30363d] text-white p-2 rounded-lg" />
-                <button onClick={handleProjectSubmit} className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold p-2.5 rounded-lg transition" disabled={uploading}>
-                  {uploading ? "በመጫን ላይ..." : "መዝግብ"}
-                </button>
-              </div>
-              <h3 className="text-base font-bold mb-3">📋 ያሉ ፕሮጀክቶች</h3>
-              <div className="grid gap-3">
-                {projects && projects.length > 0 ? (
-                  projects.map((p) => (
-                    <div key={p._id} className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[#0d0f12] rounded-lg border border-[#30363d]">
-                      <div className="flex items-center gap-3">
-                        <img src={p.imageUrl} alt={p.title} className="w-12 h-12 object-cover rounded" />
-                        <span className="font-medium">{p.title}</span>
-                      </div>
-                      <button onClick={() => handleDeleteProject(p._id)} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md text-sm transition">
-                        🗑️ አጥፋ
-                      </button>
+        <div className="flex-1 w-full min-w-0">
+          <div className="grid grid-cols-1 gap-8">
+            
+            {/* መመዝገቢያ ፎርም (በሁለቱም ቋንቋዎች) */}
+            {(activeTab === 'register' || window.innerWidth >= 1024) && (
+              <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''}`}>
+                <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ (Dual-Language)</h3>
+                
+                <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-4">
+                  {/* ፎቶ መምረጫ */}
+                  <div className="flex flex-col items-center mb-2">
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-28 h-32 bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden hover:border-blue-500 transition"
+                    >
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-xs text-center text-gray-400 p-2">📷 ፎቶ ይምረጡ</div>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400">ምንም ፕሮጀክት የለም</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 2. መልዕክቶች */}
-          {activeTab === "messages" && (
-            <>
-              <h3 className="text-sm font-bold mb-3">💬 የደንበኞች መልዕክት ዝርዝር</h3>
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="w-full lg:w-72 bg-[#161b22] border border-[#30363d] rounded-xl p-3">
-                  <div className="text-xs font-bold text-gray-400 mb-2">👥 ተጠቃሚዎች ({uniqueUsers.length})</div>
-                  <div className="max-h-64 overflow-y-auto flex flex-col gap-1">
-                    {uniqueUsers.map((u) => (
-                      <div
-                        key={u.email}
-                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${
-                          selectedUserEmail === u.email ? "bg-yellow-400/20 border border-yellow-400" : "hover:bg-gray-800"
-                        }`}
-                        onClick={() => setSelectedUserEmail(u.email)}
-                      >
-                        <span>👤</span>
-                        <div className="overflow-hidden">
-                          <h4 className="text-sm font-semibold truncate">{u.name}</h4>
-                          <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {uniqueUsers.length === 0 && <p className="text-xs text-gray-400">ምንም ቻት የለም</p>}
+                    <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
                   </div>
-                </div>
 
-                <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl flex flex-col min-h-[350px]">
-                  {selectedUserEmail ? (
-                    <>
-                      <div className="p-3 border-b border-[#30363d] text-xs font-bold">
-                        💬 ከ <strong className="text-yellow-400">{uniqueUsers.find((u) => u.email === selectedUserEmail)?.name}</strong> ጋር
-                      </div>
-                      <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-3">
-                        {filteredMessages.map((msg) => (
-                          <div key={msg._id} className="flex flex-col gap-1">
-                            {!msg.message.startsWith("[አድሚን መልዕክት]") && (
-                              <div className="bg-[#21262d] p-3 rounded-lg max-w-[85%] self-start">
-                                <p className="text-sm">{msg.message}</p>
-                                <span className="text-[10px] text-gray-400 mt-1 block">🕒 {new Date(msg.date).toLocaleDateString()}</span>
-                              </div>
-                            )}
-                            {msg.reply && (
-                              <div className="bg-yellow-400/10 border border-yellow-400/30 p-3 rounded-lg max-w-[85%] self-end">
-                                <span className="text-xs font-bold text-yellow-400 block mb-1">አድሚን ምላሽ፦</span>
-                                <p className="text-sm">{msg.reply}</p>
-                              </div>
-                            )}
-                            <button onClick={() => handleDeleteMessage(msg._id)} className="text-red-400 text-xs self-start hover:underline mt-1">
-                              🗑️ መልዕክቱን አጥፊ
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="nameAmh" placeholder="ሙሉ ስም (አማርኛ)" value={employeeForm.nameAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="nameEng" placeholder="Full Name (English)" value={employeeForm.nameEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="positionAmh" placeholder="የስራ መደብ (አማርኛ)" value={employeeForm.positionAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="positionEng" placeholder="Position (English)" value={employeeForm.positionEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <input type="text" name="faydaNumber" maxLength="16" placeholder="የፋይዳ ቁጥር (16 Digits)" value={employeeForm.faydaNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      <span className="text-[11px] text-gray-400">({employeeForm.faydaNumber.length}/16)</span>
+                    </div>
+                    <div>
+                      <input type="text" name="phoneNumber" maxLength="10" placeholder="ስልክ ቁጥር (10 Digits)" value={employeeForm.phoneNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      <span className="text-[11px] text-gray-400">({employeeForm.phoneNumber.length}/10)</span>
+                    </div>
+                    <input type="text" name="orgPhoneNumber" placeholder="የድርጅት ስልክ / Org Phone" value={employeeForm.orgPhoneNumber} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="addressAmh" placeholder="አድራሻ (አማርኛ)" value={employeeForm.addressAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="addressEng" placeholder="Address (English)" value={employeeForm.addressEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <input type="number" name="age" placeholder="እድሜ / Age" value={employeeForm.age} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="nationality" placeholder="ዜግነት / Nationality" value={employeeForm.nationality} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="city" placeholder="ከተማ / City" value={employeeForm.city} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400">የወጣበት ቀን / Issue Date</label>
+                      <input type="date" name="dateOfIssue" value={employeeForm.dateOfIssue} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400">የማብቂያ ቀን / Expiry Date</label>
+                      <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-2 disabled:opacity-50 transition">
+                    {loading ? "እየተመዘገበ ነው..." : "ሰራተኛውን መዝግብ"}
+                  </button>
+                </form>
+                {employeeStatus && <p className="mt-4 text-center font-medium text-green-400 text-sm">{employeeStatus}</p>}
+              </div>
+            )}
+
+            {/* ሰራተኞች ዝርዝር ታብ */}
+            {(activeTab === 'employees' || window.innerWidth >= 1024) && (
+              <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto ${activeTab !== 'employees' ? 'hidden lg:block' : ''}`}>
+                <h3 className="text-xl font-bold mb-4 text-blue-400">📋 የተመዘገቡ ሰራተኞች ዝርዝር</h3>
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                      <th className="p-3">ስም / Name</th>
+                      <th className="p-3">የስራ መደብ / Position</th>
+                      <th className="p-3">የፋይዳ ቁጥር</th>
+                      <th className="p-3">እርምጃዎች</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {employeeList.map((emp) => (
+                      <tr key={emp._id} className="hover:bg-gray-700/30">
+                        <td className="p-3 font-semibold flex items-center gap-3">
+                          <img src={emp.imageUrl || 'https://via.placeholder.com/40'} alt={emp.nameAmh} className="w-10 h-10 rounded-full object-cover border border-blue-500" />
+                          <div>
+                            <div>{emp.nameAmh}</div>
+                            <div className="text-xs text-gray-400">{emp.nameEng}</div>
+                          </div>
+                        </td>
+                        <td className="p-3 text-gray-300">
+                          <div>{emp.positionAmh}</div>
+                          <div className="text-xs text-gray-400">{emp.positionEng}</div>
+                        </td>
+                        <td className="p-3 font-mono text-xs text-blue-300">{emp.faydaNumber}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2 items-center">
+                            <button onClick={() => setSelectedIdCard(emp)} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition">
+                              🪪 መታወቂያ
+                            </button>
+                            <button onClick={() => handleDeleteEmployee(emp._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition">
+                              🗑 አጥፋ
                             </button>
                           </div>
-                        ))}
-                      </div>
-                      <div className="p-3 bg-[#161b22] border-t border-[#30363d] flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="መልዕክትዎ ይጻፉ..."
-                          value={replyText["global_admin_chat"] || ""}
-                          onChange={(e) => setReplyText({ ...replyText, global_admin_chat: e.target.value })}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleSendAdminMessage(); }}
-                          className="flex-1 bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400 text-sm"
-                        />
-                        <button onClick={handleSendAdminMessage} className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold text-sm transition">
-                          ላክ
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center flex-1 text-gray-400 text-sm">
-                      <p>እባክዎ ተጠቃሚ ይምረጡ</p>
-                    </div>
-                  )}
-                </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {employeeList.length === 0 && (
+                      <tr><td colSpan="4" className="p-6 text-center text-gray-500">ምንም የተመዘገበ ሰራተኛ የለም።</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </>
-          )}
+            )}
 
-          {/* 3. አድሚኖች */}
-          {activeTab === "admins" && (
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-                <h3 className="text-base font-bold mb-3">➕ አዲስ አድሚን ይፍጠሩ</h3>
-                <form onSubmit={(e) => { handleAddAdminSubmit(e); setTimeout(fetchAdmins, 1000); }} className="flex flex-col gap-3">
-                  <input type="text" name="name" placeholder="የአድሚን ስም" value={newAdminForm.name} onChange={handleNewAdminChange} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <input type="text" name="email" placeholder="የአድሚን ኢሜይል" value={newAdminForm.email} onChange={handleNewAdminChange} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <input type="password" name="password" placeholder="የሚስጥር ቃል" value={newAdminForm.password} onChange={handleNewAdminChange} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold p-2.5 rounded-lg transition">አድሚኑን መዝግብ</button>
-                </form>
-                {adminAddStatus && <p className="text-sm text-yellow-400 mt-2">{adminAddStatus}</p>}
-              </div>
-
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-                <h3 className="text-base font-bold mb-3">📋 ያሉ አድሚኖች ዝርዝር</h3>
-                <div className="flex flex-col gap-3">
-                  {adminList.map((adm) => (
-                    <div key={adm._id} className="bg-[#0d0f12] border border-[#30363d] p-3 rounded-lg flex flex-col gap-2">
-                      <div><strong>ስም:</strong> {adm.name}</div>
-                      <div><strong>ኢሜይል:</strong> {adm.email}</div>
-                      <div className="flex gap-2 mt-1">
-                        <input type="text" placeholder="አዲስ ፓስወርድ" value={passwordReset.id === adm._id ? passwordReset.newPassword : ""} onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })} className="bg-[#161b22] border border-[#30363d] text-white p-1.5 rounded text-xs flex-1" />
-                        <button onClick={() => handleResetPassword(adm._id)} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs">ቀይር</button>
-                      </div>
-                      <div className="flex justify-end gap-2 mt-2">
-                        <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="bg-yellow-500/20 text-yellow-400 border border-yellow-400/30 px-3 py-1 rounded text-xs">✏️ አስተካክል</button>
-                        <button onClick={() => handleDeleteAdmin(adm._id)} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">🗑️ አጥፋ</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 4. HR */}
-          {activeTab === "hrs" && (
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-                <h3 className="text-base font-bold mb-3">👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
-                <form onSubmit={handleAddHRSubmit} className="flex flex-col gap-3">
-                  <input type="text" placeholder="የሰራተኛው ስም" value={hrForm.name} onChange={(e) => setHrForm({ ...hrForm, name: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <input type="email" placeholder="ኢሜይል አድራሻ" value={hrForm.email} onChange={(e) => setHrForm({ ...hrForm, email: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <input type="password" placeholder="ፓስወርድ" value={hrForm.password} onChange={(e) => setHrForm({ ...hrForm, password: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-                  <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold p-2.5 rounded-lg transition">HR መዝግብ</button>
-                </form>
-              </div>
-
-              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-                <h3 className="text-base font-bold mb-3">📋 የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
-                <div className="flex flex-col gap-3">
-                  {hrList.map((hr) => (
-                    <div key={hr._id} className="bg-[#0d0f12] border border-[#30363d] p-3 rounded-lg flex flex-col gap-2">
-                      <div><strong>ስም:</strong> {hr.name}</div>
-                      <div><strong>ኢሜይል:</strong> {hr.email}</div>
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => handleResetHRPassword(hr._id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded text-xs">ፓስወርድ ቀይር</button>
-                        <button onClick={() => handleDeleteHR(hr._id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white p-2 rounded text-xs">🗑️ አጥፋ</button>
-                      </div>
-                    </div>
-                  ))}
-                  {hrList.length === 0 && <p className="text-gray-400 text-sm">ምንም HR ባለሙያ አልተመዘገበም</p>}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 5. ደንበኞች */}
-          {activeTab === "users" && (
-            <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <h3 className="text-base font-bold mb-3">👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
-              <div className="flex flex-col gap-3">
-                {userList.map((u) => (
-                  <div key={u._id} className={`bg-[#0d0f12] border border-[#30363d] p-3 rounded-lg flex flex-col gap-2 ${u.isBlocked ? "opacity-60" : ""}`}>
-                    <div><strong>ተጠቃሚ ስም:</strong> {u.name}</div>
-                    <div><strong>ኢሜይል:</strong> {u.email}</div>
-                    <div>
-                      <strong>ሁኔታ:</strong>{" "}
-                      <span className={`ml-2 px-2 py-0.5 rounded text-xs ${u.isBlocked ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}`}>
-                        {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ"}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <button onClick={() => handleToggleBlockUser(u._id, u.isBlocked)} className={`flex-1 p-2 rounded font-bold text-xs ${u.isBlocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-yellow-500 text-black hover:bg-yellow-600"}`}>
-                        {u.isBlocked ? "🔓 ክፈት" : "🚫 አግድ"}
-                      </button>
-                      <button onClick={() => handleDeleteUser(u._id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white p-2 rounded font-bold text-xs">
-                        🗑️ አጥፋ
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
+          </div>
         </div>
       </div>
 
-      {editingAdmin && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 w-full max-w-sm">
-            <h3 className="text-base font-bold mb-4">✏️ አድሚን ማስተካከያ</h3>
-            <form onSubmit={handleUpdateAdmin} className="flex flex-col gap-3">
-              <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-              <input type="text" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
-              <div className="flex gap-2 mt-2">
-                <button type="submit" className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold p-2 rounded-lg text-sm">አስተካክል</button>
-                <button type="button" onClick={() => setEditingAdmin(null)} className="flex-1 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg text-sm">ሰርዝ</button>
+      {/* 🪪 Dual-Language ID Card Modal (ልክ እንደ ቀደመው ናሙና በሁለቱም ቋንቋ የተዋቀረ) */}
+      {selectedIdCard && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border-4 border-[#1e3a60] overflow-hidden relative">
+            
+            <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-lg bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-10">
+              ✕
+            </button>
+
+            {/* ከላይ ሰማያዊ የርዕስ ክፍል */}
+            <div className="bg-[#1e3a60] text-white text-center py-3 px-4">
+              <h2 className="text-lg font-extrabold tracking-wider">POESSA DIGITAL ID</h2>
+              <p className="text-[11px] text-blue-200 mt-0.5">የጎንደር ዙሪያ ሰራተኛ ማህበራዊ ዋስትና አስተዳደር</p>
+            </div>
+
+            {/* የካርዱ ዋና አካል */}
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex gap-5 items-start">
+                
+                {/* ፎቶ እና የፋይዳ ቁጥር ቦክስ */}
+                <div className="flex flex-col items-center gap-2 shrink-0">
+                  <div className="w-28 h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-gray-300 shadow">
+                    <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameAmh} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="bg-red-50 border border-red-200 text-red-600 font-mono text-xs px-2.5 py-1 rounded tracking-wider font-bold">
+                    {selectedIdCard.faydaNumber}
+                  </div>
+                </div>
+
+                {/* መረጃዎች በሁለቱም ቋንቋዎች */}
+                <div className="flex-1 text-xs space-y-2 text-gray-800">
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">ስም/Name:</span>
+                    <span className="col-span-2 font-semibold text-gray-900">{selectedIdCard.nameAmh} / {selectedIdCard.nameEng}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">የስራ መደብ/Pos:</span>
+                    <span className="col-span-2 text-gray-900">{selectedIdCard.positionAmh} / {selectedIdCard.positionEng}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">ስልክ/Phone:</span>
+                    <span className="col-span-2">{selectedIdCard.phoneNumber}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">አድራሻ/Address:</span>
+                    <span className="col-span-2">{selectedIdCard.city} - {selectedIdCard.addressAmh}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">የወጣበት/Issue:</span>
+                    <span className="col-span-2">{selectedIdCard.dateOfIssue}</span>
+                  </div>
+                  <div className="grid grid-cols-3 pb-1">
+                    <span className="font-bold text-gray-600">የማብቂያ/Exp:</span>
+                    <span className="col-span-2 text-red-600 font-bold">{selectedIdCard.expireDate}</span>
+                  </div>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex flex-col items-center justify-center shrink-0">
+                  <div className="bg-white p-1 border rounded shadow-sm">
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.nameAmh}`} alt="QR Code" className="w-20 h-20" />
+                  </div>
+                  <span className="text-[9px] text-gray-500 mt-1 font-bold tracking-tight">SCAN TO VERIFY</span>
+                </div>
+
               </div>
-            </form>
+            </div>
+
+            <div className="bg-gray-100 border-t border-gray-200 py-2.5 px-4 text-center">
+              <p className="text-[11px] text-gray-600 font-medium">ይህንን መታወቂያ በግልጽነት ሕግጋት ድንጋጌ ይጸናል</p>
+            </div>
+
+            <div className="p-3 bg-gray-50 border-t print:hidden">
+              <button onClick={() => window.print()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow text-sm transition">
+                🖨 መታወቂያውን አትም (Print ID Card)
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -655,4 +414,4 @@ function AdminDashboard({
   );
 }
 
-export default AdminDashboard;
+export default HRDashboard;
