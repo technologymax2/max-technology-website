@@ -8,6 +8,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
   const [activeTab, setActiveTab] = useState('employees');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null); // ለኤዲት የሚሆን ID
   
   const [employeeForm, setEmployeeForm] = useState({
     fullName: '',
@@ -37,7 +38,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       menu: "ምናሌዎች (Menu)",
       employeesTab: "📋 ሰራተኞች ዝርዝር",
       registerTab: "➕ አዲስ ሰራተኛ መመዝገቢያ",
-      regTitle: "➕ አዲስ ሰራተኛ መመዝገቢያ",
+      regTitle: editingId ? "✏️ የሰራተኛ መረጃ ማስተካከያ" : "➕ አዲስ ሰራተኛ መመዝገቢያ",
       fullName: "ሙሉ ስም (Full Name)",
       age: "እድሜ (Age)",
       nationality: "ዜግነት (Nationality)",
@@ -55,13 +56,14 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       orgPhone: "የድርጅቱ ስልክ (Org Phone)",
       photoLabel: "የሰራተኛ ፎቶ ይጫኑ (Image Upload)",
       uploading: "ፎቶ በመጫን ላይ...",
-      submitBtn: "ሰራተኛውን መዝግብ",
+      submitBtn: editingId ? "መረጃውን አስተካክል" : "ሰራተኛውን መዝግብ",
       listTitle: "📋 የተመዘገቡ ሰራተኞች ዝርዝር",
       nameCol: "ስም / Name",
       posCol: "የስራ መደብ / Position",
       faydaCol: "የፋይዳ ቁጥር",
       actionsCol: "እርምጃዎች",
       idBtn: "🪪 መታወቂያ",
+      editBtn: "✏️ ያስተካክሉ",
       deleteBtn: "🗑 አጥፋ",
       noEmployees: "ምንም የተመዘገበ ሰራተኛ የለም።",
       photoSuccess: "📸 የሰራተኛው ፎቶ በስኬት ተጭኗል!",
@@ -69,6 +71,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       faydaError: "❌ ስህተት፡ የፋይዳ ቁጥር በትክክል 16 አሃዝ (Digits) መሆን አለበት!",
       phoneError: "❌ ስህተት፡ ስልክ ቁጥር በትክክል 10 አሃዝ (Digits) መሆን አለበት!",
       successMsg: "✅ ሰራተኛው በስኬት ተመዝግቧል እና መታወቂያው ተዘጋጅቷል!",
+      updateSuccess: "✅ የሰራተኛው መረጃ በስኬት ተስተካክሏል!",
       serverError: "የሰርቨር ስህተት!",
       deleteConfirm: "ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?",
       deletedAlert: "ሰራተኛው ተሰርዟል!",
@@ -82,7 +85,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       menu: "Menu",
       employeesTab: "📋 Employee List",
       registerTab: "➕ Register Employee",
-      regTitle: "➕ Register New Employee",
+      regTitle: editingId ? "✏️ Edit Employee Details" : "➕ Register New Employee",
       fullName: "Full Name",
       age: "Age",
       nationality: "Nationality",
@@ -100,13 +103,14 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       orgPhone: "Org Phone",
       photoLabel: "Upload Employee Photo",
       uploading: "Uploading photo...",
-      submitBtn: "Register Employee",
+      submitBtn: editingId ? "Update Employee" : "Register Employee",
       listTitle: "📋 Registered Employees List",
       nameCol: "Name",
       posCol: "Position",
       faydaCol: "Fayda Number",
       actionsCol: "Actions",
       idBtn: "🪪 ID Card",
+      editBtn: "✏️ Edit",
       deleteBtn: "🗑 Delete",
       noEmployees: "No registered employees found.",
       photoSuccess: "📸 Employee photo uploaded successfully!",
@@ -114,6 +118,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       faydaError: "❌ Error: Fayda number must be exactly 16 digits!",
       phoneError: "❌ Error: Phone number must be exactly 10 digits!",
       successMsg: "✅ Employee registered successfully and ID created!",
+      updateSuccess: "✅ Employee updated successfully!",
       serverError: "Server error!",
       deleteConfirm: "Do you want to delete this employee from the list?",
       deletedAlert: "Employee deleted!",
@@ -151,6 +156,27 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
+  const handleEditClick = (emp) => {
+    setEditingId(emp._id);
+    setEmployeeForm({
+      fullName: emp.fullName || '',
+      age: emp.age || '',
+      faydaNumber: emp.faydaNumber || '',
+      dateOfIssue: emp.dateOfIssue || '',
+      expireDate: emp.expireDate || '',
+      address: emp.address || '',
+      zone: emp.zone || '',
+      city: emp.city || '',
+      nationality: emp.nationality || '',
+      phoneNumber: emp.phoneNumber || '',
+      woreda: emp.woreda || '',
+      position: emp.position || '',
+      imageUrl: emp.imageUrl || '',
+      orgPhoneNumber: emp.orgPhoneNumber || ''
+    });
+    setActiveTab('register');
+  };
+
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
 
@@ -165,15 +191,22 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
-        method: 'POST',
+      const url = editingId 
+        ? `${API_BASE_URL}/api/hr/employees/${editingId}`
+        : `${API_BASE_URL}/api/hr/employees`;
+      
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...employeeForm, status: 'approved', approved: true })
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setEmployeeStatus(t.successMsg);
+        setEmployeeStatus(editingId ? t.updateSuccess : t.successMsg);
+        setEditingId(null);
         setEmployeeForm({
           fullName: '',
           age: '',
@@ -259,10 +292,20 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         <div className="flex-1 w-full min-w-0">
           <div className="grid grid-cols-1 gap-8">
             
-            {/* መመዝገቢያ ፎርም */}
+            {/* መመዝገቢያ ወይም ማስተካከያ ፎርም */}
             {(activeTab === 'register' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''}`}>
-                <h3 className="text-xl font-bold mb-4 text-blue-400">{t.regTitle}</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-blue-400">{t.regTitle}</h3>
+                  {editingId && (
+                    <button 
+                      onClick={() => { setEditingId(null); setEmployeeForm({ fullName: '', age: '', faydaNumber: '', dateOfIssue: '', expireDate: '', address: '', zone: '', city: '', nationality: '', phoneNumber: '', woreda: '', position: '', imageUrl: '', orgPhoneNumber: '' }); }}
+                      className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
                 <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-3">
                   <input type="text" placeholder={t.fullName} value={employeeForm.fullName} onChange={(e) => setEmployeeForm({ ...employeeForm, fullName: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -332,6 +375,9 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                             <button onClick={() => setSelectedIdCard(emp)} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition">
                               {t.idBtn}
                             </button>
+                            <button onClick={() => handleEditClick(emp)} className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition">
+                              {t.editBtn}
+                            </button>
                             <button onClick={() => handleDeleteEmployee(emp._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition">
                               {t.deleteBtn}
                             </button>
@@ -351,27 +397,23 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 POESSA Digital ID Card Modal (ልክ እንደ ላኩት ናሙና ፎቶ የተስተካከለ) */}
+      {/* 🪪 POESSA Digital ID Card Modal */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border-4 border-[#1e3a60] overflow-hidden relative">
             
-            {/* የዝግ መዝጊያ አዝራር */}
             <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-lg bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-10">
               ✕
             </button>
 
-            {/* ከላይ ሰማያዊ የርዕስ ክፍል (POESSA DIGITAL ID) */}
             <div className="bg-[#1e3a60] text-white text-center py-3 px-4">
               <h2 className="text-lg font-extrabold tracking-wider">POESSA DIGITAL ID</h2>
               <p className="text-[11px] text-blue-200 mt-0.5">የጎን ዙሪያ ሰራተኛ ማህበራዊ ዋስትና አስተዳደር</p>
             </div>
 
-            {/* የካርዱ ዋና አካል */}
             <div className="p-5 flex flex-col gap-4">
               <div className="flex gap-5 items-start">
                 
-                {/* የግራ ክፍል (ፎቶ እና የፋይዳ ቁጥር ቦክስ) */}
                 <div className="flex flex-col items-center gap-2 shrink-0">
                   <div className="w-28 h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-gray-300 shadow">
                     <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.fullName} className="w-full h-full object-cover" />
@@ -381,7 +423,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </div>
 
-                {/* የመሃል ክፍል (መረጃዎች በሁለቱም ቋንቋዎች) */}
                 <div className="flex-1 text-xs space-y-2 text-gray-800">
                   <div className="grid grid-cols-3 border-b pb-1">
                     <span className="font-bold text-gray-600">ስም/Name:</span>
@@ -409,7 +450,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </div>
 
-                {/* የቀኝ ክፍል (QR Code) */}
                 <div className="flex flex-col items-center justify-center shrink-0">
                   <div className="bg-white p-1 border rounded shadow-sm">
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.fullName}`} alt="QR Code" className="w-20 h-20" />
@@ -420,12 +460,10 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
             </div>
 
-            {/* ከታች የሰማያዊ መስመር እና የትክክለኛነት ማረጋገጫ ጽሁፍ */}
             <div className="bg-gray-100 border-t border-gray-200 py-2.5 px-4 text-center">
               <p className="text-[11px] text-gray-600 font-medium">ይህንን መታወቂያ በግልጽነት ሕግጋት ድንጋጌ ይጸናል</p>
             </div>
 
-            {/* የህትመት አዝራር (በፕሪንት ጊዜ አይታተምም) */}
             <div className="p-3 bg-gray-50 border-t print:hidden">
               <button onClick={() => window.print()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow text-sm transition">
                 {t.printBtn}
