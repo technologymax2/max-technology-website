@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
+import HrDashboard from './components/HrDashboard'; // 👈 የ HR ዳሽቦርድ ማስገቢያ
 import OrderPage from './components/OrderPage';
 import Footer from './components/Footer';
 import logoImg from './logo.jpg';
@@ -61,7 +62,7 @@ function App() {
         console.error("ፕሮጀክቶችን ማምጣት አልተቻለም", err);
         setProjects([]);
       });
-  }, []);
+  }, [API_BASE_URL]);
 
   const fetchMessages = async () => {
     try {
@@ -94,8 +95,8 @@ function App() {
           // 🚀 የሮል (Role) ሁኔታዎችን በመለየት ወደየሚገባቸው ገጽ ማዘዋወር
           if (data.user.role === 'admin') {
             setCurrentScreen('admin-dashboard');
-          } else if (data.user.role === 'employee') {
-            setCurrentScreen('employee-dashboard'); // የሰራተኛ ገጽ
+          } else if (data.user.role === 'hr') {
+            setCurrentScreen('hr-dashboard'); // 👈 የ HR ገጽ እንዲከፈት ተደረገ
           } else {
             setCurrentScreen('order-page'); // መደበኛ ደንበኛ
           }
@@ -290,28 +291,14 @@ function App() {
     );
   }
 
-  // EMPLOYEE DASHBOARD (የሰራተኛ ገጽ)
-  if (currentScreen === 'employee-dashboard' && user?.role === 'employee') {
+  // HR DASHBOARD (የ HR ገጽ)
+  if (currentScreen === 'hr-dashboard' && user?.role === 'hr') {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex flex-col justify-between">
-        <div>
-          <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm mb-6">
-            <h2 className="text-xl font-bold text-gray-800">👤 የሰራተኛ ዳሽቦርድ (Employee Dashboard)</h2>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition"
-            >
-              ውጣ (Logout)
-            </button>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">እንኳን ደህና መጡ፣ {user.name}!</h3>
-            <p className="text-gray-600">ኢሜይል: {user.email}</p>
-            <p className="text-gray-600 mt-4">እዚህ ጋር የዲጂታል መታወቂያዎን ወይም የሰራተኛ መረጃዎችዎን ማየት ይችላሉ።</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <HrDashboard 
+        user={user}
+        handleLogout={handleLogout}
+        API_BASE_URL={API_BASE_URL}
+      />
     );
   }
 
