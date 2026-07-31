@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Footer from '../Footer';
+import Footer from './Footer';
 
 function HrDashboard({ handleLogout, API_BASE_URL }) {
   const [employees, setEmployees] = useState([]);
