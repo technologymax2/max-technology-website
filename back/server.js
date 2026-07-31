@@ -89,16 +89,22 @@ async function seedFirstAdmin() {
 
 // አዲስ የፕሮጀክት ስኪማ
 const projectSchema = new mongoose.Schema({
-  Title: String,
-  Link: String,
-  ImageUrl: String,
+  title: String,
+  link: String,
+  imageUrl: String,
   Date: { type: Date, default: Date.now }
 });
 const Project = mongoose.model('Project', projectSchema);
 
 // አዲስ ሲስተም መመዝገቢያ (POST)
 app.post('/api/admin/projects', async (req, res) => {
-  const newProject = new Project(req.body);
+  const { title, link, imageUrl } = req.body;
+
+const newProject = new Project({
+  title,
+  link,
+  imageUrl
+});
   await newProject.save();
   res.json({ success: true });
 });
