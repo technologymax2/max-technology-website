@@ -4,8 +4,6 @@ import { uploadImageToImgBB } from './imageUploading';
 
 function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [employeeList, setEmployeeList] = useState([]);
-  
-  // 🌐 የቋንቋ መቆጣጠሪያ ሁኔታ (Language State: 'am' ወይም 'en')
   const [lang, setLang] = useState('am');
 
   const [activeTab, setActiveTab] = useState('employees');
@@ -353,55 +351,87 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 Dual-Language Digital ID Card Modal (በሁለቱም ቋንቋዎች የተዋቀረ መታወቂያ) */}
+      {/* 🪪 POESSA Digital ID Card Modal (ልክ እንደ ላኩት ናሙና ፎቶ የተስተካከለ) */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-gradient-to-br from-blue-950 via-gray-900 to-indigo-950 p-6 rounded-3xl w-full max-w-md shadow-2xl border-2 border-blue-500/50 text-center relative">
-            <button onClick={() => setSelectedIdCard(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-xl bg-gray-800/80 w-8 h-8 rounded-full flex items-center justify-center">
+          <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border-4 border-[#1e3a60] overflow-hidden relative">
+            
+            {/* የዝግ መዝጊያ አዝራር */}
+            <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-lg bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-10">
               ✕
             </button>
-            
-            {/* የድርጅት ራስጌ (በሁለቱም ቋንቋ) */}
-            <div className="mb-3 border-b border-blue-500/30 pb-2">
-              <h2 className="text-base font-extrabold tracking-wider text-white">MAX TECHNOLOGY / ማክ ቴክኖሎጂ</h2>
-              <p className="text-[10px] text-blue-300 uppercase tracking-widest">Official Employee Digital ID / የሰራተኛ ዲጂታል መታወቂያ</p>
+
+            {/* ከላይ ሰማያዊ የርዕስ ክፍል (POESSA DIGITAL ID) */}
+            <div className="bg-[#1e3a60] text-white text-center py-3 px-4">
+              <h2 className="text-lg font-extrabold tracking-wider">POESSA DIGITAL ID</h2>
+              <p className="text-[11px] text-blue-200 mt-0.5">የጎን ዙሪያ ሰራተኛ ማህበራዊ ዋስትና አስተዳደር</p>
             </div>
 
-            {/* የሰራተኛ መረጃ (በሁለቱም ቋንቋዎች) */}
-            <div className="flex gap-4 items-center mb-4 text-left">
-              <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.fullName} className="w-24 h-28 rounded-xl object-cover border-2 border-blue-400 shadow-md shrink-0" />
-              <div className="text-xs space-y-1 text-gray-200 w-full">
-                <p><strong>ስም / Name:</strong> {selectedIdCard.fullName}</p>
-                <p><strong>የስራ መደብ / Position:</strong> {selectedIdCard.position}</p>
-                <p><strong>እድሜ / Age:</strong> {selectedIdCard.age} | <strong>ዜግነት / Nat:</strong> {selectedIdCard.nationality}</p>
-                <p><strong>የፋይዳ ቁጥር / Fayda:</strong> <span className="font-mono text-blue-300">{selectedIdCard.faydaNumber}</span></p>
-                <p><strong>ስልክ / Phone:</strong> {selectedIdCard.phoneNumber}</p>
+            {/* የካርዱ ዋና አካል */}
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex gap-5 items-start">
+                
+                {/* የግራ ክፍል (ፎቶ እና የፋይዳ ቁጥር ቦክስ) */}
+                <div className="flex flex-col items-center gap-2 shrink-0">
+                  <div className="w-28 h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-gray-300 shadow">
+                    <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.fullName} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="bg-red-50 border border-red-200 text-red-600 font-mono text-xs px-2.5 py-1 rounded tracking-wider font-bold">
+                    {selectedIdCard.faydaNumber}
+                  </div>
+                </div>
+
+                {/* የመሃል ክፍል (መረጃዎች በሁለቱም ቋንቋዎች) */}
+                <div className="flex-1 text-xs space-y-2 text-gray-800">
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">ስም/Name:</span>
+                    <span className="col-span-2 font-semibold text-gray-900">{selectedIdCard.fullName}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">FAYDA No:</span>
+                    <span className="col-span-2 font-mono text-gray-900">{selectedIdCard.faydaNumber}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">ስልክ ቁጥር/Phone:</span>
+                    <span className="col-span-2">{selectedIdCard.phoneNumber}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">ድርጅት/Address:</span>
+                    <span className="col-span-2">{selectedIdCard.city} - {selectedIdCard.address}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-b pb-1">
+                    <span className="font-bold text-gray-600">የወጣበት ቀን/Issue:</span>
+                    <span className="col-span-2">{selectedIdCard.dateOfIssue}</span>
+                  </div>
+                  <div className="grid grid-cols-3 pb-1">
+                    <span className="font-bold text-gray-600">የማጠቃለያ ጊዜ/Exp:</span>
+                    <span className="col-span-2 text-red-600 font-bold">{selectedIdCard.expireDate}</span>
+                  </div>
+                </div>
+
+                {/* የቀኝ ክፍል (QR Code) */}
+                <div className="flex flex-col items-center justify-center shrink-0">
+                  <div className="bg-white p-1 border rounded shadow-sm">
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.fullName}`} alt="QR Code" className="w-20 h-20" />
+                  </div>
+                  <span className="text-[9px] text-gray-500 mt-1 font-bold tracking-tight">SCAN TO VERIFY</span>
+                </div>
+
               </div>
             </div>
 
-            {/* አድራሻ እና ቀናት (በሁለቱም ቋንቋዎች) */}
-            <div className="bg-black/40 p-2.5 rounded-xl border border-white/10 text-[11px] text-gray-300 space-y-1 mb-4 text-left">
-              <p><strong>አድራሻ / Address:</strong> {selectedIdCard.address}, ከተማ/City: {selectedIdCard.city}, ወረዳ/Woreda: {selectedIdCard.woreda}</p>
-              <div className="flex justify-between pt-1 border-t border-white/10 text-[10px]">
-                <span>ወጣበት / Issued: <strong>{selectedIdCard.dateOfIssue}</strong></span>
-                <span>ያልቃል / Expires: <strong>{selectedIdCard.expireDate}</strong></span>
-              </div>
+            {/* ከታች የሰማያዊ መስመር እና የትክክለኛነት ማረጋገጫ ጽሁፍ */}
+            <div className="bg-gray-100 border-t border-gray-200 py-2.5 px-4 text-center">
+              <p className="text-[11px] text-gray-600 font-medium">ይህንን መታወቂያ በግልጽነት ሕግጋት ድንጋጌ ይጸናል</p>
             </div>
 
-            {/* ማረጋገጫ እና QR ኮድ */}
-            <div className="flex justify-between items-center bg-blue-950/40 p-2.5 rounded-xl border border-blue-500/20 mb-4">
-              <div className="text-left text-[10px] text-gray-300">
-                <p className="text-green-400 font-bold">✔ HR Verified & Signed / የተረጋገጠ</p>
-                <p>የድርጅቱ ስልክ / Org Phone: <strong className="text-white">{selectedIdCard.orgPhoneNumber}</strong></p>
-              </div>
-              <div className="bg-white p-1 rounded-lg">
-                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.fullName}`} alt="QR Code" className="w-14 h-14" />
-              </div>
+            {/* የህትመት አዝራር (በፕሪንት ጊዜ አይታተምም) */}
+            <div className="p-3 bg-gray-50 border-t print:hidden">
+              <button onClick={() => window.print()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow text-sm transition">
+                {t.printBtn}
+              </button>
             </div>
 
-            <button onClick={() => window.print()} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg text-sm transition">
-              {t.printBtn}
-            </button>
           </div>
         </div>
       )}
