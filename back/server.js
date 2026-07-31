@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: "normal" }, // 'normal', 'admin', 'hr'
+  role: { type: String, default: "normal" },
   isBlocked: { type: Boolean, default: false },
 });
 const User = mongoose.model("User", userSchema);
@@ -49,32 +49,25 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// የሰራተኛ (Employee / HR) ሞዴል - ለዲጂታል መታወቂያ እና ፎርም ሙሉ መረጃዎችን የያዘ
+// ከ HRDashboard ፎርም ጋር ሙሉውን የሚጣጣም የሰራተኛ ሞዴል
 const employeeSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  name: { type: String }, // ከቀድሞ ኮድ ጋር እንዳይጋጭ
-  email: { type: String, default: "employee@system.com" },
-  password: { type: String, default: "$2a$10$DefaultHashedPasswordForEmployee" },
-  phone: { type: String, default: "0000000000" },
-  phoneNumber: { type: String, default: "" },
-  position: { type: String, default: "HR" },
-  department: { type: String, default: "Human Resource" },
-  idNumber: { type: String, default: () => `HR-${Date.now()}` },
-  photoUrl: { type: String, default: "" },
-  imageUrl: { type: String, default: "" },
-  role: { type: String, default: "hr" },
-  
-  // ለዲጂታል መታወቂያ እና ፎርም የሚያስፈልጉ ተጨማሪ መስኮች
+  nameAmh: { type: String, default: "" },
+  nameEng: { type: String, default: "" },
   age: { type: String, default: "" },
   faydaNumber: { type: String, required: true, unique: true },
   dateOfIssue: { type: String, default: "" },
   expireDate: { type: String, default: "" },
-  address: { type: String, default: "" },
+  addressAmh: { type: String, default: "" },
+  addressEng: { type: String, default: "" },
   zone: { type: String, default: "" },
   city: { type: String, default: "" },
   nationality: { type: String, default: "" },
+  phoneNumber: { type: String, default: "" },
   woreda: { type: String, default: "" },
+  positionAmh: { type: String, default: "" },
+  positionEng: { type: String, default: "" },
   orgPhoneNumber: { type: String, default: "" },
+  imageUrl: { type: String, default: "" },
   status: { type: String, default: "approved" },
   approved: { type: Boolean, default: true },
   date: { type: Date, default: Date.now },
@@ -154,9 +147,7 @@ app.post("/api/auth/signup", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res
-        .status(400)
-        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -185,32 +176,26 @@ app.post("/api/auth/login", async (req, res) => {
       const employee = await Employee.findOne({ email: cleanEmail });
       if (employee) {
         user = employee;
-        role = employee.role || "hr";
+        role = "hr";
       }
     }
 
     if (!user)
-      return res
-        .status(400)
-        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     if (user.isBlocked) {
-      return res
-        .status(403)
-        .json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።" });
+      return res.status(403).json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል!" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res
-        .status(400)
-        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     res.status(200).json({
       success: true,
       user: {
         id: user._id,
-        name: user.name || user.fullName,
+        name: user.name || user.nameAmh,
         email: user.email,
         role: role ? role.toLowerCase().trim() : "normal",
       },
@@ -230,9 +215,7 @@ app.post("/api/admin/add-admin", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res
-        .status(400)
-        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new User({
@@ -323,46 +306,13 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
 });
 
 // ==========================================
-// 6. የ HR (የሰው ሃብት) እና ሰራተኞች ማስተዳደሪያ መስመሮች (Frontend Compatible)
+// 6. የሰራተኞች ማስተዳደሪያ መስመሮች (HR EMPLOYEE ROUTES)
 // ==========================================
 
-// አዲስ HR / ሰራተኛ መመዝገቢያ (POST) - ከፊት ለፊት ኮድ ጋር እንዲጣጣም የተስተካከለ
-app.post("/api/admin/hrs", async (req, res) => {
-  try {
-    const { name, fullName, email, password, faydaNumber } = req.body;
-    
-    // በፋይዳ ቁጥር ወይም በኢሜይል መመዝገቡን ማረጋገጥ
-    if (faydaNumber) {
-      const existingEmployee = await Employee.findOne({ faydaNumber });
-      if (existingEmployee) {
-        return res.status(400).json({ success: false, error: "ይህ የፋይዳ ቁጥር ቀድሞ ተመዝግቧል!" });
-      }
-    }
-
-    const cleanEmail = email ? email.toLowerCase().trim() : `hr_${Date.now()}@system.com`;
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("12345678", 10);
-
-    const newEmployee = new Employee({
-      ...req.body,
-      name: name || fullName || "HR User",
-      fullName: fullName || name || "HR User",
-      email: cleanEmail,
-      password: hashedPassword,
-      role: "hr",
-    });
-
-    await newEmployee.save();
-    res.status(201).json({ success: true, message: "HR በስኬት ተመዝግቧል!", employee: newEmployee });
-  } catch (error) {
-    console.error("HR registration error:", error);
-    res.status(500).json({ success: false, error: "ስህተት ተፈጥሯል!" });
-  }
-});
-
-// የሰራተኞች መመዝገቢያ ልዩ 路线 (ለ HRDashboard ፊት ለፊት ኮድ የሚሆን)
+// አዲስ ሰራተኛ መመዝገቢያ (POST)
 app.post("/api/hr/employees", async (req, res) => {
   try {
-    const { faydaNumber, fullName, name } = req.body;
+    const { faydaNumber } = req.body;
     
     if (faydaNumber) {
       const existingEmployee = await Employee.findOne({ faydaNumber });
@@ -371,13 +321,9 @@ app.post("/api/hr/employees", async (req, res) => {
       }
     }
 
-    const newEmployee = new Employee({
-      ...req.body,
-      fullName: fullName || name || "ተቀጣሪ ሰራተኛ",
-      name: name || fullName || "ተቀጣሪ ሰራተኛ"
-    });
-
+    const newEmployee = new Employee(req.body);
     await newEmployee.save();
+    
     res.status(201).json({ success: true, message: "ሰራተኛው በስኬት ተመዝግቧል!", employee: newEmployee });
   } catch (error) {
     console.error("Employee registration error:", error);
@@ -386,15 +332,6 @@ app.post("/api/hr/employees", async (req, res) => {
 });
 
 // ሰራተኞችን ማምጫ (GET)
-app.get("/api/admin/hrs", async (req, res) => {
-  try {
-    const hrs = await Employee.find({ role: "hr" }).sort({ date: -1 });
-    res.status(200).json({ success: true, hrs });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "HR ማምጣት አልተቻለም" });
-  }
-});
-
 app.get("/api/hr/employees", async (req, res) => {
   try {
     const employees = await Employee.find().sort({ date: -1 });
@@ -404,36 +341,7 @@ app.get("/api/hr/employees", async (req, res) => {
   }
 });
 
-// ሰራተኛ መረጃ ማስተካከያ (PUT - EDIT)
-app.put("/api/hr/employees/:id", async (req, res) => {
-  try {
-    const updatedEmployee = await Employee.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!updatedEmployee) {
-      return res.status(404).json({ success: false, error: "የተጠየቀው ሰራተኛ አልተገኘም!" });
-    }
-
-    res.status(200).json({ success: true, message: "የሰራተኛው መረጃ በስኬት ተስተካክሏል!", employee: updatedEmployee });
-  } catch (error) {
-    console.error("Employee update error:", error);
-    res.status(500).json({ success: false, error: "ሰራተኛውን ማስተካከል አልተቻለም" });
-  }
-});
-
 // ሰራተኛ ማጥፊያ (DELETE)
-app.delete("/api/admin/hrs/:id", async (req, res) => {
-  try {
-    await Employee.findByIdAndDelete(req.params.id);
-    res.status(200).json({ success: true, message: "HR ተሰርዟል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "HR ማጥፋት አልተቻለም" });
-  }
-});
-
 app.delete("/api/hr/employees/:id", async (req, res) => {
   try {
     await Employee.findByIdAndDelete(req.params.id);
@@ -443,36 +351,8 @@ app.delete("/api/hr/employees/:id", async (req, res) => {
   }
 });
 
-// የ HR ፓስወርድ መቀየሪያ (Update HR Password)
-app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
-  try {
-    const { newPassword } = req.body;
-    
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ success: false, error: "ፓስወርዱ ቢያንስ ከ6 ፊደላት በላይ መሆን አለበት!" });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    const updatedEmployee = await Employee.findByIdAndUpdate(
-      req.params.id, 
-      { password: hashedPassword },
-      { new: true }
-    );
-
-    if (!updatedEmployee) {
-      return res.status(404).json({ success: false, error: "የተጠየቀው HR አልተገኘም!" });
-    }
-
-    res.status(200).json({ success: true, message: "የ HR ፓስወርድ በስኬት ተለውጧል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "የ HR ፓስወርድ መቀየር አልተቻለም" });
-  }
-});
-
-
 // ==========================================
-// 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT)
 // ==========================================
 app.get("/api/admin/users", async (req, res) => {
   try {
@@ -551,7 +431,7 @@ app.delete("/api/admin/users/delete/:id", async (req, res) => {
 });
 
 // ==========================================
-// 8. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
+// 8. የደንበኞች ማዘዣ መስመሮች (CONTACT / ORDER ROUTES)
 // ==========================================
 app.post("/api/contact", async (req, res) => {
   try {
@@ -568,31 +448,6 @@ app.post("/api/contact", async (req, res) => {
     res.status(201).json({ success: true, message: "ትዕዛዝዎ በስኬት ተቀምጧል!" });
   } catch (error) {
     res.status(500).json({ success: false, error: "ትዕዛዙን ማስቀመጥ አልተቻለም" });
-  }
-});
-
-app.post("/api/admin/send-new-message", async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
-
-    if (!email || !message) {
-      return res.status(400).json({ success: false, error: "እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!" });
-    }
-
-    const cleanEmail = email.toLowerCase().trim();
-
-    const adminNewOrder = new Contact({
-      name: name,
-      email: cleanEmail,
-      message: `[የባለሙያ መልዕክት]፦ ${message}`,
-      reply: message,
-      status: "ምላሽ ተሰጥቷል",
-    });
-
-    await adminNewOrder.save();
-    res.status(201).json({ success: true, message: "መልዕክትዎ ለደንበኛው ተልኳል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "መልዕክት መላክ አልተቻለም" });
   }
 });
 
