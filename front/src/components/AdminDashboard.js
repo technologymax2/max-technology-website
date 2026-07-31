@@ -20,9 +20,9 @@ function AdminDashboard({
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]);
-  const [hrList, setHrList] = useState([]); // HR List state
+  const [hrList, setHrList] = useState([]);
 
-  // ንቁ ታብ (messages, projects, admins, hrs, users) - የድሮውን ቅደም ተከተል የጠበቀ
+  // ንቁ ታብ
   const [activeTab, setActiveTab] = useState("messages");
 
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -47,18 +47,6 @@ function AdminDashboard({
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [API_BASE_URL]);
-
-  useEffect(() => {
-    fetchMessages();
-    fetchAdmins();
-    fetchUsers();
-    fetchHrs();
-    const interval = setInterval(() => {
-      fetchMessages();
-    }, 5000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const uniqueUsers = useMemo(() => {
     const users = [];
@@ -133,7 +121,7 @@ function AdminDashboard({
         fetchMessages();
       }
     } catch (err) {
-      alert("መልዕክቱን መላክ አልተቻለም። ድንገተኛ ስህተት አጋጥሟል");
+      alert("መልዕክቱን መላክ አልተቻለም።");
     }
   };
 
@@ -158,11 +146,11 @@ function AdminDashboard({
         body: JSON.stringify(projectForm),
       });
       if (res.ok) {
-        alert("ፖርትፎሊዮ/ፕሮጀክት በተሳካ ሁኔታ ተመዝግቧል!");
+        alert("ፕሮጀክት በተሳካ ሁኔታ ተመዝግቧል!");
         setProjectForm({ title: "", link: "", imageUrl: "" });
       }
     } catch (err) {
-      alert("ስህተት አጋጥሟል ወይም ሰርቨር ጋር መገናኘት አልተቻለም");
+      alert("ስህተት አጋጥሟል");
     }
   };
 
@@ -198,7 +186,7 @@ function AdminDashboard({
         fetchHrs();
       }
     } catch (err) {
-      alert("HR ማጥፋት አልተቻለም");
+      alert("ማጥፋት አልተቻለም");
     }
   };
 
@@ -290,7 +278,7 @@ function AdminDashboard({
         body: JSON.stringify({ isBlocked: !isBlocked }),
       });
       if (res.ok) {
-        alert(`ተጠቃሚው ተስተካክሏል!`);
+        alert("ተጠቃሚው ተስተካክሏል!");
         fetchUsers();
       }
     } catch (err) {
@@ -331,16 +319,16 @@ function AdminDashboard({
   };
 
   return (
-    <div className="admin-dashboard-container">
-      <div className="admin-header">
+    <div className="admin-dashboard-container" style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", padding: "10px", boxSizing: "border-box" }}>
+      <div className="admin-header" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
         <h2>👑 ዋናውን መቆጣጠሪያ ማዕከል (Admin Panel)</h2>
         <button onClick={handleLogout} className="btn-logout">
           ውጣ (Logout)
         </button>
       </div>
 
-      {/* የድሮው የጡንቻ አቀማመጥ (Tabs Nav) */}
-      <div className="admin-tabs-nav">
+      {/* ሪስፖንሲቭ የሆኑ ታቦች (ስክሪን ሲያንስ በራሳቸው እንዲሰለፉ) */}
+      <div className="admin-tabs-nav" style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "15px 0" }}>
         <button
           className={`tab-nav-btn ${activeTab === "messages" ? "active-tab" : ""}`}
           onClick={() => setActiveTab("messages")}
@@ -373,12 +361,13 @@ function AdminDashboard({
         </button>
       </div>
 
+      {/* 1. ፕሮጀክቶች */}
       {activeTab === "projects" && (
         <div className="card">
           <h3>📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
           <div
             className="project-form-section"
-            style={{ marginBottom: "30px", paddingBottom: "20px", borderBottom: "1px solid #333" }}
+            style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "30px", paddingBottom: "20px", borderBottom: "1px solid #333" }}
           >
             <input
               type="text"
@@ -407,8 +396,10 @@ function AdminDashboard({
                   key={p._id}
                   style={{
                     display: "flex",
+                    flexWrap: "wrap",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    gap: "10px",
                     padding: "10px",
                     background: "#161b22",
                     borderRadius: "8px",
@@ -445,13 +436,14 @@ function AdminDashboard({
         </div>
       )}
 
+      {/* 2. መልዕክቶች (Telegram Split Mode - ለሞባይል የተስተካከለ) */}
       {activeTab === "messages" && (
         <>
           <h3 className="admin-section-heading">
             💬 የደንበኞች መልዕክት ዝርዝር (Telegram Split Mode)
           </h3>
-          <div className="telegram-admin-layout">
-            <div className="telegram-sidebar">
+          <div className="telegram-admin-layout" style={{ display: "flex", flexWrap: "wrap", gap: "15px" }}>
+            <div className="telegram-sidebar" style={{ flex: "1 1 250px", minWidth: "250px" }}>
               <div className="sidebar-header">👥 ተጠቃሚዎች ({uniqueUsers.length})</div>
               <div className="sidebar-users-list">
                 {uniqueUsers.map((u) => (
@@ -475,7 +467,7 @@ function AdminDashboard({
               </div>
             </div>
 
-            <div className="telegram-chat-window">
+            <div className="telegram-chat-window" style={{ flex: "2 1 400px", minWidth: "280px" }}>
               {selectedUserEmail ? (
                 <>
                   <div className="chat-window-header">
@@ -512,10 +504,11 @@ function AdminDashboard({
                   <div
                     className="admin-chat-footer-input"
                     style={{
-                      padding: "20px",
+                      padding: "15px",
                       background: "#161b22",
                       borderTop: "1px solid #30363d",
                       display: "flex",
+                      flexWrap: "wrap",
                       gap: "10px",
                     }}
                   >
@@ -532,7 +525,8 @@ function AdminDashboard({
                       className="input-field"
                       style={{
                         flex: 1,
-                        padding: "14px",
+                        minWidth: "180px",
+                        padding: "12px",
                         background: "#0d0f12",
                         color: "#fff",
                         border: "1px solid #30363d",
@@ -545,7 +539,7 @@ function AdminDashboard({
                       style={{
                         background: "#ffd700",
                         color: "#0d0f12",
-                        padding: "0 25px",
+                        padding: "0 20px",
                         border: "none",
                         borderRadius: "10px",
                         fontWeight: "bold",
@@ -566,8 +560,9 @@ function AdminDashboard({
         </>
       )}
 
+      {/* 3. አድሚኖች አስተዳደር */}
       {activeTab === "admins" && (
-        <div className="grid admin-grid-gap">
+        <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           <div className="card admin-form-card">
             <h3>➕ አዲስ አድሚን ይፍጠሩ</h3>
             <form
@@ -604,16 +599,16 @@ function AdminDashboard({
                 required
                 className="input-field admin-input-large-bottom"
               />
-              <button type="submit" className="submit-btn">
+              <button type="submit" className="submit-btn" style={{ width: "100%" }}>
                 አድሚኑን መዝግብ
               </button>
             </form>
             {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
           </div>
 
-          <div className="card admin-table-card">
+          <div className="card admin-table-card" style={{ overflowX: "auto" }}>
             <h3>📋 ያሉ አድሚኖች ዝርዝር</h3>
-            <table className="custom-table responsive-table">
+            <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "450px" }}>
               <thead>
                 <tr>
                   <th>ስም</th>
@@ -682,9 +677,9 @@ function AdminDashboard({
         </div>
       )}
 
-      {/* የሰው ሃብት (HR) ታብ (የተጨመረው አዲስ ክፍል) */}
+      {/* 4. የሰው ሃብት (HR) አስተዳደር */}
       {activeTab === "hrs" && (
-        <div className="grid admin-grid-gap">
+        <div className="grid admin-grid-gap" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           <div className="card admin-form-card">
             <h3>👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
             <form onSubmit={handleAddHRSubmit} className="form-group admin-form-top">
@@ -712,15 +707,15 @@ function AdminDashboard({
                 required
                 className="input-field admin-input-large-bottom"
               />
-              <button type="submit" className="submit-btn">
+              <button type="submit" className="submit-btn" style={{ width: "100%" }}>
                 HR መዝግብ
               </button>
             </form>
           </div>
 
-          <div className="card admin-table-card">
+          <div className="card admin-table-card" style={{ overflowX: "auto" }}>
             <h3>📋 የተመዘገቡ HR ባለሙያዎች ዝርዝር</h3>
-            <table className="custom-table responsive-table">
+            <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "450px" }}>
               <thead>
                 <tr>
                   <th>ስም</th>
@@ -767,10 +762,11 @@ function AdminDashboard({
         </div>
       )}
 
+      {/* 5. ደንበኞች */}
       {activeTab === "users" && (
-        <div className="card admin-full-width-card">
+        <div className="card admin-full-width-card" style={{ overflowX: "auto" }}>
           <h3>👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
-          <table className="custom-table responsive-table">
+          <table className="custom-table responsive-table" style={{ width: "100%", minWidth: "500px" }}>
             <thead>
               <tr>
                 <th>ተጠቃሚ ስም</th>
@@ -792,18 +788,18 @@ function AdminDashboard({
                     </span>
                   </td>
                   <td data-label="ድርጊቶች">
-                    <div className="admin-inline-flex">
+                    <div className="admin-inline-flex" style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
                       <button
                         onClick={() => handleToggleBlockUser(u._id, u.isBlocked)}
                         className={`btn-action ${u.isBlocked ? "btn-unblock" : "btn-block-action"}`}
-                        style={{ padding: "6px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
+                        style={{ padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         {u.isBlocked ? "🔓 ክፈት" : "🚫 አግድ"}
                       </button>
                       <button
                         onClick={() => handleDeleteUser(u._id)}
                         className="btn-action btn-delete"
-                        style={{ padding: "6px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
+                        style={{ padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         🗑️ አጥፋ
                       </button>
@@ -818,9 +814,9 @@ function AdminDashboard({
 
       {editingAdmin && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{ width: "90%", maxWidth: "400px" }}>
             <h3>✏️ አድሚን ማስተካከያ</h3>
-            <form onSubmit={handleUpdateAdmin} className="form-group admin-form-top">
+            <form onSubmit={handleUpdateAdmin} className="form-group admin-form-top" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <input
                 type="text"
                 value={editForm.name}
@@ -835,14 +831,15 @@ function AdminDashboard({
                 required
                 className="input-field"
               />
-              <div className="admin-inline-flex admin-form-top">
-                <button type="submit" className="btn-action btn-reply btn-flex-one">
+              <div className="admin-inline-flex admin-form-top" style={{ display: "flex", gap: "10px" }}>
+                <button type="submit" className="btn-action btn-reply btn-flex-one" style={{ flex: 1 }}>
                   አስተካክል
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingAdmin(null)}
                   className="btn-action btn-delete btn-flex-one"
+                  style={{ flex: 1 }}
                 >
                   ሰርዝ
                 </button>
