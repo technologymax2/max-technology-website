@@ -96,6 +96,12 @@ async function seedFirstAdmin() {
       });
       await firstAdmin.save();
       console.log("👑 የመጀመሪያው ዋና አድሚን በስኬት ዳታቤዝ ውስጥ ተፈጥሯል!");
+    } else {
+      // Forcefully update the main admin role to 'admin' if it somehow changed
+      if (existingAdmin.role !== "admin") {
+        existingAdmin.role = "admin";
+        await existingAdmin.save();
+      }
     }
   } catch (error) {
     console.error("ዋናውን አድሚን መፍጠር አልተቻለም:", error);
@@ -166,9 +172,12 @@ app.post("/api/auth/login", async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
 
     let user = await User.findOne({ email: cleanEmail });
-    let role = user ? user.role : null;
+    let role = "normal";
 
-    if (!user) {
+    if (user) {
+      role = user.role; // Use user's actual database role ('admin', 'normal', etc.)
+    } else {
+      // Fallback to employee collection only if not found in User collection
       const employee = await Employee.findOne({ email: cleanEmail });
       if (employee) {
         user = employee;
