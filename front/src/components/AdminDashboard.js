@@ -119,6 +119,24 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
+
+  const handleResetHRPassword = async (hrId) => {
+  const newPassword = prompt("ለዚህ HR አዲስ ፓስወርድ ያስገቡ:");
+  if (!newPassword) return;
+
+  try {
+    const response = await axios.put(`https://your-backend-url.com/api/admin/hrs/reset-password/${hrId}`, {
+      newPassword: newPassword
+    });
+
+    if (response.data.success) {
+      alert("ፓስወርዱ በተሳካ ሁኔታ ተቀይሯል!");
+    }
+  } catch (error) {
+    alert("ፓስወርዱን መቀየር አልተቻለም።");
+  }
+};
+
   // 🛠️ የተጠየቀው handleUpdateAdmin (ተጠቃሚ እንዲኖረው ተደርጓል)
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
