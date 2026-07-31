@@ -18,28 +18,25 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // States for data
   const [stats, setStats] = useState({ users: 0, projects: 0, messages: 0, hrs: 0 });
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [messages, setMessages] = useState([]);
   const [hrs, setHrs] = useState([]);
   
-  // Form states
   const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
   const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
   const [replyText, setReplyText] = useState({});
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ message: "", type: "" });
 
-  const API_BASE = "https://your-backend-url.com/api"; // Replace with your actual backend URL or localhost
+  const API_BASE = "https://your-backend-url.com/api";
 
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification({ message: "", type: "" }), 4000);
   };
 
-  // Fetch all data
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -72,7 +69,6 @@ const AdminDashboard = () => {
     fetchData();
   }, [fetchData]);
 
-  // --- Project Actions ---
   const handleAddProject = async (e) => {
     e.preventDefault();
     try {
@@ -96,7 +92,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- HR Actions ---
   const handleAddHR = async (e) => {
     e.preventDefault();
     try {
@@ -131,7 +126,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- User & Block Actions ---
   const handleToggleBlock = async (id, currentStatus) => {
     try {
       await axios.put(`${API_BASE}/admin/users/block/${id}`, { isBlocked: !currentStatus });
@@ -153,7 +147,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- Messages & Reply Actions ---
   const handleSendReply = async (id) => {
     const reply = replyText[id];
     if (!reply) return showNotification("እባክዎ ምላሽ ይጻፉ!", "error");
@@ -180,15 +173,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans text-right" dir="rtl">
-      {/* Mobile Sidebar Toggle */}
-      <div className="lg:hidden fixed top-4 right-4 z-50">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 bg-blue-600 text-white rounded-md shadow-lg"
-        >
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+      {/* Mobile Sidebar Backdrop / Toggle */}
+      {sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+        />
+      )}
 
       {/* Notification Toast */}
       {notification.message && (
@@ -203,17 +194,23 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 right-0 z-40 w-64 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 right-0 z-40 w-64 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "translate-x-full"
-        } lg:static lg:block shadow-2xl`}
+        } lg:translate-x-0 lg:static shadow-2xl flex flex-col`}
       >
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
             <Settings className="text-blue-500" /> የአድሚን ፓነል
           </h1>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-slate-400 hover:text-white"
+          >
+            <X size={24} />
+          </button>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {[
             { id: "overview", label: "አጠቃላይ እይታ", icon: Users },
             { id: "users", label: "ተጠቃሚዎች እና ደንበኞች", icon: Users },
@@ -242,7 +239,7 @@ const AdminDashboard = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-6 right-6 left-6">
+        <div className="p-4 border-t border-slate-800">
           <button
             onClick={() => {
               localStorage.clear();
@@ -257,11 +254,17 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 shadow-sm">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-800">
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-8 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 bg-blue-600 text-white rounded-md shadow-md"
+            >
+              <Menu size={22} />
+            </button>
+            <h2 className="text-lg lg:text-xl font-bold text-gray-800 truncate">
               {activeTab === "overview" && "ዳሽቦርድ አጠቃላይ መረጃ"}
               {activeTab === "users" && "የተጠቃሚዎች ዝርዝር እና መቆጣጠሪያ"}
               {activeTab === "hrs" && "የ HR ባለሙያዎች ማስተዳደሪያ"}
@@ -272,16 +275,15 @@ const AdminDashboard = () => {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all text-sm font-medium"
+            className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all text-sm font-medium"
           >
             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            <span>አድስ</span>
+            <span className="hidden sm:inline">አድስ</span>
           </button>
         </header>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
-          {/* OVERVIEW TAB */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gray-50">
           {activeTab === "overview" && (
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -315,7 +317,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* USERS TAB */}
           {activeTab === "users" && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-6 border-b border-gray-100">
@@ -339,9 +340,7 @@ const AdminDashboard = () => {
                         <td className="p-4">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              u.isBlocked
-                                ? "bg-red-100 text-red-600"
-                                : "bg-green-100 text-green-600"
+                              u.isBlocked ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
                             }`}
                           >
                             {u.isBlocked ? "ታግዷል" : "ንቁ (Active)"}
@@ -354,7 +353,7 @@ const AdminDashboard = () => {
                               u.isBlocked ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-500 hover:bg-amber-600"
                             }`}
                           >
-                            {u.isBlocked ? "ክፈት (Unblock)" : "አግድ (Block)"}
+                            {u.isBlocked ? "ክፈት" : "አግድ"}
                           </button>
                           <button
                             onClick={() => handleDeleteUser(u._id)}
@@ -376,7 +375,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* HRS TAB */}
           {activeTab === "hrs" && (
             <div className="space-y-8">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -409,7 +407,7 @@ const AdminDashboard = () => {
                   <div className="md:col-span-3">
                     <button
                       type="submit"
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md shadow-blue-600/20"
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md"
                     >
                       HR መዝግብ
                     </button>
@@ -463,7 +461,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* PROJECTS TAB */}
           {activeTab === "projects" && (
             <div className="space-y-8">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -496,7 +493,7 @@ const AdminDashboard = () => {
                   <div className="md:col-span-3">
                     <button
                       type="submit"
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md shadow-blue-600/20"
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm shadow-md"
                     >
                       ፕሮጀክት መዝግብ
                     </button>
@@ -540,7 +537,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* MESSAGES TAB */}
           {activeTab === "messages" && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-6 border-b border-gray-100">
@@ -586,7 +582,7 @@ const AdminDashboard = () => {
                       />
                       <button
                         onClick={() => handleSendReply(msg._id)}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md shadow-blue-600/20 flex items-center gap-2"
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md flex items-center gap-2"
                       >
                         <Send size={16} /> ላክ
                       </button>
