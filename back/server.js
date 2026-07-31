@@ -123,14 +123,15 @@ app.delete('/api/admin/projects/:id', async (req, res) => {
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
     
-    const existingUser = await User.findOne({ Email: email });
+    const existingUser = await User.findOne({ Email: cleanEmail });
     if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       Name: name,
-      Email: email,
+      Email: cleanEmail,
       Password: hashedPassword,
       Role: 'normal'
     });
@@ -146,14 +147,15 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
     
     // መጀመሪያ በ User (አድሚን ወይም መደበኛ) መፈለግ
-    let user = await User.findOne({ Email: email });
+    let user = await User.findOne({ Email: cleanEmail });
     let role = user ? user.Role : null;
 
     // በ User ካልተገኘ በ Employee (ሰራተኛ) መፈለግ
     if (!user) {
-      const employee = await Employee.findOne({ Email: email });
+      const employee = await Employee.findOne({ Email: cleanEmail });
       if (employee) {
         user = employee;
         role = employee.Role || 'employee'; // 👈 የሰራተኛውን ትክክለኛ ሚና (hr ወይም employee) መውሰድ
@@ -167,15 +169,15 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ success: false, error: 'አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.Password);
+    const isMatch = await bcrypt.compare(password, user.Password || user.password);
     if (!isMatch) return res.status(400).json({ success: false, error: 'ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!' });
 
     res.status(200).json({
       success: true,
       user: { 
         id: user._id, 
-        name: user.Name, 
-        email: user.Email, 
+        name: user.Name || user.name, 
+        email: user.Email || user.email, 
         role: role ? role.toLowerCase().trim() : 'normal' 
       }
     });
@@ -193,14 +195,15 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/admin/add-admin', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
 
-    const existingUser = await User.findOne({ Email: email });
+    const existingUser = await User.findOne({ Email: cleanEmail });
     if (existingUser) return res.status(400).json({ success: false, error: 'ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new User({
       Name: name,
-      Email: email,
+      Email: cleanEmail,
       Password: hashedPassword,
       Role: 'admin'
     });
@@ -226,7 +229,7 @@ app.get('/api/admin/list', async (req, res) => {
 app.put('/api/admin/update/:id', async (req, res) => {
   try {
     const { name, email } = req.body;
-    await User.findByIdAndUpdate(req.params.id, { Name: name, Email: email });
+    await User.findByIdAndUpdate(req.params.id, { Name: name, Email: email ? email.toLowerCase().trim() : undefined });
     res.status(200).json({ success: true, message: 'የአድሚን መረጃ ተስተካክሏል!' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ማስተካከሉ አልተሳካም' });
@@ -255,7 +258,7 @@ app.delete('/api/admin/delete/:id', async (req, res) => {
   }
 });
 
-// መ. አድሚን ሁሉንም የደንበኞች ማዘዣዎች የሚያيበት
+// መ. አድሚን ሁሉንም የደንበኞች ማዘዣዎች የሚያይበት
 app.get('/api/admin/messages', async (req, res) => {
   try {
     const messages = await Contact.find().sort({ Date: -1 });
@@ -297,8 +300,9 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 app.post('/api/hr/employees', async (req, res) => {
   try {
     const { name, email, password, phone, position, department, idNumber, photoUrl } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
     
-    const existingEmployee = await Employee.findOne({ Email: email });
+    const existingEmployee = await Employee.findOne({ Email: cleanEmail });
     if (existingEmployee) {
       return res.status(400).json({ success: false, error: 'ይህ ኢሜይል ቀድሞ ተመዝግቧል!' });
     }
@@ -310,7 +314,7 @@ app.post('/api/hr/employees', async (req, res) => {
 
     const newEmployee = new Employee({
       Name: name,
-      Email: email,
+      Email: cleanEmail,
       Password: hashedPassword,
       Phone: phone,
       Position: position,
@@ -434,13 +438,14 @@ app.delete('/api/admin/users/delete/:id', async (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
     
-    const checkUser = await User.findOne({ Email: email });
+    const checkUser = await User.findOne({ Email: cleanEmail });
     if (checkUser && checkUser.IsBlocked) {
       return res.status(403).json({ success: false, error: 'አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!' });
     }
 
-    const newContact = new Contact({ Name: name, Email: email, Message: message });
+    const newContact = new Contact({ Name: name, Email: cleanEmail, Message: message });
     await newContact.save();
     res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተቀምጧል!' });
   } catch (error) {
@@ -450,7 +455,8 @@ app.post('/api/contact', async (req, res) => {
 
 app.get('/api/user/orders/:email', async (req, res) => {
   try {
-    const orders = await Contact.find({ Email: req.params.email }).sort({ Date: -1 });
+    const cleanEmail = req.params.email.toLowerCase().trim();
+    const orders = await Contact.find({ Email: cleanEmail }).sort({ Date: -1 });
     res.status(200).json({ success: true, orders });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ማዘዣዎችዎን ማምጣት አልተቻለም' });
@@ -501,9 +507,11 @@ app.post('/api/admin/send-new-message', async (req, res) => {
       return res.status(400).json({ success: false, error: 'እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!' });
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+
     const adminNewOrder = new Contact({
       Name: name,
-      Email: email,
+      Email: cleanEmail,
       Message: `[የባለሙያ መልዕክት]፦ ${message}`, 
       Reply: message, 
       Status: 'ምላሽ ተሰጥቷል'
