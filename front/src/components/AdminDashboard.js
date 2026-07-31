@@ -20,23 +20,19 @@ function AdminDashboard({
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]);
-  const [hrList, setHrList] = useState([]); // የ HR ዝርዝር ማከማቻ
+  const [hrList, setHrList] = useState([]); // HR List state
 
-  // ንቁ ታብ (messages, admins, users, hrs, projects)
+  // ንቁ ታብ (messages, projects, admins, hrs, users) - የድሮውን ቅደም ተከተል የጠበቀ
   const [activeTab, setActiveTab] = useState("messages");
 
-  // አድሚን ማስተካከያ (Editing Admin)
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
   const [passwordReset, setPasswordReset] = useState({ id: "", newPassword: "" });
 
-  // የ HR መመዝገቢያ ፎርም ስቴት
+  // HR Form state
   const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
 
-  // ቻት ስታይል ዩዘሮች (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
-
-  // ፕሮጀክት መመዝገቢያ ስቴት
   const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
   const [uploading, setUploading] = useState(false);
 
@@ -44,7 +40,7 @@ function AdminDashboard({
     fetchMessages();
     fetchAdmins();
     fetchUsers();
-    fetchHrs(); // HRዎችን ማምጫ
+    fetchHrs();
     const interval = setInterval(() => {
       fetchMessages();
     }, 5000);
@@ -52,7 +48,18 @@ function AdminDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [API_BASE_URL]);
 
-  // Unique Users for Chat
+  useEffect(() => {
+    fetchMessages();
+    fetchAdmins();
+    fetchUsers();
+    fetchHrs();
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 5000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const uniqueUsers = useMemo(() => {
     const users = [];
     const seenEmails = new Set();
@@ -75,7 +82,6 @@ function AdminDashboard({
     (msg) => msg.email === selectedUserEmail
   );
 
-  // አድሚኖችን ማምጫ
   const fetchAdmins = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/list`);
@@ -86,7 +92,6 @@ function AdminDashboard({
     }
   };
 
-  // ተጠቃሚዎችን ማምጫ
   const fetchUsers = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/users`);
@@ -97,7 +102,6 @@ function AdminDashboard({
     }
   };
 
-  // HRዎችን ማምጫ (አዲስ የተጨመረ)
   const fetchHrs = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/hrs`);
@@ -108,7 +112,6 @@ function AdminDashboard({
     }
   };
 
-  // መልዕክት መላኪያ
   const handleSendAdminMessage = async () => {
     const txt = replyText["global_admin_chat"];
     if (!txt || !txt.trim()) return alert("እባክዎ ትክክለኛ መልዕክት ይጻፉ!");
@@ -134,7 +137,6 @@ function AdminDashboard({
     }
   };
 
-  // ፎቶ መጫኛ
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     try {
@@ -146,7 +148,6 @@ function AdminDashboard({
     }
   };
 
-  // ፕሮጀክት መመዝገቢያ
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     if (!projectForm.imageUrl) return alert("እባክዎ ትክክለኛ ፎቶ ያስገቡ!");
@@ -161,12 +162,11 @@ function AdminDashboard({
         setProjectForm({ title: "", link: "", imageUrl: "" });
       }
     } catch (err) {
-      alert("ስህተት አጋጥሟል ወይምሰርቨር ጋር መገናኘት አልተቻለም");
+      alert("ስህተት አጋጥሟል ወይም ሰርቨር ጋር መገናኘት አልተቻለም");
     }
   };
 
-  // HR መመዝገቢያ (አዲስ የተጨመረ)
-  const handleAddHRCtl = async (e) => {
+  const handleAddHRSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/hrs`, {
@@ -187,7 +187,6 @@ function AdminDashboard({
     }
   };
 
-  // HR ማጥፊያ (አዲስ የተጨመረ)
   const handleDeleteHR = async (id) => {
     if (!window.confirm("ይህንን HR ማጥፋት ይፈልጋሉ?")) return;
     try {
@@ -203,9 +202,8 @@ function AdminDashboard({
     }
   };
 
-  // የ HR ፓስወርድ መቀየሪያ (አዲስ የተጨመረ)
   const handleResetHRPassword = async (id) => {
-    const newPassword = prompt("ለዚህ HR አዲስ ፓስወርድ ያስገቡ (ቢያንስ 6 ፊደላት):");
+    const newPassword = prompt("ለዚህ HR አዲስ ፓስወርድ ያስገቡ:");
     if (!newPassword) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/hrs/reset-password/${id}`, {
@@ -215,12 +213,12 @@ function AdminDashboard({
       });
       const data = await res.json();
       if (data.success) {
-        alert("የ HR ፓስወርድ በስኬት ተለውጧል!");
+        alert("የ HR ፓስወርድ ተቀይሯል!");
       } else {
         alert(data.error || "ፓስወርድ መቀየር አልተቻለም");
       }
     } catch (err) {
-      alert("የ HR ፓስወርድ መቀየር አልተቻለም");
+      alert("ስህተት አጋጥሟል");
     }
   };
 
@@ -258,7 +256,7 @@ function AdminDashboard({
         }
       );
       if (res.ok) {
-        alert("አድሚኑ ፓስወርድ ሰክሰስፉሊ ተቀይሯል!");
+        alert("አድሚኑ ፓስወርድ ተቀይሯል!");
         setPasswordReset({ id: "", newPassword: "" });
       }
     } catch (err) {
@@ -267,7 +265,7 @@ function AdminDashboard({
   };
 
   const handleDeleteAdmin = async (id) => {
-    if (!window.confirm("እርግጠኛ ነዎት አድሚኑን ከሰርቨር ላይ ማጥፋት ይፈልጋሉ?")) return;
+    if (!window.confirm("እርግጠኛ ነዎት አድሚኑን ማጥፋት ይፈልጋሉ?")) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/delete/${id}`, {
         method: "DELETE",
@@ -282,7 +280,7 @@ function AdminDashboard({
   };
 
   const handleToggleBlockUser = async (id, isBlocked) => {
-    const actionText = isBlocked ? "ክፈት (Unblock)" : "አግድ (Block)";
+    const actionText = isBlocked ? "ክፈት" : "አግድ";
     if (!window.confirm(`እርግጠኛ ነዎት ተጠቃሚውን ${actionText} ማድረግ ይፈልጋሉ?`))
       return;
     try {
@@ -292,7 +290,7 @@ function AdminDashboard({
         body: JSON.stringify({ isBlocked: !isBlocked }),
       });
       if (res.ok) {
-        alert(`ተጠቃሚው በተሳካ ሁኔታ ${isBlocked ? "እንዲከፈት ተደርጓል" : "ታግዷል"}!`);
+        alert(`ተጠቃሚው ተስተካክሏል!`);
         fetchUsers();
       }
     } catch (err) {
@@ -301,18 +299,18 @@ function AdminDashboard({
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("እርግጠኛ ነዎት ተጠቃሚውን ሙሉ በሙሉ ማጥፋት ይፈልጋሉ?")) return;
+    if (!window.confirm("እርግጠኛ ነዎት ተጠቃሚውን ማጥፋት ይፈልጋሉ?")) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/users/delete/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        alert("ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!");
+        alert("ተጠቃሚው ተሰርዟል!");
         fetchUsers();
         fetchMessages();
       }
     } catch (err) {
-      alert("ተጠቃሚውን ማጥፋት አልተቻለም");
+      alert("ማጥፋት አልተቻለም");
     }
   };
 
@@ -341,7 +339,7 @@ function AdminDashboard({
         </button>
       </div>
 
-      {/* የዳሽቦርድ ታቦች መምረጫ */}
+      {/* የድሮው የጡንቻ አቀማመጥ (Tabs Nav) */}
       <div className="admin-tabs-nav">
         <button
           className={`tab-nav-btn ${activeTab === "messages" ? "active-tab" : ""}`}
@@ -375,7 +373,6 @@ function AdminDashboard({
         </button>
       </div>
 
-      {/* 1. ፕሮጀክቶች */}
       {activeTab === "projects" && (
         <div className="card">
           <h3>📁 ፕሮጀክቶች ማስተዳደሪያ</h3>
@@ -448,7 +445,6 @@ function AdminDashboard({
         </div>
       )}
 
-      {/* 2. መልዕክቶች (Telegram Split Mode) */}
       {activeTab === "messages" && (
         <>
           <h3 className="admin-section-heading">
@@ -525,7 +521,7 @@ function AdminDashboard({
                   >
                     <input
                       type="text"
-                      placeholder="መልዕክትዎ ይጻፉ... (ለመላክ Enter ይጫኑ)"
+                      placeholder="መልዕክትዎ ይጻፉ..."
                       value={replyText["global_admin_chat"] || ""}
                       onChange={(e) =>
                         setReplyText({ ...replyText, global_admin_chat: e.target.value })
@@ -556,13 +552,13 @@ function AdminDashboard({
                         cursor: "pointer",
                       }}
                     >
-                      📁 ላክ
+                      ላክ
                     </button>
                   </div>
                 </>
               ) : (
                 <div className="select-chat-placeholder">
-                  <p>እባክዎ ከဘራውዘር ዝርዝር ውስጥ ተጠቃሚ ይምረጡ</p>
+                  <p>እባክዎ ተጠቃሚ ይምረጡ</p>
                 </div>
               )}
             </div>
@@ -570,7 +566,6 @@ function AdminDashboard({
         </>
       )}
 
-      {/* 3. አድሚኖች አስተዳደር */}
       {activeTab === "admins" && (
         <div className="grid admin-grid-gap">
           <div className="card admin-form-card">
@@ -687,12 +682,12 @@ function AdminDashboard({
         </div>
       )}
 
-      {/* 4. የሰው ሃብት (HR) አስተዳደር (አዲስ የተጨመረ) */}
+      {/* የሰው ሃብት (HR) ታብ (የተጨመረው አዲስ ክፍል) */}
       {activeTab === "hrs" && (
         <div className="grid admin-grid-gap">
           <div className="card admin-form-card">
             <h3>👥 አዲስ HR ባለሙያ መመዝገቢያ</h3>
-            <form onSubmit={handleAddHRCtl} className="form-group admin-form-top">
+            <form onSubmit={handleAddHRSubmit} className="form-group admin-form-top">
               <input
                 type="text"
                 placeholder="የሰራተኛው ስም"
@@ -762,7 +757,7 @@ function AdminDashboard({
                 {hrList.length === 0 && (
                   <tr>
                     <td colSpan="4" className="admin-empty-text">
-                      ምንም HR አልተመዘገበም
+                      ምንም HR ባለሙያ አልተመዘገበም
                     </td>
                   </tr>
                 )}
@@ -772,12 +767,9 @@ function AdminDashboard({
         </div>
       )}
 
-      {/* 5. ደንበኞች / ተጠቃሚዎች አስተዳደር */}
       {activeTab === "users" && (
         <div className="card admin-full-width-card">
-          <h3>
-            👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች (ብሎክ እና ማጥፊያ ማዕከል)
-          </h3>
+          <h3>👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
           <table className="custom-table responsive-table">
             <thead>
               <tr>
@@ -793,57 +785,25 @@ function AdminDashboard({
                   <td data-label="ተጠቃሚ ስም">
                     <strong>{u.name}</strong>
                   </td>
-                  <td data-label="ኢሜይል">
-                    {u.email}{" "}
-                    {u.isChatOnly && (
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          color: "#ffd700",
-                          background: "#222",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          marginLeft: "5px",
-                        }}
-                      >
-                        💬 ቻት ብቻ
-                      </span>
-                    )}
-                  </td>
+                  <td data-label="ኢሜይል">{u.email}</td>
                   <td data-label="ሁኔታ">
-                    <span
-                      className={`status-badge ${
-                        u.isBlocked ? "badge-blocked" : "badge-active"
-                      }`}
-                    >
-                      {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ (Active)"}
+                    <span className={`status-badge ${u.isBlocked ? "badge-blocked" : "badge-active"}`}>
+                      {u.isBlocked ? "🚫 ታግዷል" : "🟢 ንቁ"}
                     </span>
                   </td>
                   <td data-label="ድርጊቶች">
                     <div className="admin-inline-flex">
                       <button
                         onClick={() => handleToggleBlockUser(u._id, u.isBlocked)}
-                        className={`btn-action ${
-                          u.isBlocked ? "btn-unblock" : "btn-block-action"
-                        }`}
-                        style={{
-                          padding: "6px 14px",
-                          borderRadius: "6px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                        }}
+                        className={`btn-action ${u.isBlocked ? "btn-unblock" : "btn-block-action"}`}
+                        style={{ padding: "6px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         {u.isBlocked ? "🔓 ክፈት" : "🚫 አግድ"}
                       </button>
                       <button
                         onClick={() => handleDeleteUser(u._id)}
                         className="btn-action btn-delete"
-                        style={{
-                          padding: "6px 14px",
-                          borderRadius: "6px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                        }}
+                        style={{ padding: "6px 14px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}
                       >
                         🗑️ አጥፋ
                       </button>
@@ -851,19 +811,11 @@ function AdminDashboard({
                   </td>
                 </tr>
               ))}
-              {userList.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="admin-empty-text">
-                    ምንም ተጠቃሚ አልተገኘም
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* አድሚን ማስተካከያ ሞዳል (Modal) */}
       {editingAdmin && (
         <div className="modal-overlay">
           <div className="modal-content">
