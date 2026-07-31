@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   Users,
   Briefcase,
   Mail,
-  ShieldAlert,
   UserPlus,
   Trash2,
-  Lock,
   Send,
-  CheckCircle,
   Menu,
   X,
   LogOut,
@@ -43,7 +40,7 @@ const AdminDashboard = () => {
   };
 
   // Fetch all data
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [usersRes, projectsRes, messagesRes, hrsRes] = await Promise.all([
@@ -69,11 +66,11 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // --- Project Actions ---
   const handleAddProject = async (e) => {
