@@ -350,6 +350,36 @@ app.delete("/api/admin/hrs/:id", async (req, res) => {
   }
 });
 
+
+
+// የ HR ፓስወርድ መቀየሪያ (Update HR Password)
+app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, error: "ፓስወርዱ ቢያንስ ከ6 ፊደላት በላይ መሆን አለበት!" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    const updatedEmployee = await Employee.findByIdAndUpdate(
+      req.params.id, 
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!updatedEmployee) {
+      return res.status(404).json({ success: false, error: "የተጠየቀው HR አልተገኘም!" });
+    }
+
+    res.status(200).json({ success: true, message: "የ HR ፓስወርድ በስኬት ተለውጧል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "የ HR ፓስወርድ መቀየር አልተቻለም" });
+  }
+});
+
+
 // ==========================================
 // 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
 // ==========================================
