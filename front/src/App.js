@@ -1,381 +1,326 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Footer from './Footer';
+import React, { useState, useEffect } from 'react';
+import Login from './components/Login';
+import AdminDashboard from './components/AdminDashboard';
+import HrDashboard from './components/HrDashboard'; // 👈 የ HR ዳሽቦርድ ማስገቢያ
+import OrderPage from './components/OrderPage';
+import Footer from './components/Footer';
+import logoImg from './logo.jpg';
 
-function HrDashboard({ handleLogout, API_BASE_URL }) {
-  const [employees, setEmployees] = useState([]);
-  const [employeeForm, setEmployeeForm] = useState({
-    fullName: '',
-    age: '',
-    faydaNumber: '',
-    dateOfIssue: '',
-    expireDate: '',
-    address: '',
-    zone: '',
-    city: '',
-    nationality: '',
-    phoneNumber: '',
-    woreda: '',
-    position: '',
-    imageUrl: '',
-    orgPhoneNumber: ''
+function App() {
+  const API_BASE_URL = 'https://max-tech-backend.onrender.com';
+
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [user, setUser] = useState(null);
+
+  // Auth
+  const [authForm, setAuthForm] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+  const [authStatus, setAuthStatus] = useState('');
+
+  
+  const [adminMessages, setAdminMessages] = useState([]);
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+  const [adminAddStatus, setAdminAddStatus] = useState('');
+
+  // Order
+  const [formData, setFormData] = useState({
+    name: '', email: '', message: ''
   });
   const [status, setStatus] = useState('');
-  const [selectedIdCard, setSelectedIdCard] = useState(null);
 
-  const fetchEmployees = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
-      const data = await res.json();
-      if (data.success) {
-        setEmployees(data.employees);
-      }
-    } catch (err) {
-      console.error('ሰራተኞችን ማምጣት አልተቻለም', err);
+  // Projects
+  const [projects, setProjects] = useState([]);
+
+  // Fetch admin messages
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchMessages();
     }
+  }, [user]);
+
+  // Fetch projects
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/projects`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.projects)) {
+          setProjects(data.projects);
+        } else if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          setProjects([]);
+        }
+      })
+      .catch((err) => {
+        console.error("ፕሮጀክቶችን ማምጣት አልተቻለም", err);
+        setProjects([]);
+      });
   }, [API_BASE_URL]);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
-
-  const handleEmployeeSubmit = async (e) => {
-    e.preventDefault();
+  const fetchMessages = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/messages`);
+      const data = await res.json();
+      if (data.success) {
+        setAdminMessages(data.messages);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    const url = currentScreen === 'login' ? '/api/auth/login' : '/api/auth/signup';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${url}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...employeeForm, status: 'pending', approved: false })
+        body: JSON.stringify(authForm)
       });
-      const data = await res.json();
 
-      if (res.ok && data.success) {
-        setStatus('✅ የሰራተኛ ምዝገባ ጥያቄ ለአድሚን ተልኳል!');
-        setEmployeeForm({
-          fullName: '',
-          age: '',
-          faydaNumber: '',
-          dateOfIssue: '',
-          expireDate: '',
-          address: '',
-          zone: '',
-          city: '',
-          nationality: '',
-          phoneNumber: '',
-          woreda: '',
-          position: '',
-          imageUrl: '',
-          orgPhoneNumber: ''
-        });
-        fetchEmployees();
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        if (currentScreen === 'login') {
+          setUser(data.user);
+          // 🚀 የሮል (Role) ሁኔታዎችን በመለየት ወደየሚገባቸው ገጽ ማዘዋወር
+          if (data.user.role === 'admin') {
+            setCurrentScreen('admin-dashboard');
+          } else if (data.user.role === 'hr') {
+            setCurrentScreen('hr-dashboard'); // 👈 የ HR ገጽ እንዲከፈት ተደረገ
+          } else {
+            setCurrentScreen('order-page'); // መደበኛ ደንበኛ
+          }
+        } else {
+          setAuthStatus('✅ ምዝገባው ተሳክቷል! አሁን መግባት ይችላሉ።');
+          setCurrentScreen('login');
+        }
       } else {
-        setStatus(data.error || 'ስህተት ተፈጥሯል');
+        setAuthStatus(data.error);
       }
-    } catch (err) {
-      setStatus('የሰርቨር ስህተት!');
+    } catch {
+      setAuthStatus('የሰርቨር ስህተት!');
     }
   };
 
-  const handleDeleteEmployee = async (id) => {
-    if (!window.confirm('ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?')) return;
+  const handleAddAdminSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/add-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAdminForm)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setAdminAddStatus('✅ አድሚን ተፈጥሯል!');
+        setNewAdminForm({ name: '', email: '', password: '' });
+      } else {
+        setAdminAddStatus(data.error);
+      }
+    } catch {
+      setAdminAddStatus('ስህተት!');
+    }
+  };
+
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setStatus('ትዕዛዝዎ ገብቷል!');
+        setFormData({ name: '', email: '', message: '' });
+      }
+    } catch {
+      setStatus('ስህተት!');
+    }
+  };
+
+  const handleDeleteMessage = async (id) => {
+    if (window.confirm('ማጥፋት ይፈልጋሉ?')) {
+      await fetch(`${API_BASE_URL}/api/admin/messages/${id}`, {
         method: 'DELETE'
       });
-      if (res.ok) {
-        alert('ሰራተኛው ተሰርዟል!');
-        fetchEmployees();
-      }
-    } catch (err) {
-      alert('ማጥፋት አልተቻለም');
+      fetchMessages();
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-5 rounded-2xl shadow-md gap-4 mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-          🏢 Max Technology - HR Dashboard
-        </h2>
-        <button 
-          onClick={handleLogout} 
-          className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition shadow"
-        >
-          ውጣ (Logout)
-        </button>
-      </div>
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentScreen('home');
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Registration Form */}
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 h-fit">
-          <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ (እንግሊዝኛ እና አማርኛ)</h3>
-          <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-3">
-            <input 
-              type="text" 
-              placeholder="ሙሉ ስም (Full Name)" 
-              value={employeeForm.fullName} 
-              onChange={(e) => setEmployeeForm({ ...employeeForm, fullName: e.target.value })} 
-              required 
-              className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <input 
-                type="number" 
-                placeholder="እድሜ (Age)" 
-                value={employeeForm.age} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, age: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="ዜግነት (Nationality)" 
-                value={employeeForm.nationality} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, nationality: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-            </div>
-            <input 
-              type="text" 
-              placeholder="የፋይዳ ቁጥር (Fayda Number)" 
-              value={employeeForm.faydaNumber} 
-              onChange={(e) => setEmployeeForm({ ...employeeForm, faydaNumber: e.target.value })} 
-              required 
-              className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <input 
-                type="text" 
-                placeholder="የወጣበት ቀን (Date of Issue)" 
-                value={employeeForm.dateOfIssue} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, dateOfIssue: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder=" የሚያልቅበት ቀን (Expire Date)" 
-                value={employeeForm.expireDate} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, expireDate: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input 
-                type="text" 
-                placeholder="የስራ መደብ (Position)" 
-                value={employeeForm.position} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, position: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="ስልክ ቁጥር (Phone Number)" 
-                value={employeeForm.phoneNumber} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, phoneNumber: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <input 
-                type="text" 
-                placeholder="አድራሻ (Address)" 
-                value={employeeForm.address} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, address: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="ዞን (Zone - Optional)" 
-                value={employeeForm.zone} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, zone: e.target.value })} 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="ከተማ/ክ/ከተማ (City)" 
-                value={employeeForm.city} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, city: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input 
-                type="text" 
-                placeholder="ወረዳ (Woreda)" 
-                value={employeeForm.woreda} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, woreda: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="የድርጅቱ ስልክ (Org Phone)" 
-                value={employeeForm.orgPhoneNumber} 
-                onChange={(e) => setEmployeeForm({ ...employeeForm, orgPhoneNumber: e.target.value })} 
-                required 
-                className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-              />
-            </div>
-            <input 
-              type="url" 
-              placeholder="የፎቶ ሊንክ (Image URL)" 
-              value={employeeForm.imageUrl} 
-              onChange={(e) => setEmployeeForm({ ...employeeForm, imageUrl: e.target.value })} 
-              required 
-              className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500" 
-            />
-            <button 
-              type="submit" 
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow mt-2"
+  // HOME SCREEN
+  if (currentScreen === 'home') {
+    return (
+      <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col justify-between">
+        {/* Navigation */}
+        <nav className="w-full bg-white shadow-sm px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-50">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentScreen('home')}>
+            <img src={logoImg} alt="Logo" className="w-10 h-10 rounded-full object-cover shadow" />
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Max Technology
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setAuthStatus(''); setCurrentScreen('login'); }}
+              className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition"
             >
-              ጥያቄውን ለአድሚን ላክ (Send to Admin)
+              Login
             </button>
-          </form>
-          {status && <p className="mt-4 text-center font-medium text-green-400 text-sm">{status}</p>}
-        </div>
-
-        {/* Employees Table */}
-        <div className="lg:col-span-2 bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto">
-          <h3 className="text-xl font-bold mb-4 text-blue-400">📋 የተመዘገቡ ሰራተኞች ዝርዝር</h3>
-          <table className="w-full text-left border-collapse min-w-[600px]">
-            <thead>
-              <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                <th className="p-3">ስም / Name</th>
-                <th className="p-3">የስራ መደብ / Position</th>
-                <th className="p-3">ሁኔታ / Status</th>
-                <th className="p-3">እርምጃዎች</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {employees.map((emp) => (
-                <tr key={emp._id} className="hover:bg-gray-700/30">
-                  <td className="p-3 font-semibold flex items-center gap-3">
-                    <img 
-                      src={emp.imageUrl || 'https://via.placeholder.com/40'} 
-                      alt={emp.fullName} 
-                      className="w-10 h-10 rounded-full object-cover border border-blue-500" 
-                    />
-                    {emp.fullName}
-                  </td>
-                  <td className="p-3 text-gray-300">{emp.position}</td>
-                  <td className="p-3">
-                    {emp.approved ? (
-                      <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
-                        ✅ ጸድቋል (Approved)
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full border border-yellow-500/30">
-                        ⏳ በመጠበቅ ላይ (Pending)
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-2">
-                      {emp.approved ? (
-                        <button 
-                          onClick={() => setSelectedIdCard(emp)} 
-                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow"
-                        >
-                          🪪 መታወቂያ አትም
-                        </button>
-                      ) : (
-                        <span className="text-xs text-gray-500 italic">አድሚን ማጽደቅ አለበት</span>
-                      )}
-                      <button 
-                        onClick={() => handleDeleteEmployee(emp._id)} 
-                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition"
-                      >
-                        🗑 አጥፋ
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {employees.length === 0 && (
-                <tr><td colSpan="4" className="p-6 text-center text-gray-500">ምንም የተመዘገበ ሰራተኛ የለም።</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 🪪 Digital ID Card Modal */}
-      {selectedIdCard && selectedIdCard.approved && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-gradient-to-br from-blue-950 via-gray-900 to-indigo-950 p-6 rounded-3xl w-full max-w-md shadow-2xl border-2 border-blue-500/50 text-center relative">
-            <button 
-              onClick={() => setSelectedIdCard(null)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-white font-bold text-xl bg-gray-800/80 w-8 h-8 rounded-full flex items-center justify-center"
+            <button
+              onClick={() => { setAuthStatus(''); setCurrentScreen('signup'); }}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm"
             >
-              ✕
-            </button>
-
-            {/* ID Card Header */}
-            <div className="mb-3 border-b border-blue-500/30 pb-2">
-              <h2 className="text-lg font-extrabold tracking-wider text-white">MAX TECHNOLOGY / ማክ ቴክኖሎጂ</h2>
-              <p className="text-[10px] text-blue-300 uppercase tracking-widest">Official Employee Digital ID / የሰራተኛ ዲጂታል መታወቂያ</p>
-            </div>
-
-            {/* Content Layout */}
-            <div className="flex gap-4 items-center mb-4 text-left">
-              <img 
-                src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} 
-                alt={selectedIdCard.fullName} 
-                className="w-24 h-28 rounded-xl object-cover border-2 border-blue-400 shadow-md shrink-0" 
-              />
-              <div className="text-xs space-y-1 text-gray-200 w-full">
-                <p><strong>ስም/Name:</strong> {selectedIdCard.fullName}</p>
-                <p><strong>የስራ መደብ/Position:</strong> {selectedIdCard.position}</p>
-                <p><strong>እድሜ/Age:</strong> {selectedIdCard.age} | <strong>ዜግነት/Nat:</strong> {selectedIdCard.nationality}</p>
-                <p><strong>የፋይዳ ቁጥር/Fayda:</strong> <span className="font-mono text-blue-300">{selectedIdCard.faydaNumber}</span></p>
-                <p><strong>ስልክ/Phone:</strong> {selectedIdCard.phoneNumber}</p>
-              </div>
-            </div>
-
-            {/* Address & Dates Info */}
-            <div className="bg-black/40 p-2.5 rounded-xl border border-white/10 text-[11px] text-gray-300 space-y-1 mb-4 text-left">
-              <p><strong>አድራሻ/Address:</strong> {selectedIdCard.address} {selectedIdCard.zone ? `, ዞን: ${selectedIdCard.zone}` : ''}, ከተማ: {selectedIdCard.city}, ወረዳ: {selectedIdCard.woreda}</p>
-              <div className="flex justify-between pt-1 border-t border-white/10 text-[10px]">
-                <span>ወጣበት/Issued: <strong>{selectedIdCard.dateOfIssue}</strong></span>
-                <span>ያልቃል/Expires: <strong>{selectedIdCard.expireDate}</strong></span>
-              </div>
-            </div>
-
-            {/* QR Code & Org Phone */}
-            <div className="flex justify-between items-center bg-blue-950/40 p-2.5 rounded-xl border border-blue-500/20 mb-4">
-              <div className="text-left text-[10px] text-gray-300">
-                <p className="text-green-400 font-bold">✔ Admin Verified & Signed</p>
-                <p>የድርጅቱ ስልክ/Org Phone:</p>
-                <p className="font-semibold text-white">{selectedIdCard.orgPhoneNumber}</p>
-              </div>
-              <div className="bg-white p-1 rounded-lg">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.fullName}`} 
-                  alt="QR Code" 
-                  className="w-14 h-14"
-                />
-              </div>
-            </div>
-
-            <button 
-              onClick={() => window.print()} 
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg text-sm"
-            >
-              🖨 መታወቂያውን አትም (Print ID Card)
+              Signup
             </button>
           </div>
-        </div>
-      )}
+        </nav>
 
-      <Footer />
-    </div>
-  );
+        {/* Header Section */}
+        <header className="max-w-4xl mx-auto px-6 py-16 text-center">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
+            እንኳን ወደ <span className="text-blue-600">Max Technology</span> በሰላም መጡ!
+          </h1>
+          <p className="text-base sm:text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            እኛ የድርጅትዎን ስራ የሚያቀል ድህረ-ገጾችን እና ሲስተሞችን እንሰራለን።
+          </p>
+          <button
+            onClick={() => setCurrentScreen('login')}
+            className="px-8 py-3.5 text-base font-semibold text-white bg-blue-600 rounded-xl shadow-lg hover:bg-blue-700 hover:shadow-xl transition transform active:scale-95"
+          >
+            አሁኑኑ ይዘዙን!
+          </button>
+        </header>
+
+        {/* Projects Display Section */}
+        <main className="max-w-7xl mx-auto px-6 py-10 w-full flex-grow">
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">የሠሯቸው ፕሮጀክቶች</h2>
+          {projects.length === 0 ? (
+            <p className="text-center text-gray-500">ምንም ፕሮጀክቶች አልተገኙም</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {projects.map((p) => (
+                <div key={p._id} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition border border-gray-100 flex flex-col">
+                  <a href={p.link || "#"} target="_blank" rel="noopener noreferrer" className="overflow-hidden block">
+                    <img src={p.imageUrl} alt={p.title} className="w-full h-48 object-cover hover:scale-105 transition duration-300" />
+                  </a>
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-gray-800">{p.title}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  // LOGIN / SIGNUP SCREEN
+  if (currentScreen === 'login' || currentScreen === 'signup') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
+        <nav className="w-full bg-white shadow-sm px-6 py-4">
+          <button
+            onClick={() => setCurrentScreen('home')}
+            className="text-blue-600 font-semibold hover:underline flex items-center gap-2 text-sm sm:text-base"
+          >
+            ⬅ ወደ ዋናው ገጽ ይመለሱ
+          </button>
+        </nav>
+
+        <div className="flex-grow flex items-center justify-center px-4 py-8">
+          <div className="w-full max-w-md">
+            <Login
+              authMode={currentScreen}
+              setAuthMode={setCurrentScreen}
+              authForm={authForm}
+              handleAuthChange={(e) =>
+                setAuthForm({ ...authForm, [e.target.name]: e.target.value })
+              }
+              handleAuthSubmit={handleAuthSubmit}
+              authStatus={authStatus}
+              logoImg={logoImg}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ADMIN DASHBOARD
+  if (currentScreen === 'admin-dashboard' && user?.role === 'admin') {
+    return (
+      <AdminDashboard
+        user={user}
+        handleLogout={handleLogout}
+        adminMessages={adminMessages}
+        fetchMessages={fetchMessages}
+        newAdminForm={newAdminForm}
+        handleNewAdminChange={(e) =>
+          setNewAdminForm({ ...newAdminForm, [e.target.name]: e.target.value })
+        }
+        handleAddAdminSubmit={handleAddAdminSubmit}
+        adminAddStatus={adminAddStatus}
+        API_BASE_URL={API_BASE_URL}
+        handleDeleteMessage={handleDeleteMessage}
+        projects={projects}
+        setProjects={setProjects}
+      />
+    );
+  }
+
+  // HR DASHBOARD (የ HR ገጽ)
+  if (currentScreen === 'hr-dashboard' && user?.role === 'hr') {
+    return (
+      <HrDashboard 
+        user={user}
+        handleLogout={handleLogout}
+        API_BASE_URL={API_BASE_URL}
+      />
+    );
+  }
+
+  // ORDER PAGE (FOR NORMAL USERS)
+  if (currentScreen === 'order-page' && user) {
+    return (
+      <OrderPage
+        user={user}
+        handleLogout={handleLogout}
+        formData={formData}
+        handleContactChange={(e) =>
+          setFormData({ ...formData, [e.target.name]: e.target.value })
+        }
+        handleOrderSubmit={handleOrderSubmit}
+        status={status}
+        logoImg={logoImg}
+        API_BASE_URL={API_BASE_URL}
+      />
+    );
+  }
+
+  return null;
 }
 
-export default HrDashboard;
+export default App;
