@@ -137,7 +137,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   }
 };
 
-  // 🛠️ የተጠየቀው handleUpdateAdmin (ተጠቃሚ እንዲኖረው ተደርጓል)
+  
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
     try {
