@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Footer from './Footer';
 
 function HrDashboard({ handleLogout, API_BASE_URL }) {
@@ -22,7 +22,7 @@ function HrDashboard({ handleLogout, API_BASE_URL }) {
   const [status, setStatus] = useState('');
   const [selectedIdCard, setSelectedIdCard] = useState(null);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
       const data = await res.json();
@@ -32,11 +32,11 @@ function HrDashboard({ handleLogout, API_BASE_URL }) {
     } catch (err) {
       console.error('ሰራተኞችን ማምጣት አልተቻለም', err);
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchEmployees();
-  }, [API_BASE_URL]);
+  }, [fetchEmployees]);
 
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
@@ -305,7 +305,7 @@ function HrDashboard({ handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 Digital ID Card Modal (English & Amharic with QR Code) */}
+      {/* 🪪 Digital ID Card Modal */}
       {selectedIdCard && selectedIdCard.approved && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-gradient-to-br from-blue-950 via-gray-900 to-indigo-950 p-6 rounded-3xl w-full max-w-md shadow-2xl border-2 border-blue-500/50 text-center relative">
