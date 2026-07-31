@@ -53,12 +53,12 @@ const employeeSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  phone: { type: String, required: true },
-  position: { type: String, required: true },
-  department: { type: String, required: true },
-  idNumber: { type: String, required: true, unique: true },
+  phone: { type: String, default: "0000000000" },
+  position: { type: String, default: "HR" },
+  department: { type: String, default: "Human Resource" },
+  idNumber: { type: String, default: () => `HR-${Date.now()}` },
   photoUrl: { type: String, default: "" },
-  role: { type: String, default: "employee" },
+  role: { type: String, default: "hr" },
   date: { type: Date, default: Date.now },
 });
 const Employee = mongoose.model("Employee", employeeSchema);
@@ -76,7 +76,7 @@ const Project = mongoose.model("Project", projectSchema);
 // ==========================================
 async function seedFirstAdmin() {
   try {
-    const adminEmail = "mamaruAnmaw@1925";
+    const adminEmail = "mamaruanmaw@1925"; // በትንሽ ፊደል እንዲሆን ተስተካክሏል
     const existingAdmin = await User.findOne({ email: adminEmail });
 
     if (!existingAdmin) {
@@ -167,7 +167,7 @@ app.post("/api/auth/login", async (req, res) => {
       const employee = await Employee.findOne({ email: cleanEmail });
       if (employee) {
         user = employee;
-        role = employee.role || "employee";
+        role = employee.role || "hr";
       }
     }
 
@@ -305,11 +305,11 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
 });
 
 // ==========================================
-// 6. የሰራተኞች ማስተዳደሪያ (HR / EMPLOYEE ROUTES)
+// 6. የ HR (የሰው ሃብት) ማስተዳደሪያ መስመሮች (Frontend Compatible)
 // ==========================================
-app.post("/api/hr/employees", async (req, res) => {
+app.post("/api/admin/hrs", async (req, res) => {
   try {
-    const { name, email, password, phone, position, department, idNumber, photoUrl } = req.body;
+    const { name, email, password } = req.body;
     const cleanEmail = email.toLowerCase().trim();
 
     const existingEmployee = await Employee.findOne({ email: cleanEmail });
@@ -318,42 +318,35 @@ app.post("/api/hr/employees", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const assignedRole = (position.toLowerCase().includes("hr") || department.toLowerCase().includes("hr")) ? "hr" : "employee";
-
     const newEmployee = new Employee({
       name,
       email: cleanEmail,
       password: hashedPassword,
-      phone,
-      position,
-      department,
-      idNumber,
-      photoUrl,
-      role: assignedRole,
+      role: "hr",
     });
 
     await newEmployee.save();
-    res.status(201).json({ success: true, message: "ሰራተኛው በስኬት ተመዝግቧል!" });
+    res.status(201).json({ success: true, message: "HR በስኬት ተመዝግቧል!" });
   } catch (error) {
-    res.status(500).json({ success: false, error: "ኢሜይል ወይም መታወቂያ ቁጥር ቀድሞ ተመዝግቧል!" });
+    res.status(500).json({ success: false, error: "ስህተት ተፈጥሯል!" });
   }
 });
 
-app.get("/api/hr/employees", async (req, res) => {
+app.get("/api/admin/hrs", async (req, res) => {
   try {
-    const employees = await Employee.find().sort({ date: -1 });
-    res.status(200).json({ success: true, employees });
+    const hrs = await Employee.find({ role: "hr" }).sort({ date: -1 });
+    res.status(200).json({ success: true, hrs });
   } catch (error) {
-    res.status(500).json({ success: false, error: "ሰራተኞችን ማምጣት አልተቻለም" });
+    res.status(500).json({ success: false, error: "HR ማምጣት አልተቻለም" });
   }
 });
 
-app.delete("/api/hr/employees/:id", async (req, res) => {
+app.delete("/api/admin/hrs/:id", async (req, res) => {
   try {
     await Employee.findByIdAndDelete(req.params.id);
-    res.status(200).json({ success: true, message: "ሰራተኛው ተሰርዟል!" });
+    res.status(200).json({ success: true, message: "HR ተሰርዟል!" });
   } catch (error) {
-    res.status(500).json({ success: false, error: "ሰራተኛውን ማጥፋት አልተቻለም" });
+    res.status(500).json({ success: false, error: "HR ማጥፋት አልተቻለም" });
   }
 });
 
@@ -368,7 +361,7 @@ app.get("/api/admin/users", async (req, res) => {
 
     for (const email of chatEmails) {
       const alreadyExists = finalUsersList.some((u) => u.email === email);
-      const isMainAdmin = email === "mamaruAnmaw@1925";
+      const isMainAdmin = email === "mamaruanmaw@1925";
 
       if (!alreadyExists && !isMainAdmin) {
         const sampleContact = await Contact.findOne({ email });
