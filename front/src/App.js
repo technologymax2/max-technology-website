@@ -31,6 +31,22 @@ function App() {
   const [status, setStatus] = useState("");
   const [projects, setProjects] = useState([]);
 
+
+  // የ QR ኮዱ ሊንክ ሲከፈት ዩአርኤሉ ላይ /verify/ ካለ መረጃውን በመቀበል HR Dashboard ላይ ማሳየት
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.includes("/verify/")) {
+      const idFromUrl = path.split("/").pop();
+      if (idFromUrl) {
+        // ዩዘሩን እንደ 'hr' ቆጥረን ወይም በቀጥታ መረጃውን የሚያመጣውን ሎጂክ በመክፈት ማሳየት እንችላለን
+        // ወይም በቀጥታ ወደ ኤችአር ዳሽቦርድ መሄድ
+        setCurrentScreen("hr-dashboard");
+      }
+    }
+  }, []);
+
+  
+
   useEffect(() => {
     if (user && user.role === "admin") {
       fetchMessages();
