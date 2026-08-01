@@ -31,21 +31,13 @@ function App() {
   const [status, setStatus] = useState("");
   const [projects, setProjects] = useState([]);
 
-
-  // የ QR ኮዱ ሊንክ ሲከፈት ዩአርኤሉ ላይ /verify/ ካለ መረጃውን በመቀበል HR Dashboard ላይ ማሳየት
+  // የ QR ኮዱ ሊንክ ሲከፈት ዩአርኤሉ ላይ /verify/ መኖሩን ማረጋገጥ
   useEffect(() => {
     const path = window.location.pathname;
     if (path.includes("/verify/")) {
-      const idFromUrl = path.split("/").pop();
-      if (idFromUrl) {
-        // ዩዘሩን እንደ 'hr' ቆጥረን ወይም በቀጥታ መረጃውን የሚያመጣውን ሎጂክ በመክፈት ማሳየት እንችላለን
-        // ወይም በቀጥታ ወደ ኤችአር ዳሽቦርድ መሄድ
-        setCurrentScreen("hr-dashboard");
-      }
+      setCurrentScreen("verify-view");
     }
   }, []);
-
-  
 
   useEffect(() => {
     if (user && user.role === "admin") {
@@ -119,6 +111,17 @@ function App() {
     setUser(null);
     setCurrentScreen("home");
   };
+
+  // የ QR ሊንክ ሲከፈት ሰራተኛውን በቀጥታ ለማሳየት የሚያስችል የ HrDashboard ቅጂ ወይም ፖፕአፕ ማሳያ
+  if (currentScreen === "verify-view") {
+    return (
+      <HrDashboard 
+        user={{ role: "hr", name: "Guest Verifier" }} 
+        handleLogout={() => setCurrentScreen("home")} 
+        API_BASE_URL={API_BASE_URL} 
+      />
+    );
+  }
 
   if (currentScreen === "home") {
     return (
