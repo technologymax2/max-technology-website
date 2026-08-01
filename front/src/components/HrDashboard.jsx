@@ -432,29 +432,29 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
             </div>
 
-            {/* የካርዱ ዋና አካል */}
-            <div className="p-4 sm:p-5 flex items-center justify-between gap-3 print:p-2.5">
+            {/* የካርዱ ዋና አካል - Balanced Layout using justify-around */}
+            <div className="p-3 sm:p-4 flex items-center justify-around gap-2 print:p-2.5">
               
               {/* ግራ በኩል፡ ፎቶ እና ከሱ ጋር የተጣበቁ መረጃዎች */}
-              <div className="flex flex-col items-center shrink-0 w-28 sm:w-32 print:w-24">
-                <div className="w-24 h-28 sm:w-28 sm:h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm print:w-20 print:h-24">
+              <div className="flex flex-col items-center shrink-0 w-24 sm:w-28 print:w-20">
+                <div className="w-20 h-24 sm:w-24 sm:h-28 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm">
                   <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameEng} className="w-full h-full object-cover" />
                 </div>
-                <div className="w-full text-center space-y-0">
-                  <div className="text-[10px] sm:text-[11px] font-bold text-gray-900 truncate print:text-[8px]">
+                <div className="w-full text-center mt-1">
+                  <div className="text-[9px] sm:text-[10px] font-bold text-gray-900 truncate">
                     {selectedIdCard.nameEng}
                   </div>
-                  <div className="text-[9px] sm:text-[10px] text-gray-700 font-mono print:text-[7.5px]">
+                  <div className="text-[8px] sm:text-[9px] text-gray-700 font-mono">
                     📞 {selectedIdCard.phoneNumber}
                   </div>
-                  <div className="text-[9px] sm:text-[10px] text-gray-600 truncate print:text-[7.5px]">
+                  <div className="text-[8px] sm:text-[9px] text-gray-600 truncate">
                     📍 {selectedIdCard.city || selectedIdCard.addressEng}
                   </div>
                 </div>
               </div>
 
               {/* መሃል ላይ፡ የተቀሩት መረጃዎች */}
-              <div className="flex-1 text-[11px] sm:text-xs space-y-1.5 text-gray-800 print:text-[8.5px] print:space-y-0.5">
+              <div className="flex-1 text-[11px] sm:text-xs space-y-1.5 text-gray-800 print:text-[8.5px] print:space-y-0.5 px-2">
                 <div className="flex justify-between border-b pb-0.5">
                   <span className="font-bold text-gray-600">ስራ መደብ:</span>
                   <span className="font-semibold text-gray-900">{selectedIdCard.positionEng || selectedIdCard.positionAmh}</span>
