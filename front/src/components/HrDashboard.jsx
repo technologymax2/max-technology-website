@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Footer from './Footer';
 
 const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
+const FRONTEND_URL = "https://max-technology-website.vercel.app";
 
 function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [employeeList, setEmployeeList] = useState([]);
@@ -608,7 +609,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
                       <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-2 rounded-xl border border-white/10">
                         <div className="bg-white p-1.5 rounded-lg shadow-md">
-                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '85px', height: '85px', display: 'block' }} />
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '85px', height: '85px', display: 'block' }} />
                         </div>
                         <span className="text-[8px] text-[#d4af37] font-bold mt-1 tracking-wide">SCAN TO VERIFY</span>
                       </div>
@@ -668,7 +669,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         {/* QR Code on Front Side */}
                         <div className="flex flex-col items-center bg-black/30 p-1.5 rounded-xl border border-white/10 shrink-0">
                           <div className="bg-white p-1 rounded-md">
-                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '55px', height: '55px', display: 'block' }} />
+                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '55px', height: '55px', display: 'block' }} />
                           </div>
                           <span className="text-[7px] text-[#d4af37] font-bold mt-0.5">SCAN</span>
                         </div>
