@@ -514,19 +514,19 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
             {/* የህትመት ዓይነት መቀየሪያ */}
             <div className="bg-gray-800 p-3 rounded-xl border border-gray-700 w-full max-w-md print:hidden flex flex-col gap-2">
-              <label className="text-xs text-blue-300 font-bold">🪪 የካርድ ቅርጽ ይምረጡ (Select Card Design Style)</label>
+              <label className="text-xs text-[#d4af37] font-bold">🪪 የካርድ ቅርጽ ይምረጡ (Select Card Design Style)</label>
               <div className="grid grid-cols-2 gap-2">
                 <button 
                   type="button" 
                   onClick={() => setPrintCardType('id-card')} 
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition border ${printCardType === 'id-card' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-900 border-gray-700 text-gray-300'}`}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition border ${printCardType === 'id-card' ? 'bg-[#0b192c] border-[#d4af37] text-white shadow-md' : 'bg-gray-900 border-gray-700 text-gray-300'}`}
                 >
                   መደበኛ መታወቂያ (Standard ID)
                 </button>
                 <button 
                   type="button" 
                   onClick={() => setPrintCardType('badge')} 
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition border ${printCardType === 'badge' ? 'bg-purple-600 border-purple-500 text-white' : 'bg-gray-900 border-gray-700 text-gray-300'}`}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition border ${printCardType === 'badge' ? 'bg-[#0b192c] border-[#d4af37] text-white shadow-md' : 'bg-gray-900 border-gray-700 text-gray-300'}`}
                 >
                   የደረት ባጅ (Chest Badge)
                 </button>
@@ -541,7 +541,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 <>
                   {/* FRONT SIDE */}
                   <div className="flex flex-col items-center">
-                    <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የፊት ገጽ (Front Side)</span>
+                    <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የፊት ገጽ (Front Side)</span>
                     <div className="printable-card w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col">
                       <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[80px]"></div>
                       <div className="pt-3 pb-1 px-2 text-center relative z-10">
@@ -565,7 +565,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         <p className="text-[9px] text-[#d4af37] font-semibold text-center mt-0.5">{selectedIdCard.positionAmh} / {selectedIdCard.positionEng}</p>
                       </div>
 
-                      <div className="px-2.5 py-1.5 text-[9px] space-y-1 text-gray-200 relative z-10 bg-black/25 backdrop-blur-xs mx-2 rounded-lg border border-white/10 mt-1">
+                      <div className="px-2.5 py-1.5 text-[9px] space-y-1 text-gray-200 relative z-10 bg-black/25 backdrop-blur-xs mx-2 rounded-lg border border-[#d4af37]/20 mt-1">
                         <div className="flex justify-between border-b border-white/10 pb-0.5">
                           <span className="text-gray-400 font-medium">ዜግነት:</span>
                           <span className="text-white font-medium">{selectedIdCard.nationality || '-'}</span>
@@ -592,7 +592,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
                   {/* BACK SIDE */}
                   <div className="flex flex-col items-center">
-                    <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የጀርባ ገጽ (Back Side)</span>
+                    <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የጀርባ ገጽ (Back Side)</span>
                     <div className="printable-card w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-3">
                       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
 
@@ -601,7 +601,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           የካርድ መረጃ / ID Details
                         </h3>
 
-                        <div className="text-[8.5px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-white/10 mb-1.5">
+                        <div className="text-[8.5px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20 mb-1.5">
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
                             <span className="text-gray-400">ድርጅት ስልክ:</span>
                             <span className="font-mono text-white">{selectedIdCard.orgPhoneNumber || 'N/A'}</span>
@@ -612,7 +612,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           </div>
                         </div>
 
-                        <div className="text-[9px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-white/10">
+                        <div className="text-[9px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20">
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
                             <span className="text-gray-400 font-medium">የፋይዳ ቁጥር:</span>
                             <span className="font-mono font-semibold text-white text-[8px]">{selectedIdCard.faydaNumber}</span>
@@ -628,7 +628,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         </div>
                       </div>
 
-                      <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-2 rounded-xl border border-white/10">
+                      <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-2 rounded-xl border border-[#d4af37]/20">
                         <div className="bg-white p-1.5 rounded-lg shadow-md">
                           <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '85px', height: '85px', display: 'block' }} />
                         </div>
@@ -642,15 +642,17 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </>
               ) : (
-                /* 2️⃣ WIDE CHEST BADGE DESIGN (QR Code added to Front Side) */
+                /* 2️⃣ WIDE CHEST BADGE DESIGN (Aligned with Standard ID Branding) */
                 <>
                   {/* FRONT SIDE (Wide Badge View with QR Code) */}
                   <div className="flex flex-col items-center">
-                    <span className="text-xs text-purple-400 font-bold mb-1 print:hidden">የደረት ባጅ ፊት (Badge Front)</span>
+                    <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ፊት (Badge Front)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
                       
+                      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
+
                       {/* Top Header */}
-                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2 relative z-10">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow overflow-hidden">
                             {selectedIdCard.logoUrl || companyLogoUrl ? (
@@ -671,7 +673,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                       </div>
 
                       {/* Main Profile, Details & QR Code */}
-                      <div className="flex items-center justify-between gap-3 my-auto">
+                      <div className="flex items-center justify-between gap-3 my-auto relative z-10">
                         <div className="flex items-center gap-3">
                           <div className="w-16 h-16 rounded-xl p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md shrink-0">
                             <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameEng} className="w-full h-full object-cover rounded-lg bg-white" />
@@ -688,7 +690,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         </div>
 
                         {/* QR Code on Front Side */}
-                        <div className="flex flex-col items-center bg-black/30 p-1.5 rounded-xl border border-white/10 shrink-0">
+                        <div className="flex flex-col items-center bg-black/30 p-1.5 rounded-xl border border-[#d4af37]/20 shrink-0">
                           <div className="bg-white p-1 rounded-md">
                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '55px', height: '55px', display: 'block' }} />
                           </div>
@@ -697,7 +699,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                       </div>
 
                       {/* Footer */}
-                      <div className="bg-[#07101a] -mx-4 -mb-4 py-1 px-3 text-center border-t border-[#d4af37]/30 text-[8px] text-gray-400">
+                      <div className="bg-[#07101a] -mx-4 -mb-4 py-1 px-3 text-center border-t border-[#d4af37]/30 text-[8px] text-gray-400 relative z-10">
                         Authorized Corporate Badge - Max Technology
                       </div>
                     </div>
@@ -705,16 +707,18 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
                   {/* BACK SIDE (Wide Badge View) */}
                   <div className="flex flex-col items-center">
-                    <span className="text-xs text-purple-400 font-bold mb-1 print:hidden">የደረት ባጅ ጀርባ (Badge Back)</span>
+                    <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ጀርባ (Badge Back)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
                       
-                      <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-[#d4af37]/10 to-transparent pointer-events-none rounded-tr-full"></div>
+
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2 relative z-10">
                         <h3 className="text-[10px] font-bold text-[#d4af37] tracking-wider">የባጅ ተጨማሪ መረጃ / Additional Details</h3>
                         <span className="text-[8px] font-mono text-gray-400">ፋይዳ: {selectedIdCard.faydaNumber}</span>
                       </div>
 
-                      <div className="flex flex-col justify-center my-auto px-2 space-y-2">
-                        <div className="text-[10px] text-gray-200 grid grid-cols-2 gap-2 bg-black/25 p-3 rounded-xl border border-white/10">
+                      <div className="flex flex-col justify-center my-auto px-2 space-y-2 relative z-10">
+                        <div className="text-[10px] text-gray-200 grid grid-cols-2 gap-2 bg-black/25 p-3 rounded-xl border border-[#d4af37]/20">
                           <div><span className="text-gray-400">የወጣበት ቀን:</span> <span className="text-white font-medium">{selectedIdCard.dateOfIssue}</span></div>
                           <div><span className="text-gray-400">የሚያበቃበት:</span> <span className="text-red-400 font-bold">{selectedIdCard.expireDate}</span></div>
                           <div><span className="text-gray-400">ዜግነት:</span> <span className="text-white font-medium">{selectedIdCard.nationality}</span></div>
@@ -722,7 +726,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         </div>
                       </div>
 
-                      <div className="bg-[#07101a] -mx-4 -mb-4 py-1.5 px-3 text-center border-t border-[#d4af37]/30 text-[8px] text-gray-400">
+                      <div className="bg-[#07101a] -mx-4 -mb-4 py-1.5 px-3 text-center border-t border-[#d4af37]/30 text-[8px] text-gray-400 relative z-10">
                         Max Technology - Official Badge Identification
                       </div>
                     </div>
