@@ -491,6 +491,70 @@ app.post("/api/admin/send-new-message", async (req, res) => {
   }
 });
 
+
+// ==========================================
+// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች
+// ==========================================
+
+// አዲስ HR ለመመዝገብ (ከ AdminDashboard የሚላከውን ለመቀበል)
+app.post("/api/admin/hrs", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newHr = new User({
+      name,
+      email: cleanEmail,
+      password: hashedPassword,
+      role: "hr",
+    });
+
+    await newHr.save();
+    res.status(201).json({ success: true, message: "HR በስኬት ተመዝግቧል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
+  }
+});
+
+// የ HR ዝርዝሮችን ለማምጣት
+app.get("/api/admin/hrs", async (req, res) => {
+  try {
+    const hrs = await User.find({ role: "hr" }).select("-password");
+    res.status(200).json({ success: true, hrs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "የ HR ዝርዝር ማምጣት አልተቻለም" });
+  }
+});
+
+// HR ለማጥፋት
+app.delete("/api/admin/hrs/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "HR ተሰርዟል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ማጥፋት አልተቻለም" });
+  }
+});
+
+// የ HR ፓስወርድ ለመቀየር
+app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
+    res.status(200).json({ success: true, message: "የ HR ፓስወርድ ተቀይሯል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
+  }
+});
+
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "ሰርቨሩ ዝግጁ ነው!" });
 });
