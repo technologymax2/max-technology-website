@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Footer from './Footer';
 
 const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
@@ -46,6 +46,9 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
   const [printCardType, setPrintCardType] = useState('id-card');
 
+  // አዲስ የተጨመረ፡ የ QR ኮድ ሲቃኝ የሚመጣውን ID ተቀብሎ መረጃውን ለማሳየት የሚረዳ ስቴት
+  const [verifiedEmployeeModal, setVerifiedEmployeeModal] = useState(null);
+
   const fetchEmployees = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
@@ -61,6 +64,24 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
+
+  // ሰራተኛው የ QR ኮዱን ሲቃኝ አድራሻው ላይ ያለው ID ተለይቶ ወዲያውኑ መረጃው እንዲመጣ ማድረግ
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.includes("/verify/")) {
+      const idFromUrl = path.split("/").pop();
+      if (idFromUrl) {
+        fetch(`${API_BASE_URL}/api/hr/verify/${idFromUrl}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setVerifiedEmployeeModal(data.employee);
+            }
+          })
+          .catch(err => console.error("Verify error:", err));
+      }
+    }
+  }, [API_BASE_URL]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -716,6 +737,46 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 🖨 ሰነዱን አትም (Print Card)
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🟢 QR ኮዱ ሲቃኝ ሰራተኛውን የሚያሳይ ፖፕ-አፕ (Popup Modal) */}
+      {verifiedEmployeeModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 border-2 border-green-500 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center relative animate-fade-in">
+            <button 
+              onClick={() => { setVerifiedEmployeeModal(null); window.location.href = "/"; }} 
+              className="absolute top-3 right-3 text-gray-400 hover:text-white font-bold bg-gray-700 w-7 h-7 rounded-full flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            <div className="inline-block bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold mb-4">
+              ✅ ትክክለኛ ሰራተኛ (Verified Employee)
+            </div>
+            
+            <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-2 border-[#d4af37] mb-4 shadow-lg">
+              <img src={verifiedEmployeeModal.imageUrl} alt={verifiedEmployeeModal.nameEng} className="w-full h-full object-cover" />
+            </div>
+
+            <h2 className="text-lg font-bold text-white">{verifiedEmployeeModal.nameAmh}</h2>
+            <h3 className="text-sm text-gray-300 mb-2">{verifiedEmployeeModal.nameEng}</h3>
+            <p className="text-xs text-[#d4af37] font-bold mb-4">{verifiedEmployeeModal.positionAmh} / {verifiedEmployeeModal.positionEng}</p>
+
+            <div className="bg-gray-900 p-3 rounded-xl text-left text-xs space-y-2 border border-gray-700">
+              <div className="flex justify-between"><span className="text-gray-400">ፋይዳ ቁጥር:</span> <span className="font-mono text-white">{verifiedEmployeeModal.faydaNumber}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">ስልክ ቁጥር:</span> <span className="text-white">{verifiedEmployeeModal.phoneNumber}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">የድርጅት ኢሜይል:</span> <span className="text-white">{verifiedEmployeeModal.orgEmail}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400">የሚያበቃበት ቀን:</span> <span className="text-red-400 font-bold">{verifiedEmployeeModal.expireDate}</span></div>
+            </div>
+
+            <button 
+              onClick={() => { setVerifiedEmployeeModal(null); window.location.href = "/"; }}
+              className="mt-5 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition"
+            >
+              ወደ ዋናው ገጽ ተመለስ
+            </button>
           </div>
         </div>
       )}
