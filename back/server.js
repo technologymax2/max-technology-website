@@ -553,6 +553,18 @@ app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
     res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
   }
 });
+// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ (ለQR Code ማረጋገጫ የሚሆን)
+app.get("/api/hr/verify/:id", async (req, res) => {
+  try {
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) {
+      return res.status(404).json({ success: false, error: "ሰራተኛው አልተገኘም!" });
+    }
+    res.status(200).json({ success: true, employee });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
+  }
+});
 
 
 app.get("/api/health", (req, res) => {
