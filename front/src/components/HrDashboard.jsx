@@ -370,19 +370,19 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 ID Card Modal */}
+      {/* 🪪 Vertical ID Card Modal */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 print:fixed print:inset-0 print:bg-white print:p-0 print:flex print:items-center print:justify-center">
           
           <style dangerouslySetInnerHTML={{__html: `
             @page {
-              size: 85.6mm 54mm;
+              size: 54mm 85.6mm;
               margin: 0;
             }
             @media print {
               body, html {
-                width: 85.6mm;
-                height: 54mm;
+                width: 54mm;
+                height: 85.6mm;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
@@ -397,12 +397,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 85.6mm !important;
-                height: 54mm !important;
+                width: 54mm !important;
+                height: 85.6mm !important;
                 max-width: none !important;
                 box-shadow: none !important;
-                border: 1.5px solid #0f233c !important;
-                border-radius: 8px !important;
+                border-radius: 12px !important;
                 overflow: hidden !important;
                 page-break-inside: avoid;
                 -webkit-print-color-adjust: exact !important;
@@ -411,99 +410,87 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             }
           `}} />
 
-          <div id="printable-id-card" className="bg-white text-gray-900 rounded-2xl w-full max-w-xl shadow-2xl border-4 border-[#0f233c] overflow-hidden relative print:rounded-none">
-            
-            <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-lg bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-10 print:hidden">
-              ✕
-            </button>
+          <div className="flex flex-col items-center">
+            {/* Top Lanyard Clip Indicator */}
+            <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
 
-            {/* ሄደር */}
-            <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex items-center print:bg-[#0f233c] print:text-white print:py-1.5 relative">
-              <div className="absolute left-3">
-                <img 
-                  src="https://via.placeholder.com/30" 
-                  alt="Logo" 
-                  className="w-7 h-7 rounded-full bg-white object-cover border border-[#d4af37]" 
-                />
-              </div>
-              <div className="w-full text-center">
-                <h2 className="text-xs sm:text-sm font-extrabold tracking-wider leading-tight text-white">MAX TECHNOLOGY</h2>
-                <p className="text-[8px] sm:text-[9px] text-[#d4af37] font-medium">የሰራተኛ መታወቂያ ካርድ / Employee ID</p>
-              </div>
-            </div>
-
-            {/* የካርዱ ዋና አካል - Balanced Layout using justify-around */}
-            <div className="p-3 sm:p-4 flex items-center justify-around gap-2 print:p-2.5">
+            <div id="printable-id-card" className="w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between print:rounded-none">
               
-              {/* ግራ በኩል፡ ፎቶ እና ከሱ ጋር የተጣበቁ መረጃዎች */}
-              <div className="flex flex-col items-center shrink-0 w-24 sm:w-28 print:w-20">
-                <div className="w-20 h-24 sm:w-24 sm:h-28 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm">
-                  <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameEng} className="w-full h-full object-cover" />
+              <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-sm bg-red-600 w-6 h-6 rounded-full flex items-center justify-center z-20 print:hidden">
+                ✕
+              </button>
+
+              {/* Decorative Gold Wave Background Accent (CSS absolute shapes) */}
+              <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[100px]"></div>
+
+              {/* Header */}
+              <div className="pt-4 pb-2 px-3 text-center relative z-10">
+                <div className="w-8 h-8 mx-auto bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow mb-1">
+                  <span className="text-[10px] font-extrabold text-[#0b192c]">LOGO</span>
                 </div>
-                <div className="w-full text-center mt-1">
-                  <div className="text-[9px] sm:text-[10px] font-bold text-gray-900 truncate">
-                    {selectedIdCard.nameEng}
-                  </div>
-                  <div className="text-[8px] sm:text-[9px] text-gray-700 font-mono">
-                    📞 {selectedIdCard.phoneNumber}
-                  </div>
-                  <div className="text-[8px] sm:text-[9px] text-gray-600 truncate">
-                    📍 {selectedIdCard.city || selectedIdCard.addressEng}
-                  </div>
-                </div>
+                <h2 className="text-xs font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
+                <p className="text-[9px] text-[#d4af37] font-medium tracking-wide">EMPLOYEE ID CARD</p>
               </div>
 
-              {/* መሃል ላይ፡ የተቀሩት መረጃዎች */}
-              <div className="flex-1 text-[11px] sm:text-xs space-y-1.5 text-gray-800 print:text-[8.5px] print:space-y-0.5 px-2">
-                <div className="flex justify-between border-b pb-0.5">
-                  <span className="font-bold text-gray-600">ስራ መደብ:</span>
-                  <span className="font-semibold text-gray-900">{selectedIdCard.positionEng || selectedIdCard.positionAmh}</span>
-                </div>
-                <div className="flex justify-between border-b pb-0.5">
-                  <span className="font-bold text-gray-600">FAYDA No:</span>
-                  <span className="font-mono text-gray-900">{selectedIdCard.faydaNumber}</span>
-                </div>
-                <div className="flex justify-between border-b pb-0.5">
-                  <span className="font-bold text-gray-600">ድርጅት ስልክ:</span>
-                  <span className="text-gray-900">{selectedIdCard.orgPhoneNumber}</span>
-                </div>
-                <div className="flex justify-between border-b pb-0.5">
-                  <span className="font-bold text-gray-600">የተሰጠበት ቀን:</span>
-                  <span className="text-gray-900">{selectedIdCard.dateOfIssue}</span>
-                </div>
-                <div className="flex justify-between pb-0.5">
-                  <span className="font-bold text-gray-600">የማብቂያ ጊዜ:</span>
-                  <span className="text-red-600 font-bold">{selectedIdCard.expireDate}</span>
-                </div>
-              </div>
-
-              {/* ቀኝ በኩል፡ QR Code */}
-              <div className="flex flex-col items-center justify-center shrink-0">
-                <div className="bg-white p-1 border rounded shadow-sm">
+              {/* Profile Image & Name Section */}
+              <div className="flex flex-col items-center relative z-10 px-4">
+                <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md">
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
-                    alt="QR Code" 
-                    className="w-16 h-16 sm:w-20 sm:h-20 print:w-14 print:h-14" 
+                    src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} 
+                    alt={selectedIdCard.nameEng} 
+                    className="w-full h-full object-cover rounded-full bg-white" 
                   />
                 </div>
-                <span className="text-[7px] sm:text-[8px] text-gray-500 mt-0.5 font-bold tracking-tight">SCAN TO VERIFY</span>
+                <h3 className="text-sm font-bold mt-2 text-center text-white leading-tight">
+                  {selectedIdCard.nameEng || selectedIdCard.nameAmh}
+                </h3>
+                <p className="text-[10px] text-[#d4af37] font-semibold text-center">
+                  {selectedIdCard.positionEng || selectedIdCard.positionAmh}
+                </p>
+              </div>
+
+              {/* Details Section */}
+              <div className="px-4 py-2 text-[10px] space-y-1 text-gray-200 relative z-10 bg-black/20 backdrop-blur-xs mx-3 rounded-lg border border-white/10">
+                <div className="flex justify-between border-b border-white/10 pb-0.5">
+                  <span className="text-gray-400 font-medium">ID No:</span>
+                  <span className="font-mono font-semibold text-white">{selectedIdCard.faydaNumber}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-0.5">
+                  <span className="text-gray-400 font-medium">Phone:</span>
+                  <span className="font-mono text-white">{selectedIdCard.phoneNumber}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-0.5">
+                  <span className="text-gray-400 font-medium">Issued:</span>
+                  <span className="text-white">{selectedIdCard.dateOfIssue}</span>
+                </div>
+                <div className="flex justify-between pb-0.5">
+                  <span className="text-gray-400 font-medium">Expires:</span>
+                  <span className="text-red-400 font-bold">{selectedIdCard.expireDate}</span>
+                </div>
+              </div>
+
+              {/* QR Code and Footer */}
+              <div className="pb-3 px-4 flex items-center justify-between relative z-10 bg-[#07101a] pt-2 border-t border-[#d4af37]/30">
+                <div className="text-[8px] text-gray-400 max-w-[120px] leading-tight">
+                  <span className="text-[#d4af37] font-bold block">Authorized ID</span>
+                  Scan QR code to verify validity instantly.
+                </div>
+                <div className="bg-white p-1 rounded shadow">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
+                    alt="QR Code" 
+                    className="w-12 h-12" 
+                  />
+                </div>
               </div>
 
             </div>
 
-            {/* ፉተር */}
-            <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1.5 px-4 text-center print:bg-[#0f233c] print:py-1">
-              <p className="text-[9px] sm:text-[10px] text-[#d4af37] font-semibold print:text-[7px]">
-                Email: technologymax2@gmail.com
-              </p>
-            </div>
-
-            <div className="p-3 bg-gray-50 border-t print:hidden">
+            <div className="p-3 bg-gray-800 border border-gray-700 rounded-xl mt-4 w-[300px] print:hidden">
               <button onClick={() => window.print()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow text-sm transition">
                 🖨 መታወቂያውን አትም (Print ID Card)
               </button>
             </div>
-
           </div>
         </div>
       )}
