@@ -34,6 +34,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [employeeStatus, setEmployeeStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedIdCard, setSelectedIdCard] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -62,15 +63,46 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let errors = { ...validationErrors };
+
     if (name === "faydaNumber") {
       const cleanValue = value.replace(/\D/g, "").slice(0, 16);
+      if (cleanValue.length > 0 && cleanValue.length < 16) {
+        errors[name] = `⚠️ የፋይዳ ቁጥር ልክ 16 ዲጂት መሆን አለበት! (አሁን፡ ${cleanValue.length})`;
+      } else {
+        delete errors[name];
+      }
       setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
-    } else if (name === "phoneNumber") {
-      const cleanValue = value.replace(/\D/g, "").slice(0, 10);
+    } else if (["phoneNumber", "orgPhoneNumber"].includes(name)) {
+      let cleanValue = value.replace(/\D/g, "");
+      
+      if (name === "phoneNumber" && cleanValue.length > 0 && cleanValue[0] !== "0") {
+        errors[name] = "⚠️ ስልክ ቁጥር በ '0' መጀመር አለበት!";
+        setValidationErrors(errors);
+        return;
+      }
+
+      if (cleanValue.length > 10) {
+        cleanValue = cleanValue.substring(0, 10);
+      }
+
+      if (cleanValue.length > 0 && cleanValue.length < 10) {
+        errors[name] = `⚠️ ልክ 10 ዲጂት መሆን አለበት! (አሁን፡ ${cleanValue.length})`;
+      } else {
+        delete errors[name];
+      }
+
       setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
+    } else if (name === "expireDate" && employeeForm.dateOfIssue && value < employeeForm.dateOfIssue) {
+      errors.expireDate = "⚠️ የማብቂያ ቀን ከተሰጠበት ቀን ቀድሞ ሊሆን አይችልም!";
+      setValidationErrors(errors);
+      setEmployeeForm(prev => ({ ...prev, [name]: value }));
     } else {
+      if (name === "expireDate") delete errors.expireDate;
       setEmployeeForm(prev => ({ ...prev, [name]: value }));
     }
+
+    setValidationErrors(errors);
   };
 
   const handleEmployeeSubmit = async (e) => {
@@ -88,6 +120,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
     if (employeeForm.phoneNumber.length !== 10) {
       setEmployeeStatus("❌ ስህተት፡ ስልክ ቁጥር በትክክል 10 አሃዝ መሆን አለበት!");
+      return;
+    }
+
+    if (validationErrors.expireDate) {
+      setEmployeeStatus("❌ እባክዎ የቀን ስህተቱን ያስተካክሉ!");
       return;
     }
 
@@ -121,6 +158,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
       if (res.ok && data.success) {
         setEmployeeStatus("✅ ሰራተኛው በስኬት ተመዝግቧል እና መታወቂያው ተዘጋጅቷል!");
+        setValidationErrors({});
         setEmployeeForm({
           nameAmh: '',
           nameEng: '',
@@ -235,12 +273,17 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <div>
                       <input type="text" name="faydaNumber" maxLength="16" placeholder="የፋይዳ ቁጥር (16 Digits)" value={employeeForm.faydaNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                       <span className="text-[11px] text-gray-400">({employeeForm.faydaNumber.length}/16)</span>
+                      {validationErrors.faydaNumber && <span className="text-[11px] text-red-400 block">{validationErrors.faydaNumber}</span>}
                     </div>
                     <div>
                       <input type="text" name="phoneNumber" maxLength="10" placeholder="ስልክ ቁጥር (10 Digits)" value={employeeForm.phoneNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                       <span className="text-[11px] text-gray-400">({employeeForm.phoneNumber.length}/10)</span>
+                      {validationErrors.phoneNumber && <span className="text-[11px] text-red-400 block">{validationErrors.phoneNumber}</span>}
                     </div>
-                    <input type="text" name="orgPhoneNumber" placeholder="የድርጅት ስልክ / Org Phone" value={employeeForm.orgPhoneNumber} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <div>
+                      <input type="text" name="orgPhoneNumber" maxLength="10" placeholder="የድርጅት ስልክ / Org Phone" value={employeeForm.orgPhoneNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      {validationErrors.orgPhoneNumber && <span className="text-[11px] text-red-400 block">{validationErrors.orgPhoneNumber}</span>}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -263,6 +306,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <div>
                       <label className="text-xs text-gray-400">የማብቂያ ቀን / Expiry Date</label>
                       <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
+                      {validationErrors.expireDate && <span className="text-[11px] text-red-400 block mt-1">{validationErrors.expireDate}</span>}
                     </div>
                   </div>
 
@@ -361,6 +405,8 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 border-radius: 8px !important;
                 overflow: hidden !important;
                 page-break-inside: avoid;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
             }
           `}} />
@@ -394,7 +440,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 <div className="w-24 h-28 sm:w-28 sm:h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm print:w-20 print:h-24">
                   <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameEng} className="w-full h-full object-cover" />
                 </div>
-                {/* ፅሁፉ ከፎቶው ጋር እንዲጣበቅ gap እና mt ተወግደዋል */}
                 <div className="w-full text-center space-y-0">
                   <div className="text-[10px] sm:text-[11px] font-bold text-gray-900 truncate print:text-[8px]">
                     {selectedIdCard.nameEng}
