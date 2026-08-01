@@ -376,13 +376,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
           
           <style dangerouslySetInnerHTML={{__html: `
             @page {
-              size: 54mm 85.6mm;
+              size: portrait;
               margin: 0;
             }
             @media print {
               body, html {
-                width: 54mm;
-                height: 85.6mm;
+                width: 100vw;
+                height: 100vh;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
@@ -394,14 +394,14 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 visibility: visible;
               }
               .printable-page {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 54mm !important;
-                height: 85.6mm !important;
-                max-width: none !important;
+                position: absolute !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) scale(1.8) !important;
+                width: 320px !important;
+                height: 480px !important;
                 box-shadow: none !important;
-                border-radius: 0px !important;
+                border-radius: 12px !important;
                 overflow: hidden !important;
                 page-break-after: always;
                 page-break-inside: avoid;
@@ -421,7 +421,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የፊት ገጽ (Front Side)</span>
               <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
               
-              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col print:rounded-none print:w-[54mm] print:h-[85.6mm] print:border-none">
+              <div className="printable-page w-[320px] h-[480px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col">
                 
                 {/* Decorative Gold Wave Background Accent */}
                 <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[100px]"></div>
@@ -488,7 +488,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የጀርባ ገጽ (Back Side)</span>
               <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
 
-              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4 print:rounded-none print:w-[54mm] print:h-[85.6mm] print:border-none">
+              <div className="printable-page w-[320px] h-[480px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
                 
                 {/* Decorative Accent */}
                 <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
@@ -520,7 +520,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
                       alt="QR Code" 
-                      style={{ width: '110px', height: '110px', display: 'block' }} 
+                      style={{ width: '120px', height: '120px', display: 'block' }} 
                     />
                   </div>
                   <span className="text-[9px] text-[#d4af37] font-bold mt-2 tracking-wide">SCAN TO VERIFY</span>
