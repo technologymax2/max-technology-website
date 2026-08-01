@@ -414,13 +414,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             {/* Top Lanyard Clip Indicator */}
             <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
 
-            <div id="printable-id-card" className="w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between print:rounded-none">
+            <div id="printable-id-card" className="w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col print:rounded-none">
               
               <button onClick={() => setSelectedIdCard(null)} className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-sm bg-red-600 w-6 h-6 rounded-full flex items-center justify-center z-20 print:hidden">
                 ✕
               </button>
 
-              {/* Decorative Gold Wave Background Accent (CSS absolute shapes) */}
+              {/* Decorative Gold Wave Background Accent */}
               <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[100px]"></div>
 
               {/* Header */}
@@ -433,7 +433,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
 
               {/* Profile Image & Name Section */}
-              <div className="flex flex-col items-center relative z-10 px-4">
+              <div className="flex flex-col items-center relative z-10 px-4 mt-1">
                 <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md">
                   <img 
                     src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} 
@@ -450,7 +450,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
 
               {/* Details Section */}
-              <div className="px-4 py-2 text-[10px] space-y-1 text-gray-200 relative z-10 bg-black/20 backdrop-blur-xs mx-3 rounded-lg border border-white/10">
+              <div className="px-4 py-2 text-[10px] space-y-1 text-gray-200 relative z-10 bg-black/20 backdrop-blur-xs mx-3 rounded-lg border border-white/10 mt-2">
                 <div className="flex justify-between border-b border-white/10 pb-0.5">
                   <span className="text-gray-400 font-medium">ID No:</span>
                   <span className="font-mono font-semibold text-white">{selectedIdCard.faydaNumber}</span>
@@ -469,17 +469,17 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 </div>
               </div>
 
-              {/* QR Code and Footer */}
-              <div className="pb-3 px-4 flex items-center justify-between relative z-10 bg-[#07101a] pt-2 border-t border-[#d4af37]/30">
-                <div className="text-[8px] text-gray-400 max-w-[120px] leading-tight">
-                  <span className="text-[#d4af37] font-bold block">Authorized ID</span>
-                  Scan QR code to verify validity instantly.
+              {/* QR Code and Footer (Forced fixed inline flex layout) */}
+              <div className="absolute bottom-0 left-0 w-full px-3 py-2 z-10 bg-[#07101a] border-t border-[#d4af37]/30" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="text-[8px] text-gray-400 leading-tight" style={{ width: '130px', textAlign: 'left' }}>
+                  <span className="text-[#d4af37] font-bold" style={{ display: 'block' }}>Authorized ID</span>
+                  Scan QR code to verify validity.
                 </div>
-                <div className="bg-white p-1 rounded shadow">
+                <div className="bg-white p-1 rounded shadow" style={{ flexShrink: 0 }}>
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
                     alt="QR Code" 
-                    className="w-12 h-12" 
+                    style={{ width: '42px', height: '42px', display: 'block' }} 
                   />
                 </div>
               </div>
