@@ -60,6 +60,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -143,6 +144,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
+
     if (!image) {
       setEmployeeStatus("⚠️ እባክዎ የሰራተኛውን ፎቶ ይምረጡ!");
       return;
@@ -688,6 +690,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         <h3 className="text-[10px] font-bold text-[#d4af37] tracking-wider">የባጅ ተጨማሪ መረጃ / Additional Details</h3>
                         <span className="text-[8px] font-mono text-gray-400">ፋይዳ: {selectedIdCard.faydaNumber}</span>
                       </div>
+
                       <div className="flex flex-col justify-center my-auto px-2 space-y-2">
                         <div className="text-[10px] text-gray-200 grid grid-cols-2 gap-2 bg-black/25 p-3 rounded-xl border border-white/10">
                           <div><span className="text-gray-400">የወጣበት ቀን:</span> <span className="text-white font-medium">{selectedIdCard.dateOfIssue}</span></div>
