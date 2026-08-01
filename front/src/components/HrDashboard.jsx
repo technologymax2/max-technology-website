@@ -8,7 +8,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [activeTab, setActiveTab] = useState('employees');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // የፍለጋ እና የባች ፕሪንት (Multi-select) ስቴቶች
+  // Search and Multi-select batch print states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmployeesForPrint, setSelectedEmployeesForPrint] = useState([]);
   const [isBatchPrinting, setIsBatchPrinting] = useState(false);
@@ -248,7 +248,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የማጣሪያ (Search) ሎጂክ
   const filteredEmployees = employeeList.filter(emp => {
     const q = searchQuery.toLowerCase();
     return (
@@ -259,7 +258,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     );
   });
 
-  // ማልቲ-ሰሌክት (Multi-select for Batch Print)
   const toggleSelectEmployeeForPrint = (emp) => {
     if (selectedEmployeesForPrint.some(item => item._id === emp._id)) {
       setSelectedEmployeesForPrint(selectedEmployeesForPrint.filter(item => item._id !== emp._id));
@@ -271,7 +269,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative print:bg-white print:p-0">
       
-      {/* ሄደር */}
+      {/* Header */}
       <div className="flex flex-wrap justify-between items-center bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-md gap-4 mb-6 print:hidden">
         <div className="flex items-center gap-3">
           <button 
@@ -302,12 +300,12 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         <div className="flex-1 w-full min-w-0 print:w-full">
           <div className="grid grid-cols-1 gap-8 print:block">
             
-            {/* መመዝገቢያ ፎርም */}
+            {/* Registration Form Tab */}
             {(activeTab === 'register' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''} print:hidden`}>
                 <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ</h3>
                 
-                {/* የድርጅት ሎጎ ማስተካከያ */}
+                {/* Company Logo Setting */}
                 <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-xl flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-800 rounded-lg border border-gray-600 overflow-hidden flex items-center justify-center shrink-0">
@@ -408,7 +406,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
             )}
 
-            {/* ሰራተኞች ዝርዝር ታብ */}
+            {/* Employees List Tab */}
             {(activeTab === 'employees' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto ${activeTab !== 'employees' ? 'hidden lg:block' : ''} print:hidden`}>
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
@@ -494,7 +492,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 ID Card / Badge Modal or Batch Print Modal */}
+      {/* ID Card / Badge Modal or Batch Print Modal */}
       {(selectedIdCard || isBatchPrinting) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto print:fixed print:inset-0 print:bg-white print:p-0 print:flex print:items-center print:justify-center">
           
@@ -548,7 +546,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               ✕
             </button>
 
-            {/* የህትመት ዓይነት መቀየሪያ */}
+            {/* Print Card Type Selector */}
             <div className="bg-gray-800 p-3 rounded-xl border border-gray-700 w-full max-w-md print:hidden flex flex-col gap-2">
               <label className="text-xs text-blue-300 font-bold">🪪 የካርድ ቅርጽ ይምረጡ (Select Card Design Style)</label>
               <div className="grid grid-cols-2 gap-2">
@@ -573,7 +571,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             <div className="print-container flex flex-col items-center justify-center gap-8">
               
               {isBatchPrinting ? (
-                /* BATCH PRINTING MULTIPLE EMPLOYEES */
                 selectedEmployeesForPrint.map((emp) => (
                   <div key={emp._id} className="flex flex-col sm:flex-row gap-6 items-center justify-center border-b border-gray-700 pb-6 mb-4">
                     {printCardType === 'id-card' ? (
@@ -675,7 +672,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         </div>
                       </>
                     ) : (
-                      /* BADGE DESIGN FOR BATCH */
                       <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
                         <div className="flex items-center justify-between border-b border-white/10 pb-2">
                           <div className="flex items-center gap-2">
@@ -729,7 +725,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 ))
               ) : selectedIdCard && (
-                /* SINGLE EMPLOYEE VIEW & PRINT */
                 printCardType === 'id-card' ? (
                   <>
                     {/* FRONT SIDE */}
@@ -835,7 +830,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     </div>
                   </>
                 ) : (
-                  /* WIDE CHEST BADGE DESIGN */
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-purple-400 font-bold mb-1 print:hidden">የደረት ባጅ ፊት (Badge Front)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
