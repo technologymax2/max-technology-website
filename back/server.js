@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const path = require("path"); // 👈 ፋይሎችን እና ፎልደሮችን ለማንበብ የሚያስችል
 require("dotenv").config();
 
 const app = express();
@@ -15,6 +16,9 @@ app.use(
     credentials: true,
   })
 );
+
+// 👈 ስታቲክ ፋይሎችን (ለምሳሌ ዌብሳይቱን ወይም verify.html ፋይልን) ሰርቨሩ እንዲያነበው ማድረግ
+app.use(express.static(path.join(__dirname, "public")));
 
 // MongoDB የግንኙነት መስመር
 const MONGO_URI = process.env.MONGO_URI;
@@ -87,7 +91,7 @@ const Project = mongoose.model("Project", projectSchema);
 // ==========================================
 async function seedFirstAdmin() {
   try {
-    const adminEmail = "mamaruanmaw@1925"; // በትንሽ ፊደል እንዲሆን ተስተካክሏል
+    const adminEmail = "mamaruanmaw@1925";
     const existingAdmin = await User.findOne({ email: adminEmail });
 
     if (!existingAdmin) {
@@ -319,7 +323,7 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
 // 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች (HRDashboard Compatible)
 // ==========================================
 
-// አዲስ ሰራተኛ መመዝገቢያ (POST) - ከ HRDashboard የሚላከውን መረጃ ይቀበላል
+// አዲስ ሰራተኛ መመዝገቢያ (POST)
 app.post("/api/hr/employees", async (req, res) => {
   try {
     const { faydaNumber } = req.body;
@@ -341,7 +345,7 @@ app.post("/api/hr/employees", async (req, res) => {
   }
 });
 
-// ሰራተኞችን ማምጫ (GET) - HRDashboard ዝርዝሩን እንዲያመጣ ያስችላል
+// ሰራተኞችን ማምጫ (GET)
 app.get("/api/hr/employees", async (req, res) => {
   try {
     const employees = await Employee.find().sort({ date: -1 });
@@ -358,6 +362,99 @@ app.delete("/api/hr/employees/:id", async (req, res) => {
     res.status(200).json({ success: true, message: "ሰራተኛው ተሰርዟል!" });
   } catch (error) {
     res.status(500).json({ success: false, error: "ሰራተኛውን ማጥፋት አልተቻለም" });
+  }
+});
+
+// አዲስ HR ለመመዝገብ
+app.post("/api/admin/hrs", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newHr = new User({
+      name,
+      email: cleanEmail,
+      password: hashedPassword,
+      role: "hr",
+    });
+
+    await newHr.save();
+    res.status(201).json({ success: true, message: "HR በስኬት ተመዝግቧል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
+  }
+});
+
+// የ HR ዝርዝሮችን ለማምጣት
+app.get("/api/admin/hrs", async (req, res) => {
+  try {
+    const hrs = await User.find({ role: "hr" }).select("-password");
+    res.status(200).json({ success: true, hrs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "የ HR ዝርዝር ማምጣት አልተቻለም" });
+  }
+});
+
+// HR ለማጥፋት
+app.delete("/api/admin/hrs/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "HR ተሰርዟል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ማጥፋት አልተቻለም" });
+  }
+});
+
+// የ HR ፓስወርድ ለመቀየር
+app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
+    res.status(200).json({ success: true, message: "የ HR ፓስወርድ ተቀይሯል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
+  }
+});
+
+// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ (ለQR Code ማረጋገጫ የሚሆን) 👉 (ይህንን መስመር ጨምሬዋለሁ)
+app.get("/api/hr/verify/:id", async (req, res) => {
+  try {
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) {
+      return res.status(404).json({ success: false, error: "ሰራተኛው አልተገኘም!" });
+    }
+    res.status(200).json({ success: true, employee });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
+  }
+});
+
+// ሰራተኞችን በፍለጋ (Search) ማምጫ
+app.get("/api/hr/search", async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ success: false, error: "የፍለጋ ቃል አልገባም!" });
+    }
+    
+    const employees = await Employee.find({
+      $or: [
+        { nameAmh: { $regex: query, $options: "i" } },
+        { nameEng: { $regex: query, $options: "i" } },
+        { faydaNumber: { $regex: query, $options: "i" } }
+      ]
+    });
+
+    res.status(200).json({ success: true, employees });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ፍለጋውን ማከናወን አልተቻለም" });
   }
 });
 
@@ -488,104 +585,6 @@ app.post("/api/admin/send-new-message", async (req, res) => {
     res.status(201).json({ success: true, message: "መልዕክትዎ ለደንበኛው ተልኳል!" });
   } catch (error) {
     res.status(500).json({ success: false, error: "መልዕክት መላክ አልተቻለም" });
-  }
-});
-
-
-// ==========================================
-// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች
-// ==========================================
-
-// አዲስ HR ለመመዝገብ (ከ AdminDashboard የሚላከውን ለመቀበል)
-app.post("/api/admin/hrs", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const cleanEmail = email.toLowerCase().trim();
-
-    const existingUser = await User.findOne({ email: cleanEmail });
-    if (existingUser) {
-      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newHr = new User({
-      name,
-      email: cleanEmail,
-      password: hashedPassword,
-      role: "hr",
-    });
-
-    await newHr.save();
-    res.status(201).json({ success: true, message: "HR በስኬት ተመዝግቧል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
-  }
-});
-
-// የ HR ዝርዝሮችን ለማምጣት
-app.get("/api/admin/hrs", async (req, res) => {
-  try {
-    const hrs = await User.find({ role: "hr" }).select("-password");
-    res.status(200).json({ success: true, hrs });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "የ HR ዝርዝር ማምጣት አልተቻለም" });
-  }
-});
-
-// HR ለማጥፋት
-app.delete("/api/admin/hrs/:id", async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.params.id);
-    res.status(200).json({ success: true, message: "HR ተሰርዟል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "ማጥፋት አልተቻለም" });
-  }
-});
-
-// የ HR ፓስወርድ ለመቀየር
-app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
-  try {
-    const { newPassword } = req.body;
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
-    res.status(200).json({ success: true, message: "የ HR ፓስወርድ ተቀይሯል!" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
-  }
-});
-// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ (ለQR Code ማረጋገጫ የሚሆን)
-app.get("/api/hr/verify/:id", async (req, res) => {
-  try {
-    const employee = await Employee.findById(req.params.id);
-    if (!employee) {
-      return res.status(404).json({ success: false, error: "ሰራተኛው አልተገኘም!" });
-    }
-    res.status(200).json({ success: true, employee });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
-  }
-});
-
-// ሰራተኞችን በፍለጋ (Search) ማምጫ
-app.get("/api/hr/search", async (req, res) => {
-  try {
-    const { query } = req.query;
-    if (!query) {
-      return res.status(400).json({ success: false, error: "የፍለጋ ቃል አልገባም!" });
-    }
-    
-    // በስም (አማርኛ/እንግሊዝኛ) ወይም በፋይዳ ቁጥር መፈለግ
-    const employees = await Employee.find({
-      $or: [
-        { nameAmh: { $regex: query, $options: "i" } },
-        { nameEng: { $regex: query, $options: "i" } },
-        { faydaNumber: { $regex: query, $options: "i" } }
-      ]
-    });
-
-    res.status(200).json({ success: true, employees });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "ፍለጋውን ማከናወን አልተቻለም" });
   }
 });
 
