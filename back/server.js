@@ -566,6 +566,28 @@ app.get("/api/hr/verify/:id", async (req, res) => {
   }
 });
 
+// ሰራተኞችን በፍለጋ (Search) ማምጫ
+app.get("/api/hr/search", async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ success: false, error: "የፍለጋ ቃል አልገባም!" });
+    }
+    
+    // በስም (አማርኛ/እንግሊዝኛ) ወይም በፋይዳ ቁጥር መፈለግ
+    const employees = await Employee.find({
+      $or: [
+        { nameAmh: { $regex: query, $options: "i" } },
+        { nameEng: { $regex: query, $options: "i" } },
+        { faydaNumber: { $regex: query, $options: "i" } }
+      ]
+    });
+
+    res.status(200).json({ success: true, employees });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ፍለጋውን ማከናወን አልተቻለም" });
+  }
+});
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "ሰርቨሩ ዝግጁ ነው!" });
