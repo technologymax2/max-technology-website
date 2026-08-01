@@ -404,6 +404,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 border-radius: 12px !important;
                 overflow: hidden !important;
                 page-break-after: always;
+                page-break-inside: avoid;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
@@ -493,11 +494,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
 
                 <div className="relative z-10">
-                  <h3 className="text-xs font-bold text-[#d4af37] border-b border-white/10 pb-2 mb-3 tracking-wider">
-                    የካርድ መረጃ እና ማረጋገጫ / Details
+                  <h3 className="text-xs font-bold text-[#d4af37] border-b border-white/10 pb-2 mb-2 tracking-wider text-center">
+                    የካርድ መረጃ / ID Details
                   </h3>
 
-                  <div className="text-[10px] space-y-2 text-gray-200 bg-black/20 p-3 rounded-lg border border-white/10">
+                  <div className="text-[10px] space-y-1.5 text-gray-200 bg-black/20 p-2.5 rounded-lg border border-white/10">
                     <div className="flex justify-between border-b border-white/10 pb-1">
                       <span className="text-gray-400 font-medium">የፋይዳ ቁጥር (Fayda No):</span>
                       <span className="font-mono font-semibold text-white">{selectedIdCard.faydaNumber}</span>
@@ -506,26 +507,30 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                       <span className="text-gray-400 font-medium">የተሰጠበት ቀን (Issue Date):</span>
                       <span className="text-white">{selectedIdCard.dateOfIssue}</span>
                     </div>
-                    <div className="flex justify-between pb-1">
-                      <span className="text-gray-400 font-medium">የሚያበቃበት ቀን (Expiry Date):</span>
+                    <div className="flex justify-between pb-0.5">
+                      <span className="text-gray-400 font-medium">የሚያበቃበት ቀን (Expiry):</span>
                       <span className="text-red-400 font-bold">{selectedIdCard.expireDate}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* QR Code and Verification Footer */}
-                <div className="relative z-10 bg-[#07101a] -mx-4 -mb-4 p-3 border-t border-[#d4af37]/30 flex items-center justify-between">
-                  <div className="text-[8px] text-gray-400 leading-tight max-w-[130px]">
-                    <span className="text-[#d4af37] font-bold block">Authorized ID</span>
-                    Scan QR code to verify validity instantly.
-                  </div>
-                  <div className="bg-white p-1 rounded shadow flex-shrink-0">
+                {/* Large Centered QR Code Section */}
+                <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-3 rounded-xl border border-white/10">
+                  <div className="bg-white p-2 rounded-xl shadow-md">
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
                       alt="QR Code" 
-                      style={{ width: '42px', height: '42px', display: 'block' }} 
+                      style={{ width: '100px', height: '100px', display: 'block' }} 
                     />
                   </div>
+                  <span className="text-[9px] text-[#d4af37] font-bold mt-2 tracking-wide">SCAN TO VERIFY</span>
+                </div>
+
+                {/* Verification Footer */}
+                <div className="relative z-10 bg-[#07101a] -mx-4 -mb-4 py-2 px-3 text-center border-t border-[#d4af37]/30">
+                  <p className="text-[8px] text-gray-400">
+                    Authorized Employee Identification Card - Max Technology
+                  </p>
                 </div>
 
               </div>
