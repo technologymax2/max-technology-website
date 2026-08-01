@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Footer from './Footer';
 
@@ -24,18 +25,26 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     phoneNumber: '',
     woreda: '',
     positionAmh: '',
-    positionEng: '',
-    orgPhoneNumber: '',
-    orgEmail: ''
+    positionEng: ''
   });
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
+  // ቋሚ የሆኑ የድርጅት መረጃዎች (ሎጎ፣ ስልክ እና ኢሜይል) ከ localStorage የሚነበቡ
   const [companyLogoUrl, setCompanyLogoUrl] = useState(() => {
     return localStorage.getItem('company_logo_url') || '';
   });
+  
+  const [companyPhone, setCompanyPhone] = useState(() => {
+    return localStorage.getItem('company_phone') || '';
+  });
+
+  const [companyEmail, setCompanyEmail] = useState(() => {
+    return localStorage.getItem('company_email') || '';
+  });
+
   const logoInputRef = useRef(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -45,8 +54,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [validationErrors, setValidationErrors] = useState({});
 
   const [printCardType, setPrintCardType] = useState('id-card');
-
-  // አዲስ የተጨመረ፡ የ QR ኮድ ሲቃኝ የሚመጣውን ID ተቀብሎ መረጃውን ለማሳየት የሚረዳ ስቴት
   const [verifiedEmployeeModal, setVerifiedEmployeeModal] = useState(null);
 
   const fetchEmployees = useCallback(async () => {
@@ -65,7 +72,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // ሰራተኛው የ QR ኮዱን ሲቃኝ አድራሻው ላይ ያለው ID ተለይቶ ወዲያውኑ መረጃው እንዲመጣ ማድረግ
   useEffect(() => {
     const path = window.location.pathname;
     if (path.includes("/verify/")) {
@@ -109,7 +115,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         const newUrl = logoResult.data.url;
         setCompanyLogoUrl(newUrl);
         localStorage.setItem('company_logo_url', newUrl);
-        alert("የድርጅት ሎጎ በስኬት ተቀምጧል! ከእንግዲህ ድጋሚ መጫን አያስፈልግም።");
+        alert("የድርጅት ሎጎ በስኬት ተቀምጧል!");
       } else {
         alert("ሎጎውን መጫን አልተቻለም።");
       }
@@ -117,6 +123,18 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       alert("ስህተት ተፈጥሯል: " + err.message);
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  // የድርጅት ቋሚ ስልክ እና ኢሜይል መቀየሪያና ማስቀመጫ
+  const handleCompanyInfoChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'companyPhone') {
+      setCompanyPhone(value);
+      localStorage.setItem('company_phone', value);
+    } else if (name === 'companyEmail') {
+      setCompanyEmail(value);
+      localStorage.setItem('company_email', value);
     }
   };
 
@@ -132,10 +150,10 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         delete errors[name];
       }
       setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
-    } else if (["phoneNumber", "orgPhoneNumber"].includes(name)) {
+    } else if (name === "phoneNumber") {
       let cleanValue = value.replace(/\D/g, "");
       
-      if (name === "phoneNumber" && cleanValue.length > 0 && cleanValue[0] !== "0") {
+      if (cleanValue.length > 0 && cleanValue[0] !== "0") {
         errors[name] = "⚠️ ስልክ ቁጥር በ '0' መጀመር አለበት!";
         setValidationErrors(errors);
         return;
@@ -182,11 +200,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       return;
     }
 
-    if (validationErrors.expireDate) {
-      setEmployeeStatus("❌ እባክዎ የቀን ስህተቱን ያስተካክሉ!");
-      return;
-    }
-
     setLoading(true);
     setEmployeeStatus("⏳ ፎቶ እና መረጃ በመጫን ላይ...");
 
@@ -200,10 +213,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       const imgResult = await imgRes.json();
       if (!imgResult.success) throw new Error("የሰራተኛውን ፎቶ ወደ ማከማቻ መላክ አልተቻለም");
 
+      // ቋሚ የሆኑትን የድርጅት መረጃዎች አብሮ መላክ
       const finalData = {
         ...employeeForm,
         imageUrl: imgResult.data.url,
         logoUrl: companyLogoUrl,
+        orgPhoneNumber: companyPhone,
+        orgEmail: companyEmail,
         status: 'approved',
         approved: true
       };
@@ -233,9 +249,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
           phoneNumber: '',
           woreda: '',
           positionAmh: '',
-          positionEng: '',
-          orgPhoneNumber: '',
-          orgEmail: ''
+          positionEng: ''
         });
         setImage(null);
         setImagePreview(null);
@@ -304,31 +318,60 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''} print:hidden`}>
                 <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ</h3>
                 
-                {/* የድርጅት ሎጎ ማስተካከያ */}
-                <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-xl flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-800 rounded-lg border border-gray-600 overflow-hidden flex items-center justify-center shrink-0">
-                      {companyLogoUrl ? (
-                        <img src={companyLogoUrl} alt="Company Logo" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[10px] text-gray-400">LOGO</span>
-                      )}
+                {/* ቋሚ የድርጅት መረጃዎች ማስተካከያ (ሎጎ፣ ስልክ እና ኢሜይል) */}
+                <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-xl flex flex-col gap-4">
+                  <div className="text-sm font-bold text-yellow-400 border-b border-gray-700 pb-2">🏢 የድርጅት ቋሚ መረጃዎች (Company Settings)</div>
+                  
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-800 rounded-lg border border-gray-600 overflow-hidden flex items-center justify-center shrink-0">
+                        {companyLogoUrl ? (
+                          <img src={companyLogoUrl} alt="Company Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] text-gray-400">LOGO</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-gray-200">የድርጅት ሎጎ</div>
+                        <div className="text-[11px] text-gray-400">{companyLogoUrl ? "✅ ተቀምጧል" : "⚠️ አልተጫነም"}</div>
+                      </div>
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-gray-200">የድርጅት ሎጎ (Company Logo)</div>
-                      <div className="text-xs text-gray-400">{companyLogoUrl ? "✅ ሎጎ ተቀምጧል (ለሁሉም መታወቂያዎች ያገለግላል)" : "⚠️ እባክዎ የድርጅትዎን ሎጎ አንዴ ይጫኑ"}</div>
+                      <input type="file" ref={logoInputRef} onChange={handleLogoChange} className="hidden" accept="image/*" />
+                      <button 
+                        type="button" 
+                        onClick={() => logoInputRef.current?.click()} 
+                        disabled={uploadingLogo}
+                        className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-blue-300 text-xs font-bold rounded-lg border border-gray-600 transition"
+                      >
+                        {uploadingLogo ? "እየጫነ ነው..." : (companyLogoUrl ? "ሎጎ ቀይር" : "ሎጎ ጫን")}
+                      </button>
                     </div>
                   </div>
-                  <div>
-                    <input type="file" ref={logoInputRef} onChange={handleLogoChange} className="hidden" accept="image/*" />
-                    <button 
-                      type="button" 
-                      onClick={() => logoInputRef.current?.click()} 
-                      disabled={uploadingLogo}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-blue-300 text-xs font-bold rounded-lg border border-gray-600 transition"
-                    >
-                      {uploadingLogo ? "እየጫነ ነው..." : (companyLogoUrl ? "ሎጎ ቀይር (Change Logo)" : "ሎጎ ጫን (Upload Logo)")}
-                    </button>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-800">
+                    <div>
+                      <label className="text-[11px] text-gray-400 mb-1 block">የድርጅት ስልክ ቁጥር (Company Phone)</label>
+                      <input 
+                        type="text" 
+                        name="companyPhone" 
+                        placeholder="ምሳሌ፡ 0111234567" 
+                        value={companyPhone} 
+                        onChange={handleCompanyInfoChange} 
+                        className="w-full p-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-xs" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 mb-1 block">የድርጅት ኢሜይል (Company Email)</label>
+                      <input 
+                        type="email" 
+                        name="companyEmail" 
+                        placeholder="ምሳሌ፡ info@maxtech.com" 
+                        value={companyEmail} 
+                        onChange={handleCompanyInfoChange} 
+                        className="w-full p-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-xs" 
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -358,7 +401,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <input type="text" name="positionEng" placeholder="Position (English)" value={employeeForm.positionEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <input type="text" name="faydaNumber" maxLength="16" placeholder="የፋይዳ ቁጥር (16 Digits)" value={employeeForm.faydaNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                       <span className="text-[11px] text-gray-400">({employeeForm.faydaNumber.length}/16)</span>
@@ -369,33 +412,27 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                       <span className="text-[11px] text-gray-400">({employeeForm.phoneNumber.length}/10)</span>
                       {validationErrors.phoneNumber && <span className="text-[11px] text-red-400 block">{validationErrors.phoneNumber}</span>}
                     </div>
-                    <div>
-                      <input type="text" name="orgPhoneNumber" maxLength="10" placeholder="የድርጅት ስልክ ቁጥር (Org Phone)" value={employeeForm.orgPhoneNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="email" name="orgEmail" placeholder="የድርጅት ኢሜይል (Company Email)" value={employeeForm.orgEmail} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                     <input type="text" name="nationality" placeholder="ዜግነት / Nationality" value={employeeForm.nationality} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="city" placeholder="ከተማ / City" value={employeeForm.city} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input type="text" name="addressAmh" placeholder="አድራሻ (አማርኛ)" value={employeeForm.addressAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                     <input type="text" name="addressEng" placeholder="Address (English)" value={employeeForm.addressEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" name="city" placeholder="ከተማ / City" value={employeeForm.city} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input type="number" name="age" placeholder="እድሜ / Age" value={employeeForm.age} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                     <input type="date" name="dateOfIssue" value={employeeForm.dateOfIssue} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <div>
+                      <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="text-xs text-gray-400">የሚያበቃበት ቀን / Expiry Date</label>
-                    <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
-                    {validationErrors.expireDate && <span className="text-[11px] text-red-400 block mt-1">{validationErrors.expireDate}</span>}
-                  </div>
+                  {validationErrors.expireDate && <span className="text-[11px] text-red-400 block">{validationErrors.expireDate}</span>}
 
                   <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-2 disabled:opacity-50 transition">
                     {loading ? "እየተመዘገበ ነው..." : "ሰራተኛውን መዝግብ"}
@@ -604,11 +641,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         <div className="text-[8.5px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20 mb-1.5">
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
                             <span className="text-gray-400">ድርጅት ስልክ:</span>
-                            <span className="font-mono text-white">{selectedIdCard.orgPhoneNumber || 'N/A'}</span>
+                            <span className="font-mono text-white">{selectedIdCard.orgPhoneNumber || companyPhone || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between pb-0.5">
                             <span className="text-gray-400">ኢሜይል:</span>
-                            <span className="text-white truncate max-w-[130px]">{selectedIdCard.orgEmail || 'N/A'}</span>
+                            <span className="text-white truncate max-w-[130px]">{selectedIdCard.orgEmail || companyEmail || 'N/A'}</span>
                           </div>
                         </div>
 
@@ -642,16 +679,15 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </>
               ) : (
-                /* 2️⃣ WIDE CHEST BADGE DESIGN (Aligned with Standard ID Branding) */
+                /* 2️⃣ WIDE CHEST BADGE DESIGN */
                 <>
-                  {/* FRONT SIDE (Wide Badge View with QR Code) */}
+                  {/* FRONT SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ፊት (Badge Front)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
                       
                       <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
 
-                      {/* Top Header */}
                       <div className="flex items-center justify-between border-b border-white/10 pb-2 relative z-10">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow overflow-hidden">
@@ -667,12 +703,11 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           </div>
                         </div>
                         <div className="text-right text-[8px] text-gray-400">
-                          <div>ስልክ: {selectedIdCard.orgPhoneNumber}</div>
-                          <div>ኢሜይል: {selectedIdCard.orgEmail}</div>
+                          <div>ስልክ: {selectedIdCard.orgPhoneNumber || companyPhone}</div>
+                          <div>ኢሜይል: {selectedIdCard.orgEmail || companyEmail}</div>
                         </div>
                       </div>
 
-                      {/* Main Profile, Details & QR Code */}
                       <div className="flex items-center justify-between gap-3 my-auto relative z-10">
                         <div className="flex items-center gap-3">
                           <div className="w-16 h-16 rounded-xl p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md shrink-0">
@@ -689,7 +724,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           </div>
                         </div>
 
-                        {/* QR Code on Front Side */}
                         <div className="flex flex-col items-center bg-black/30 p-1.5 rounded-xl border border-[#d4af37]/20 shrink-0">
                           <div className="bg-white p-1 rounded-md">
                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${selectedIdCard._id}`)}`} alt="QR Code" style={{ width: '55px', height: '55px', display: 'block' }} />
@@ -698,14 +732,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         </div>
                       </div>
 
-                      {/* Footer */}
                       <div className="bg-[#07101a] -mx-4 -mb-4 py-1 px-3 text-center border-t border-[#d4af37]/30 text-[8px] text-gray-400 relative z-10">
                         Authorized Corporate Badge - Max Technology
                       </div>
                     </div>
                   </div>
 
-                  {/* BACK SIDE (Wide Badge View) */}
+                  {/* BACK SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ጀርባ (Badge Back)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
@@ -745,7 +778,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       )}
 
-      {/* 🟢 QR ኮዱ ሲቃኝ ሰራተኛውን የሚያሳይ ፖፕ-አፕ (Popup Modal) */}
+      {/* 🟢 QR ኮዱ ሲቃኝ ሰራተኛውን የሚያሳይ ፖፕ-አፕ */}
       {verifiedEmployeeModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 border-2 border-green-500 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center relative animate-fade-in">
