@@ -401,7 +401,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 height: 85.6mm !important;
                 max-width: none !important;
                 box-shadow: none !important;
-                border-radius: 12px !important;
+                border-radius: 0px !important;
                 overflow: hidden !important;
                 page-break-after: always;
                 page-break-inside: avoid;
@@ -421,7 +421,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የፊት ገጽ (Front Side)</span>
               <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
               
-              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col print:rounded-none">
+              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col print:rounded-none print:w-[54mm] print:h-[85.6mm] print:border-none">
                 
                 {/* Decorative Gold Wave Background Accent */}
                 <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[100px]"></div>
@@ -488,7 +488,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <span className="text-xs text-blue-400 font-bold mb-1 print:hidden">የጀርባ ገጽ (Back Side)</span>
               <div className="w-6 h-4 bg-gray-400 rounded-t-md border border-gray-600 print:hidden mb-[-2px] z-10"></div>
 
-              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4 print:rounded-none">
+              <div className="printable-page w-[300px] h-[460px] bg-[#0b192c] text-white rounded-2xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4 print:rounded-none print:w-[54mm] print:h-[85.6mm] print:border-none">
                 
                 {/* Decorative Accent */}
                 <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
@@ -518,9 +518,9 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-3 rounded-xl border border-white/10">
                   <div className="bg-white p-2 rounded-xl shadow-md">
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
                       alt="QR Code" 
-                      style={{ width: '100px', height: '100px', display: 'block' }} 
+                      style={{ width: '110px', height: '110px', display: 'block' }} 
                     />
                   </div>
                   <span className="text-[9px] text-[#d4af37] font-bold mt-2 tracking-wide">SCAN TO VERIFY</span>
