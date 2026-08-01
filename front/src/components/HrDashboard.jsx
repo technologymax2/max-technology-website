@@ -385,10 +385,14 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </div>
 
-                {/* QR Code */}
+                {/* QR Code (ከሰርቨር ማረጋገጫ ሊንክ ጋር የተገናኘ) */}
                 <div className="flex flex-col items-center justify-center shrink-0">
                   <div className="bg-white p-1 border rounded shadow-sm">
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.nameAmh}`} alt="QR Code" className="w-20 h-20" />
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${selectedIdCard._id}`)}`} 
+                      alt="QR Code" 
+                      className="w-20 h-20" 
+                    />
                   </div>
                   <span className="text-[9px] text-gray-500 mt-1 font-bold tracking-tight">SCAN TO VERIFY</span>
                 </div>
