@@ -371,7 +371,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               ✕
             </button>
 
-            {/* ሄደር (ከሎጎው የተወሰደ የብራንድ ከለር፡ ጥልቅ ሰማያዊ ከወርቃማ መስመር ጋር) */}
+            {/* ሄደር */}
             <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex items-center print:bg-[#0f233c] print:text-white print:py-1.5 relative">
               <div className="absolute left-3">
                 <img 
@@ -389,12 +389,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             {/* የካርዱ ዋና አካል */}
             <div className="p-4 sm:p-5 flex items-center justify-between gap-3 print:p-2.5">
               
-              {/* ግራ በኩል፡ ፎቶ፣ ስም፣ ስልክ እና አድራሻ በቀጥታ ከታች */}
-              <div className="flex flex-col items-center gap-1.5 shrink-0 w-28 sm:w-32 print:w-24">
+              {/* ግራ በኩል፡ ፎቶ እና ከሱ ጋር የተጣበቁ መረጃዎች */}
+              <div className="flex flex-col items-center shrink-0 w-28 sm:w-32 print:w-24">
                 <div className="w-24 h-28 sm:w-28 sm:h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm print:w-20 print:h-24">
                   <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameEng} className="w-full h-full object-cover" />
                 </div>
-                <div className="w-full text-center space-y-0.5 mt-0.5">
+                {/* ፅሁፉ ከፎቶው ጋር እንዲጣበቅ gap እና mt ተወግደዋል */}
+                <div className="w-full text-center space-y-0">
                   <div className="text-[10px] sm:text-[11px] font-bold text-gray-900 truncate print:text-[8px]">
                     {selectedIdCard.nameEng}
                   </div>
@@ -445,7 +446,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
             </div>
 
-            {/* ፉተር (ከሎጎው ከለር ጋር የተጣጣመ ጥልቅ ሰማያዊ እና ወርቃማ መስመር) */}
+            {/* ፉተር */}
             <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1.5 px-4 text-center print:bg-[#0f233c] print:py-1">
               <p className="text-[9px] sm:text-[10px] text-[#d4af37] font-semibold print:text-[7px]">
                 Email: technologymax2@gmail.com
