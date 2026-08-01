@@ -4,7 +4,6 @@ import AdminDashboard from "./components/AdminDashboard";
 import HrDashboard from "./components/HrDashboard";
 import OrderPage from "./components/OrderPage";
 import Footer from "./components/Footer";
-import VerifyEmployee from "./components/VerifyEmployee"; // 1. VerifyEmployee ን እዚህ አስገብተናል (Import)
 import logoImg from "./logo.jpg";
 
 function App() {
@@ -114,13 +113,6 @@ function App() {
             <span className="text-xl font-bold text-blue-600">Max Technology</span>
           </div>
           <div className="flex items-center gap-3">
-            {/* ሰራተኛ ማረጋገጫ (Verify ID) መክፈቻ አዝራር */}
-            <button 
-              onClick={() => setCurrentScreen("verify-employee")} 
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition"
-            >
-              Verify ID
-            </button>
             <button 
               onClick={() => { setAuthStatus(""); setCurrentScreen("login"); }} 
               className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition"
@@ -193,16 +185,6 @@ function App() {
           </div>
         </div>
       </div>
-    );
-  }
-
-  // 2. የሰራተኛ ማረጋገጫ ገጽ (Verify Employee Screen) እዚህ ተጨምሯል
-  if (currentScreen === "verify-employee") {
-    return (
-      <VerifyEmployee 
-        API_BASE_URL={API_BASE_URL} 
-        setCurrentScreen={setCurrentScreen} 
-      />
     );
   }
 
