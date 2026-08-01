@@ -1,138 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Footer from './Footer';
-import { uploadImageToImgBB } from './imageUploading';
+
+const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
 
 function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [employeeList, setEmployeeList] = useState([]);
-  const [lang, setLang] = useState('am');
-
   const [activeTab, setActiveTab] = useState('employees');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null); // ለኤዲት የሚሆን ID
   
   const [employeeForm, setEmployeeForm] = useState({
-    fullName: '',
+    nameAmh: '',
+    nameEng: '',
     age: '',
     faydaNumber: '',
     dateOfIssue: '',
     expireDate: '',
-    address: '',
+    addressAmh: '',
+    addressEng: '',
     zone: '',
     city: '',
     nationality: '',
     phoneNumber: '',
     woreda: '',
-    position: '',
-    imageUrl: '',
+    positionAmh: '',
+    positionEng: '',
     orgPhoneNumber: ''
   });
+
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
+
   const [employeeStatus, setEmployeeStatus] = useState('');
+  const [loading, setLoading] = useState(false);
   const [selectedIdCard, setSelectedIdCard] = useState(null);
-  const [empUploading, setEmpUploading] = useState(false);
 
-  const t = {
-    am: {
-      title: "HR መቆጣጠሪያ",
-      welcome: "እንኳን ደህና መጡ",
-      logout: "ውጣ (Logout)",
-      menu: "ምናሌዎች (Menu)",
-      employeesTab: "📋 ሰራተኞች ዝርዝር",
-      registerTab: "➕ አዲስ ሰራተኛ መመዝገቢያ",
-      regTitle: editingId ? "✏️ የሰራተኛ መረጃ ማስተካከያ" : "➕ አዲስ ሰራተኛ መመዝገቢያ",
-      fullName: "ሙሉ ስም (Full Name)",
-      age: "እድሜ (Age)",
-      nationality: "ዜግነት (Nationality)",
-      faydaNumber: "የፋይዳ ቁጥር (Fayda - በትክክል 16 አሃዝ)",
-      faydaHint: "ቁጥሩ በትክክል 16 ዲጂት መሆን አለበት",
-      dateOfIssue: "የወጣበት ቀን (Date of Issue)",
-      expireDate: "ሚያልቅበት ቀን (Expire Date)",
-      position: "የስራ መደብ (Position)",
-      phone: "ስልክ (በትክክል 10 አሃዝ)",
-      phoneHint: "10 ዲጂት",
-      address: "አድራሻ (Address)",
-      zone: "ዞን (Zone)",
-      city: "ከተማ (City)",
-      woreda: "ወረዳ (Woreda)",
-      orgPhone: "የድርጅቱ ስልክ (Org Phone)",
-      photoLabel: "የሰራተኛ ፎቶ ይጫኑ (Image Upload)",
-      uploading: "ፎቶ በመጫን ላይ...",
-      submitBtn: editingId ? "መረጃውን አስተካክል" : "ሰራተኛውን መዝግብ",
-      listTitle: "📋 የተመዘገቡ ሰራተኞች ዝርዝር",
-      nameCol: "ስም / Name",
-      posCol: "የስራ መደብ / Position",
-      faydaCol: "የፋይዳ ቁጥር",
-      actionsCol: "እርምጃዎች",
-      idBtn: "🪪 መታወቂያ",
-      editBtn: "✏️ ያስተካክሉ",
-      deleteBtn: "🗑 አጥፋ",
-      noEmployees: "ምንም የተመዘገበ ሰራተኛ የለም።",
-      photoSuccess: "📸 የሰራተኛው ፎቶ በስኬት ተጭኗል!",
-      photoError: "ፎቶ መጫን አልተቻለም፡ ",
-      faydaError: "❌ ስህተት፡ የፋይዳ ቁጥር በትክክል 16 አሃዝ (Digits) መሆን አለበት!",
-      phoneError: "❌ ስህተት፡ ስልክ ቁጥር በትክክል 10 አሃዝ (Digits) መሆን አለበት!",
-      successMsg: "✅ ሰራተኛው በስኬት ተመዝግቧል እና መታወቂያው ተዘጋጅቷል!",
-      updateSuccess: "✅ የሰራተኛው መረጃ በስኬት ተስተካክሏል!",
-      serverError: "የሰርቨር ስህተት!",
-      deleteConfirm: "ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?",
-      deletedAlert: "ሰራተኛው ተሰርዟል!",
-      deleteFail: "ማጥፋት አልተቻለም",
-      printBtn: "🖨 መታወቂያውን አትም (Print ID Card)"
-    },
-    en: {
-      title: "HR Dashboard",
-      welcome: "Welcome",
-      logout: "Logout",
-      menu: "Menu",
-      employeesTab: "📋 Employee List",
-      registerTab: "➕ Register Employee",
-      regTitle: editingId ? "✏️ Edit Employee Details" : "➕ Register New Employee",
-      fullName: "Full Name",
-      age: "Age",
-      nationality: "Nationality",
-      faydaNumber: "Fayda Number (Exactly 16 Digits)",
-      faydaHint: "Must be exactly 16 digits",
-      dateOfIssue: "Date of Issue",
-      expireDate: "Expire Date",
-      position: "Position",
-      phone: "Phone (Exactly 10 Digits)",
-      phoneHint: "10 digits",
-      address: "Address",
-      zone: "Zone",
-      city: "City",
-      woreda: "Woreda",
-      orgPhone: "Org Phone",
-      photoLabel: "Upload Employee Photo",
-      uploading: "Uploading photo...",
-      submitBtn: editingId ? "Update Employee" : "Register Employee",
-      listTitle: "📋 Registered Employees List",
-      nameCol: "Name",
-      posCol: "Position",
-      faydaCol: "Fayda Number",
-      actionsCol: "Actions",
-      idBtn: "🪪 ID Card",
-      editBtn: "✏️ Edit",
-      deleteBtn: "🗑 Delete",
-      noEmployees: "No registered employees found.",
-      photoSuccess: "📸 Employee photo uploaded successfully!",
-      photoError: "Failed to upload photo: ",
-      faydaError: "❌ Error: Fayda number must be exactly 16 digits!",
-      phoneError: "❌ Error: Phone number must be exactly 10 digits!",
-      successMsg: "✅ Employee registered successfully and ID created!",
-      updateSuccess: "✅ Employee updated successfully!",
-      serverError: "Server error!",
-      deleteConfirm: "Do you want to delete this employee from the list?",
-      deletedAlert: "Employee deleted!",
-      deleteFail: "Failed to delete",
-      printBtn: "🖨 Print ID Card"
-    }
-  }[lang];
-
-  useEffect(() => {
-    fetchEmployees();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [API_BASE_URL]);
-
-  const fetchEmployees = async () => {
+  // 🔄 የተስተካከለ fetchEmployees በ useCallback (ESLint Warning እንዳይፈጥር)
+  const fetchEmployees = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/hr/employees`);
       const data = await res.json();
@@ -142,108 +46,125 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     } catch (err) {
       console.error('Error fetching employees', err);
     }
-  };
+  }, [API_BASE_URL]);
 
-  const handleEmployeePhotoUpload = async (e) => {
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
+
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const imageUrl = await uploadImageToImgBB(file, setEmpUploading);
-      setEmployeeForm(prev => ({ ...prev, imageUrl: imageUrl }));
-      alert(t.photoSuccess);
-    } catch (err) {
-      alert(t.photoError + err.message);
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setEmployeeStatus("");
     }
   };
 
-  const handleEditClick = (emp) => {
-    setEditingId(emp._id);
-    setEmployeeForm({
-      fullName: emp.fullName || '',
-      age: emp.age || '',
-      faydaNumber: emp.faydaNumber || '',
-      dateOfIssue: emp.dateOfIssue || '',
-      expireDate: emp.expireDate || '',
-      address: emp.address || '',
-      zone: emp.zone || '',
-      city: emp.city || '',
-      nationality: emp.nationality || '',
-      phoneNumber: emp.phoneNumber || '',
-      woreda: emp.woreda || '',
-      position: emp.position || '',
-      imageUrl: emp.imageUrl || '',
-      orgPhoneNumber: emp.orgPhoneNumber || ''
-    });
-    setActiveTab('register');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "faydaNumber") {
+      const cleanValue = value.replace(/\D/g, "").slice(0, 16);
+      setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
+    } else if (name === "phoneNumber") {
+      const cleanValue = value.replace(/\D/g, "").slice(0, 10);
+      setEmployeeForm(prev => ({ ...prev, [name]: cleanValue }));
+    } else {
+      setEmployeeForm(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
 
-    if (!/^\d{16}$/.test(employeeForm.faydaNumber)) {
-      setEmployeeStatus(t.faydaError);
+    if (!image) {
+      setEmployeeStatus("⚠️ እባክዎ የሰራተኛውን ፎቶ ይምረጡ!");
       return;
     }
 
-    if (!/^\d{10}$/.test(employeeForm.phoneNumber)) {
-      setEmployeeStatus(t.phoneError);
+    if (employeeForm.faydaNumber.length !== 16) {
+      setEmployeeStatus("❌ ስህተት፡ የፋይዳ ቁጥር በትክክል 16 አሃዝ መሆን አለበት!");
       return;
     }
+
+    if (employeeForm.phoneNumber.length !== 10) {
+      setEmployeeStatus("❌ ስህተት፡ ስልክ ቁጥር በትክክል 10 አሃዝ መሆን አለበት!");
+      return;
+    }
+
+    setLoading(true);
+    setEmployeeStatus("⏳ ፎቶ እና መረጃ በመጫን ላይ...");
 
     try {
-      const url = editingId 
-        ? `${API_BASE_URL}/api/hr/employees/${editingId}`
-        : `${API_BASE_URL}/api/hr/employees`;
-      
-      const method = editingId ? 'PUT' : 'POST';
+      const imgData = new FormData();
+      imgData.append("image", image);
 
-      const res = await fetch(url, {
-        method: method,
+      const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: imgData,
+      });
+      const imgResult = await imgRes.json();
+      if (!imgResult.success) throw new Error("ፎቶውን ወደ Cloud ማከማቻ መላክ አልተቻለም");
+
+      const finalData = {
+        ...employeeForm,
+        imageUrl: imgResult.data.url,
+        status: 'approved',
+        approved: true
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...employeeForm, status: 'approved', approved: true })
+        body: JSON.stringify(finalData)
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setEmployeeStatus(editingId ? t.updateSuccess : t.successMsg);
-        setEditingId(null);
+        setEmployeeStatus("✅ ሰራተኛው በስኬት ተመዝግቧል እና መታወቂያው ተዘጋጅቷል!");
         setEmployeeForm({
-          fullName: '',
+          nameAmh: '',
+          nameEng: '',
           age: '',
           faydaNumber: '',
           dateOfIssue: '',
           expireDate: '',
-          address: '',
+          addressAmh: '',
+          addressEng: '',
           zone: '',
           city: '',
           nationality: '',
           phoneNumber: '',
           woreda: '',
-          position: '',
-          imageUrl: '',
+          positionAmh: '',
+          positionEng: '',
           orgPhoneNumber: ''
         });
+        setImage(null);
+        setImagePreview(null);
         fetchEmployees();
       } else {
-        setEmployeeStatus(data.error || t.serverError);
+        setEmployeeStatus(data.error || "የሰርቨር ስህተት!");
       }
     } catch (err) {
-      setEmployeeStatus(t.serverError);
+      setEmployeeStatus(`❌ ስህተት፡ ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteEmployee = async (id) => {
-    if (!window.confirm(t.deleteConfirm)) return;
+    if (!window.confirm("ይህንን ሰራተኛ ከዝርዝር ውስጥ ማጥፋት ይፈልጋሉ?")) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/hr/employees/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        alert(t.deletedAlert);
+        alert("ሰራተኛው ተሰርዟል!");
         fetchEmployees();
       }
     } catch (err) {
-      alert(t.deleteFail);
+      alert("ማጥፋት አልተቻለም");
     }
   };
 
@@ -260,19 +181,12 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             ☰
           </button>
           <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
-            🏢 {t.title} - {t.welcome} {user?.name || ''}
+            🏢 HR ዳሽቦርድ - እንኳን ደህና መጡ {user?.name || ''}
           </h2>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
-            <button onClick={() => setLang('am')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${lang === 'am' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>አማርኛ</button>
-            <button onClick={() => setLang('en')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${lang === 'en' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>English</button>
-          </div>
-          <button onClick={handleLogout} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition shadow text-sm">
-            {t.logout}
-          </button>
-        </div>
+        <button onClick={handleLogout} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition shadow text-sm">
+          ውጣ (Logout)
+        </button>
       </div>
 
       <div className="flex relative gap-6 items-start flex-1">
@@ -281,67 +195,81 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         )}
 
         <div className={`fixed lg:relative top-0 left-0 h-full lg:h-auto w-64 bg-gray-800 border-r lg:border border-gray-700 rounded-none lg:rounded-2xl p-4 flex flex-col gap-2 z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-          <div className="flex justify-between items-center mb-2 lg:hidden">
-            <span className="text-sm font-bold text-gray-400">{t.menu}</span>
-            <button onClick={() => setSidebarOpen(false)} className="bg-transparent border-none text-white text-xl cursor-pointer">✕</button>
-          </div>
-          <button onClick={() => { setActiveTab('employees'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'employees' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>{t.employeesTab}</button>
-          <button onClick={() => { setActiveTab('register'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>{t.registerTab}</button>
+          <button onClick={() => { setActiveTab('employees'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'employees' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>📋 ሰራተኞች ዝርዝር</button>
+          <button onClick={() => { setActiveTab('register'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>➕ አዲስ ሰራተኛ መመዝገቢያ</button>
         </div>
 
         <div className="flex-1 w-full min-w-0">
           <div className="grid grid-cols-1 gap-8">
             
-            {/* መመዝገቢያ ወይም ማስተካከያ ፎርም */}
+            {/* መመዝገቢያ ፎርም (በሁለቱም ቋንቋዎች) */}
             {(activeTab === 'register' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''}`}>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-blue-400">{t.regTitle}</h3>
-                  {editingId && (
-                    <button 
-                      onClick={() => { setEditingId(null); setEmployeeForm({ fullName: '', age: '', faydaNumber: '', dateOfIssue: '', expireDate: '', address: '', zone: '', city: '', nationality: '', phoneNumber: '', woreda: '', position: '', imageUrl: '', orgPhoneNumber: '' }); }}
-                      className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg"
+                <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ (Dual-Language)</h3>
+                
+                <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-4">
+                  {/* ፎቶ መምረጫ */}
+                  <div className="flex flex-col items-center mb-2">
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-28 h-32 bg-gray-900 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden hover:border-blue-500 transition"
                     >
-                      Cancel Edit
-                    </button>
-                  )}
-                </div>
-                <form onSubmit={handleEmployeeSubmit} className="flex flex-col gap-3">
-                  <input type="text" placeholder={t.fullName} value={employeeForm.fullName} onChange={(e) => setEmployeeForm({ ...employeeForm, fullName: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="number" placeholder={t.age} value={employeeForm.age} onChange={(e) => setEmployeeForm({ ...employeeForm, age: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" placeholder={t.nationality} value={employeeForm.nationality} onChange={(e) => setEmployeeForm({ ...employeeForm, nationality: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-xs text-center text-gray-400 p-2">📷 ፎቶ ይምረጡ</div>
+                      )}
+                    </div>
+                    <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
                   </div>
-                  <div>
-                    <input type="text" maxLength="16" placeholder={t.faydaNumber} value={employeeForm.faydaNumber} onChange={(e) => setEmployeeForm({ ...employeeForm, faydaNumber: e.target.value.replace(/\D/g, '') })} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <span className="text-[11px] text-gray-400 pl-1">{t.faydaHint} ({employeeForm.faydaNumber.length}/16)</span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="nameAmh" placeholder="ሙሉ ስም (አማርኛ)" value={employeeForm.nameAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="nameEng" placeholder="Full Name (English)" value={employeeForm.nameEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" placeholder={t.dateOfIssue} value={employeeForm.dateOfIssue} onChange={(e) => setEmployeeForm({ ...employeeForm, dateOfIssue: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" placeholder={t.expireDate} value={employeeForm.expireDate} onChange={(e) => setEmployeeForm({ ...employeeForm, expireDate: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="positionAmh" placeholder="የስራ መደብ (አማርኛ)" value={employeeForm.positionAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="positionEng" placeholder="Position (English)" value={employeeForm.positionEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" placeholder={t.position} value={employeeForm.position} onChange={(e) => setEmployeeForm({ ...employeeForm, position: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <input type="text" maxLength="10" placeholder={t.phone} value={employeeForm.phoneNumber} onChange={(e) => setEmployeeForm({ ...employeeForm, phoneNumber: e.target.value.replace(/\D/g, '') })} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                      <span className="text-[11px] text-gray-400 pl-1">{t.phoneHint} ({employeeForm.phoneNumber.length}/10)</span>
+                      <input type="text" name="faydaNumber" maxLength="16" placeholder="የፋይዳ ቁጥር (16 Digits)" value={employeeForm.faydaNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      <span className="text-[11px] text-gray-400">({employeeForm.faydaNumber.length}/16)</span>
+                    </div>
+                    <div>
+                      <input type="text" name="phoneNumber" maxLength="10" placeholder="ስልክ ቁጥር (10 Digits)" value={employeeForm.phoneNumber} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                      <span className="text-[11px] text-gray-400">({employeeForm.phoneNumber.length}/10)</span>
+                    </div>
+                    <input type="text" name="orgPhoneNumber" placeholder="የድርጅት ስልክ / Org Phone" value={employeeForm.orgPhoneNumber} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="addressAmh" placeholder="አድራሻ (አማርኛ)" value={employeeForm.addressAmh} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="addressEng" placeholder="Address (English)" value={employeeForm.addressEng} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <input type="number" name="age" placeholder="እድሜ / Age" value={employeeForm.age} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="nationality" placeholder="ዜግነት / Nationality" value={employeeForm.nationality} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="city" placeholder="ከተማ / City" value={employeeForm.city} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400">የወጣበት ቀን / Issue Date</label>
+                      <input type="date" name="dateOfIssue" value={employeeForm.dateOfIssue} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400">የማብቂያ ቀን / Expiry Date</label>
+                      <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm mt-1" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <input type="text" placeholder={t.address} value={employeeForm.address} onChange={(e) => setEmployeeForm({ ...employeeForm, address: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" placeholder={t.zone} value={employeeForm.zone} onChange={(e) => setEmployeeForm({ ...employeeForm, zone: e.target.value })} className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" placeholder={t.city} value={employeeForm.city} onChange={(e) => setEmployeeForm({ ...employeeForm, city: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" placeholder={t.woreda} value={employeeForm.woreda} onChange={(e) => setEmployeeForm({ ...employeeForm, woreda: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="text" placeholder={t.orgPhone} value={employeeForm.orgPhoneNumber} onChange={(e) => setEmployeeForm({ ...employeeForm, orgPhoneNumber: e.target.value })} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-400">{t.photoLabel}</label>
-                    <input type="file" onChange={handleEmployeePhotoUpload} className="p-2 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm file:bg-blue-600 file:text-white file:rounded-lg file:border-0" />
-                  </div>
-                  <button type="submit" disabled={empUploading} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-2 disabled:opacity-50 transition">
-                    {empUploading ? t.uploading : t.submitBtn}
+
+                  <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-2 disabled:opacity-50 transition">
+                    {loading ? "እየተመዘገበ ነው..." : "ሰራተኛውን መዝግብ"}
                   </button>
                 </form>
                 {employeeStatus && <p className="mt-4 text-center font-medium text-green-400 text-sm">{employeeStatus}</p>}
@@ -351,42 +279,45 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             {/* ሰራተኞች ዝርዝር ታብ */}
             {(activeTab === 'employees' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto ${activeTab !== 'employees' ? 'hidden lg:block' : ''}`}>
-                <h3 className="text-xl font-bold mb-4 text-blue-400">{t.listTitle}</h3>
+                <h3 className="text-xl font-bold mb-4 text-blue-400">📋 የተመዘገቡ ሰራተኞች ዝርዝር</h3>
                 <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
                     <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                      <th className="p-3">{t.nameCol}</th>
-                      <th className="p-3">{t.posCol}</th>
-                      <th className="p-3">{t.faydaCol}</th>
-                      <th className="p-3">{t.actionsCol}</th>
+                      <th className="p-3">ስም / Name</th>
+                      <th className="p-3">የስራ መደብ / Position</th>
+                      <th className="p-3">የፋይዳ ቁጥር</th>
+                      <th className="p-3">እርምጃዎች</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
                     {employeeList.map((emp) => (
                       <tr key={emp._id} className="hover:bg-gray-700/30">
                         <td className="p-3 font-semibold flex items-center gap-3">
-                          <img src={emp.imageUrl || 'https://via.placeholder.com/40'} alt={emp.fullName} className="w-10 h-10 rounded-full object-cover border border-blue-500" />
-                          {emp.fullName}
+                          <img src={emp.imageUrl || 'https://via.placeholder.com/40'} alt={emp.nameAmh} className="w-10 h-10 rounded-full object-cover border border-blue-500" />
+                          <div>
+                            <div>{emp.nameAmh}</div>
+                            <div className="text-xs text-gray-400">{emp.nameEng}</div>
+                          </div>
                         </td>
-                        <td className="p-3 text-gray-300">{emp.position}</td>
+                        <td className="p-3 text-gray-300">
+                          <div>{emp.positionAmh}</div>
+                          <div className="text-xs text-gray-400">{emp.positionEng}</div>
+                        </td>
                         <td className="p-3 font-mono text-xs text-blue-300">{emp.faydaNumber}</td>
                         <td className="p-3">
                           <div className="flex gap-2 items-center">
                             <button onClick={() => setSelectedIdCard(emp)} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition">
-                              {t.idBtn}
-                            </button>
-                            <button onClick={() => handleEditClick(emp)} className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition">
-                              {t.editBtn}
+                              🪪 መታወቂያ
                             </button>
                             <button onClick={() => handleDeleteEmployee(emp._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition">
-                              {t.deleteBtn}
+                              🗑 አጥፋ
                             </button>
                           </div>
                         </td>
                       </tr>
                     ))}
                     {employeeList.length === 0 && (
-                      <tr><td colSpan="4" className="p-6 text-center text-gray-500">{t.noEmployees}</td></tr>
+                      <tr><td colSpan="4" className="p-6 text-center text-gray-500">ምንም የተመዘገበ ሰራተኛ የለም።</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -397,7 +328,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 POESSA Digital ID Card Modal */}
+      {/* 🪪 Dual-Language ID Card Modal */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border-4 border-[#1e3a60] overflow-hidden relative">
@@ -406,53 +337,58 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               ✕
             </button>
 
+            {/* ከላይ ሰማያዊ የርዕስ ክፍል */}
             <div className="bg-[#1e3a60] text-white text-center py-3 px-4">
               <h2 className="text-lg font-extrabold tracking-wider">POESSA DIGITAL ID</h2>
-              <p className="text-[11px] text-blue-200 mt-0.5">የጎን ዙሪያ ሰራተኛ ማህበራዊ ዋስትና አስተዳደር</p>
+              <p className="text-[11px] text-blue-200 mt-0.5">የጎንደር ዙሪያ ሰራተኛ ማህበራዊ ዋስትና አስተዳደር</p>
             </div>
 
+            {/* የካርዱ ዋና አካል */}
             <div className="p-5 flex flex-col gap-4">
               <div className="flex gap-5 items-start">
                 
+                {/* ፎቶ እና የፋይዳ ቁጥር ቦክስ */}
                 <div className="flex flex-col items-center gap-2 shrink-0">
                   <div className="w-28 h-32 bg-gray-200 rounded-lg overflow-hidden border-2 border-gray-300 shadow">
-                    <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.fullName} className="w-full h-full object-cover" />
+                    <img src={selectedIdCard.imageUrl || 'https://via.placeholder.com/100'} alt={selectedIdCard.nameAmh} className="w-full h-full object-cover" />
                   </div>
                   <div className="bg-red-50 border border-red-200 text-red-600 font-mono text-xs px-2.5 py-1 rounded tracking-wider font-bold">
                     {selectedIdCard.faydaNumber}
                   </div>
                 </div>
 
+                {/* መረጃዎች በሁለቱም ቋንቋዎች */}
                 <div className="flex-1 text-xs space-y-2 text-gray-800">
                   <div className="grid grid-cols-3 border-b pb-1">
                     <span className="font-bold text-gray-600">ስም/Name:</span>
-                    <span className="col-span-2 font-semibold text-gray-900">{selectedIdCard.fullName}</span>
+                    <span className="col-span-2 font-semibold text-gray-900">{selectedIdCard.nameAmh} / {selectedIdCard.nameEng}</span>
                   </div>
                   <div className="grid grid-cols-3 border-b pb-1">
-                    <span className="font-bold text-gray-600">FAYDA No:</span>
-                    <span className="col-span-2 font-mono text-gray-900">{selectedIdCard.faydaNumber}</span>
+                    <span className="font-bold text-gray-600">የስራ መደብ/Pos:</span>
+                    <span className="col-span-2 text-gray-900">{selectedIdCard.positionAmh} / {selectedIdCard.positionEng}</span>
                   </div>
                   <div className="grid grid-cols-3 border-b pb-1">
-                    <span className="font-bold text-gray-600">ስልክ ቁጥር/Phone:</span>
+                    <span className="font-bold text-gray-600">ስልክ/Phone:</span>
                     <span className="col-span-2">{selectedIdCard.phoneNumber}</span>
                   </div>
                   <div className="grid grid-cols-3 border-b pb-1">
-                    <span className="font-bold text-gray-600">ድርጅት/Address:</span>
-                    <span className="col-span-2">{selectedIdCard.city} - {selectedIdCard.address}</span>
+                    <span className="font-bold text-gray-600">አድራሻ/Address:</span>
+                    <span className="col-span-2">{selectedIdCard.city} - {selectedIdCard.addressAmh}</span>
                   </div>
                   <div className="grid grid-cols-3 border-b pb-1">
-                    <span className="font-bold text-gray-600">የወጣበት ቀን/Issue:</span>
+                    <span className="font-bold text-gray-600">የወጣበት/Issue:</span>
                     <span className="col-span-2">{selectedIdCard.dateOfIssue}</span>
                   </div>
                   <div className="grid grid-cols-3 pb-1">
-                    <span className="font-bold text-gray-600">የማጠቃለያ ጊዜ/Exp:</span>
+                    <span className="font-bold text-gray-600">የማብቂያ/Exp:</span>
                     <span className="col-span-2 text-red-600 font-bold">{selectedIdCard.expireDate}</span>
                   </div>
                 </div>
 
+                {/* QR Code */}
                 <div className="flex flex-col items-center justify-center shrink-0">
                   <div className="bg-white p-1 border rounded shadow-sm">
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.fullName}`} alt="QR Code" className="w-20 h-20" />
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=Fayda-${selectedIdCard.faydaNumber}-${selectedIdCard.nameAmh}`} alt="QR Code" className="w-20 h-20" />
                   </div>
                   <span className="text-[9px] text-gray-500 mt-1 font-bold tracking-tight">SCAN TO VERIFY</span>
                 </div>
@@ -466,7 +402,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
             <div className="p-3 bg-gray-50 border-t print:hidden">
               <button onClick={() => window.print()} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow text-sm transition">
-                {t.printBtn}
+                🖨 መታወቂያውን አትም (Print ID Card)
               </button>
             </div>
 
