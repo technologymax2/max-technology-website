@@ -410,8 +410,8 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             }
           `}} />
 
-          <div className="flex flex-col items-center gap-6 my-auto">
-            <button onClick={() => setSelectedIdCard(null)]} className="absolute top-4 right-4 text-white hover:text-gray-200 font-bold text-base bg-red-600 w-8 h-8 rounded-full flex items-center justify-center z-35 print:hidden">
+          <div className="flex flex-col items-center gap-6 my-auto relative">
+            <button onClick={() => setSelectedIdCard(null)} className="absolute -top-12 right-0 text-white hover:text-gray-200 font-bold text-base bg-red-600 w-8 h-8 rounded-full flex items-center justify-center z-35 print:hidden">
               ✕
             </button>
 
