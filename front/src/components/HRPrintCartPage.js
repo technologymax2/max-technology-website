@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Footer from './Footer';
 
 const API_BASE_URL = "https://max-tech-backend.onrender.com"; // Replace with your actual API base URL if needed
@@ -10,8 +10,6 @@ function HRPrintCartPage({ handleLogout }) {
   const [printCart, setPrintCart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-
-  const componentRef = useRef();
 
   // Search employees handler
   const handleSearch = async (e) => {
