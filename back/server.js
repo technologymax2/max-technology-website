@@ -588,6 +588,71 @@ app.post("/api/admin/send-new-message", async (req, res) => {
   }
 });
 
+
+// ==========================================
+// 9. የሽያጭ ሰራተኞች ማስተዳደሪያ መስመሮች (Sales Routes)
+// ==========================================
+
+// አዲስ የሽያጭ ሰራተኛ መመዝገቢያ (POST)
+app.post("/api/admin/sales", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል ቀድሞ ተመዝግቧል!" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newSales = new User({
+      name,
+      email: cleanEmail,
+      password: hashedPassword,
+      role: "sales", // የሰራተኛው role 'sales' ይሆናል
+    });
+
+    await newSales.save();
+    res.status(201).json({ success: true, message: "የሽያጭ ሰራተኛው በስኬት ተመዝግቧል!" });
+  } catch (error) {
+    console.error("Sales registration error:", error);
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል" });
+  }
+});
+
+// የሽያጭ ሰራተኞችን ዝርዝር ለማምጣት (GET)
+app.get("/api/admin/sales", async (req, res) => {
+  try {
+    const sales = await User.find({ role: "sales" }).select("-password");
+    res.status(200).json({ success: true, sales });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "የሽያጭ ሰራተኞችን ዝርዝር ማምጣት አልተቻለም" });
+  }
+});
+
+// የሽያጭ ሰራተኛን ለማጥፋት (DELETE)
+app.delete("/api/admin/sales/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "የሽያጭ ሰራተኛው ተሰርዟል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ማጥፋት አልተቻለም" });
+  }
+});
+
+// የሽያጭ ሰራተኛ ፓስወርድ ለመቀየር (PUT)
+app.put("/api/admin/sales/reset-password/:id", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
+    res.status(200).json({ success: true, message: "የሽያጭ ሰራተኛው ፓስወርድ ተቀይሯል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
+  }
+});
+
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "ሰርቨሩ ዝግጁ ነው!" });
 });
