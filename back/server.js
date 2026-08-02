@@ -156,6 +156,27 @@ app.delete("/api/sales/leads/:id", async (req, res) => {
   }
 });
 
+// 🗑️ የተመረጡትን ደንበኞች በጅምላ (Bulk Delete) ማጥፊያ ሮውት
+app.delete("/api/sales/leads-bulk", async (req, res) => {
+  try {
+    const { ids, deletedBy } = req.body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, error: "የሚጠፉ መረጃዎች አልተመረጡም!" });
+    }
+
+    // በ Mongoose አማካኝነት የተመረጡትን መረጃዎች በሙሉ በአንድ ጊዜ ከዳታቤዝ ማጥፋት
+    await Lead.deleteMany({ _id: { $in: ids } });
+
+    res.status(200).json({ success: true, message: "የተመረጡት ደንበኞች በስኬት ተሰርዘዋል!" });
+  } catch (error) {
+    console.error("Bulk delete error:", error);
+    res.status(500).json({ success: false, error: "በጅምላ ማጥፋት ላይ ስህተት ተፈጥሯል" });
+  }
+});
+
+
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
