@@ -11,7 +11,7 @@ function HRPrintCartPage({ handleLogout }) {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  // Search employees handler
+  // Search employees handler (ከ backend /api/hr/search ራውት ጋር የተጣጣመ)
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
@@ -20,8 +20,7 @@ function HRPrintCartPage({ handleLogout }) {
     setStatusMessage('');
 
     try {
-      const queryParam = searchFilter === 'phone' ? `phoneNumber=${searchTerm}` : `faydaNumber=${searchTerm}`;
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees/search?${queryParam}`);
+      const res = await fetch(`${API_BASE_URL}/api/hr/search?query=${encodeURIComponent(searchTerm)}`);
       const data = await res.json();
 
       if (data.success && data.employees) {
