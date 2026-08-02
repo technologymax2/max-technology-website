@@ -6,8 +6,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [uploading, setUploading] = useState(false);
   const [comments, setComments] = useState({});
   const [statuses, setStatuses] = useState({});
-  
-  // 👈 ሁሉንም የተመረጡ ሊዶች አይዲ ለመያዝ የሚያስችል ስቴት
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
 
   const fetchLeads = useCallback(async () => {
@@ -54,7 +52,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የጥሪ ሁኔታ፣ አስተያየት ማሻሻያ
+  // የጥሪ ሁኔታ፣ አስተያየት እና ያዘመነው ሰራተኛ ማሻሻያ
   const handleUpdateLead = async (id) => {
     const status = statuses[id] || "ያልተደወለ";
     const comment = comments[id] || "";
@@ -104,7 +102,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 👈 "ሁሉንም ምረጥ (Select All)" ቼክቦክስ ሲነካ የሚሰራ
+  // "ሁሉንም ምረጥ (Select All)" ቼክቦክስ ሲነካ የሚሰራ
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allIds = leads.map((lead) => lead._id);
@@ -114,7 +112,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 👈 አንድን ሊድ በቼክቦክስ መምረጥ/ አለመምረጥ
+  // አንድን ሊድ በቼክቦክስ መምረጥ/አለምረጥ
   const handleSelectOne = (id) => {
     if (selectedLeadIds.includes(id)) {
       setSelectedLeadIds(selectedLeadIds.filter((item) => item !== id));
@@ -123,7 +121,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 👈 የተመረጡትን ሁሉ በጅምላ ማጥፊያ (Delete Selected)
+  // የተመረጡትን በጅምላ በአንድ ጊዜ ማጥፊያ (Bulk Delete)
   const handleDeleteSelected = async () => {
     if (selectedLeadIds.length === 0) {
       return alert("እባክዎ መጀመሪያ ሊጥፏቸው የሚፈልጓቸውን ደንበኞች ይምረጡ!");
@@ -136,19 +134,25 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     if (!secondConfirm) return;
 
     try {
-      // በሉፕ ሁሉንም የተመረጡት ማጥፋት
-      for (const id of selectedLeadIds) {
-        await fetch(`${API_BASE_URL}/api/sales/leads/${id}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deletedBy: user?.name || "የሽያጭ ሰራተኛ" }),
-        });
-      }
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads-bulk`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          ids: selectedLeadIds,
+          deletedBy: user?.name || "የሽያጭ ሰራተኛ" 
+        }),
+      });
 
-      alert("የተመረጡት ደንበኞች በስኬት ተሰርዘዋል!");
-      setSelectedLeadIds([]);
-      fetchLeads();
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        setSelectedLeadIds([]);
+        fetchLeads();
+      } else {
+        alert(data.error || "ማጥፋት አልተቻለም");
+      }
     } catch (err) {
+      console.error("Bulk delete error:", err);
       alert("በማጥፋት ሂደት ላይ ስህተት ተፈጥሯል");
     }
   };
@@ -194,13 +198,12 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
         {/* የደንበኞች ዝርዝር እና የጥሪ ሁኔታ መቆጣጠሪያ */}
         <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md flex-grow">
           
-          {/* 👈 የርዕስ ክፍል እና የጅምላ ማጥፊያ ቁልፍ */}
+          {/* የርዕስ ክፍል እና የጅምላ ማጥፊያ ቁልፍ */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
             <h3 className="text-base font-bold text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({leads.length})</h3>
             
             {leads.length > 0 && (
               <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                {/* ሁሉንም መምረጫ ቼክቦክስ */}
                 <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer bg-gray-900 px-3 py-1.5 rounded border border-gray-700">
                   <input
                     type="checkbox"
@@ -211,7 +214,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                   ሁሉንም ምረጥ (Select All)
                 </label>
 
-                {/* የተመረጡትን በጅምላ ማጥፊያ ቁልፍ */}
                 <button
                   onClick={handleDeleteSelected}
                   disabled={selectedLeadIds.length === 0}
@@ -227,7 +229,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
             {leads.map((lead) => (
               <div key={lead._id} className="bg-gray-900 border border-gray-700 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 
-                {/* የደንበኛ መረጃ እና ቼክቦክስ */}
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
