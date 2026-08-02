@@ -21,7 +21,7 @@ app.use(
   })
 );
 
-// 👈 ስታቲክ ፋይሎችን (ለምሳሌ ዌብሳይቱን ወይም verify.html ፋይልን) ሰርቨሩ እንዲያነበው ማድረግ
+// 👈 ስታቲክ ፋይሎችን ሰርቨሩ እንዲያነበው ማድረግ
 app.use(express.static(path.join(__dirname, "public")));
 
 // MongoDB የግንኙነት መስመር
@@ -51,7 +51,7 @@ const leadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model("Lead", leadSchema);
 
-// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት
+// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የተስተካከለ)
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -64,20 +64,42 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     const sheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    // rows ውስጥ ያሉትን መረጃዎች ወደ ዳታቤዝ ማስገባት
-    // (በእርስዎ ኤክሴል ሄደር መሰረት ኪዎቹን ማስተካከል ይቻላል፣ ለምሳሌ: name, phone, address, businessType)
+    if (!rows || rows.length === 0) {
+      return res.status(400).json({ success: false, error: "የኤክሴል ፋይሉ ባዶ ነው!" });
+    }
+
     let count = 0;
     for (const row of rows) {
-      if (row.Phone || row.phone) { // ስልክ ቁጥር ካለው ይመዝገብ
+      // ሄደሮቹ በትልቅም ሆነ በትንሽ ፊደል ቢጻፉ እንዲያነባቸው ማድረግ
+      const rowKeys = Object.keys(row);
+      const getVal = (possibleKeys) => {
+        for (const k of possibleKeys) {
+          const foundKey = rowKeys.find(rk => rk.toLowerCase().trim() === k.toLowerCase());
+          if (foundKey && row[foundKey] !== undefined) return row[foundKey];
+        }
+        return "";
+      };
+
+      const name = getVal(["name", "ስም", "fullname", "full name", "ደንበኛ"]);
+      const phone = getVal(["phone", "telefon", "telephone", "mobile", "cell", "ስልክ", "ስልክ ቁጥር"]);
+      const address = getVal(["address", "location", "place", "አድራሻ", "ከተማ"]);
+      const businessType = getVal(["businesstype", "business", "type", "የስራ አይነት", "ድርጅት"]);
+
+      // ስልክ ቁጥር ካለ ብቻ ይመዝገብ
+      if (phone) {
         await Lead.create({
-          name: row.Name || row.name || "ስም የሌለው",
-          businessType: row.BusinessType || row.businessType || "",
-          address: row.Address || row.address || "",
-          phone: String(row.Phone || row.phone),
+          name: String(name || "ስም የሌለው").trim(),
+          businessType: String(businessType || "").trim(),
+          address: String(address || "").trim(),
+          phone: String(phone).trim(),
           status: "ያልተደወለ",
         });
         count++;
       }
+    }
+
+    if (count === 0) {
+      return res.status(400).json({ success: false, error: "በፋይሉ ውስጥ የሚነበብ ስልክ ቁጥር ያለው መረጃ አልተገኘም!" });
     }
 
     res.status(200).json({ success: true, message: `${count} ደንበኞች በስኬት ተጭነዋል!` });
@@ -501,7 +523,7 @@ app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
   }
 });
 
-// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ (ለQR Code ማረጋገጫ የሚሆን) 👉 (ይህንን መስመር ጨምሬዋለሁ)
+// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ
 app.get("/api/hr/verify/:id", async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
@@ -666,7 +688,6 @@ app.post("/api/admin/send-new-message", async (req, res) => {
   }
 });
 
-
 // ==========================================
 // 9. የሽያጭ ሰራተኞች ማስተዳደሪያ መስመሮች (Sales Routes)
 // ==========================================
@@ -687,7 +708,7 @@ app.post("/api/admin/sales", async (req, res) => {
       name,
       email: cleanEmail,
       password: hashedPassword,
-      role: "sales", // የሰራተኛው role 'sales' ይሆናል
+      role: "sales",
     });
 
     await newSales.save();
@@ -729,7 +750,6 @@ app.put("/api/admin/sales/reset-password/:id", async (req, res) => {
     res.status(500).json({ success: false, error: "ፓስወርድ መቀየር አልተቻለም" });
   }
 });
-
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "ሰርቨሩ ዝግጁ ነው!" });
