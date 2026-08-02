@@ -418,7 +418,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
 
-                  {/* 🛠️ እዚህጋ ቀኖቹ እንዳይለዋወጡ እና ግልጽ እንዲሆኑ በግልጽ ሌብል ተሰጥቷቸዋል */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">እድሜ / Age</label>
@@ -500,12 +499,12 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
           <style dangerouslySetInnerHTML={{__html: `
             @page {
               size: landscape;
-              margin: 0;
+              margin: 5mm;
             }
             @media print {
               body, html {
-                width: 100vw;
-                height: 100vh;
+                width: 100%;
+                height: 100%;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
@@ -518,27 +517,32 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               }
               .print-container {
                 position: absolute !important;
-                left: 50% !important;
-                top: 50% !important;
-                transform: translate(-50%, -50%) scale(1.25) !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
                 display: flex !important;
                 flex-direction: row !important;
-                gap: 25px !important;
+                flex-wrap: nowrap !important;
+                gap: 15px !important;
                 align-items: center !important;
                 justify-content: center !important;
-                width: auto !important;
-                height: auto !important;
-                box-shadow: none !important;
+                transform: none !important;
+                background: white !important;
                 page-break-after: avoid !important;
                 page-break-before: avoid !important;
+                page-break-inside: avoid !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
               .printable-card {
+                transform: scale(0.85) !important;
+                transform-origin: center !important;
                 box-shadow: none !important;
                 border-radius: 10px !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
               }
             }
           `}} />
@@ -643,7 +647,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           </div>
                         </div>
 
-                        {/* 🛠️ በመታወቂያ ካርዱ ጀርባ ላይ የተሰጠበት እና የሚያበቃበት ቀኖች ግልጽ በሆነ ርዕስ ተቀምጠዋል */}
                         <div className="text-[9px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20">
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
                             <span className="text-gray-400 font-medium">የፋይዳ ቁጥር:</span>
