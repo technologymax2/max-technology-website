@@ -2,17 +2,16 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
-const path = require("path"); // 👈 ፋይሎችን እና ፎልደሮችን ለማንበብ የሚያስችል
+const path = require("path"); 
 require("dotenv").config();
 
 const multer = require("multer");
 const XLSX = require("xlsx");
-const upload = multer({ storage: multer.memoryStorage() }); // ፋይሉን በሜሞሪ ውስጥ ተቀብሎ ለማንበብ
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 app.use(express.json());
 
-// የ CORS አደረጃጀት
 app.use(
   cors({
     origin: "*",
@@ -21,10 +20,8 @@ app.use(
   })
 );
 
-// 👈 ስታቲክ ፋይሎችን ሰርቨሩ እንዲያነበው ማድረግ
 app.use(express.static(path.join(__dirname, "public")));
 
-// MongoDB የግንኙነት መስመር
 const MONGO_URI = process.env.MONGO_URI;
 mongoose
   .connect(MONGO_URI)
@@ -38,23 +35,21 @@ mongoose
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
 // ==========================================
 
-// የደንበኞች/የሊድስ (Leads) ዳታቤዝ ሞዴል (የጫነው፣ ያዘመነው እና ያጠፋው ሰራተኛ የሚመዘገብበት)
 const leadSchema = new mongoose.Schema({
   name: { type: String, required: true },
   businessType: { type: String, default: "" },
   address: { type: String, default: "" },
   phone: { type: String, required: true },
-  status: { type: String, default: "ያልተደወለ" }, // ያልተደወለ, በጥበቃ ላይ, ተስማምቷል, ጥሪው ያበቃ
+  status: { type: String, default: "ያልተደወለ" },
   comment: { type: String, default: "" },
-  salesPerson: { type: String, default: "" }, // ማን እንደደወለበት ለማወቅ
-  uploadedBy: { type: String, default: "" },   // ፋይሉን የጫነው ሰራተኛ ስም
-  updatedBy: { type: String, default: "" },   // መረጃውን ያዘመነው ሰራተኛ ስም
-  deletedBy: { type: String, default: "" },   // መረጃውን ያጠፋው ሰራተኛ ስም
+  salesPerson: { type: String, default: "" },
+  uploadedBy: { type: String, default: "" },   
+  updatedBy: { type: String, default: "" },   
+  deletedBy: { type: String, default: "" },   
   date: { type: Date, default: Date.now },
 });
 const Lead = mongoose.model("Lead", leadSchema);
 
-// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የጫነውን ሰራተኛ ጨምሮ)
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -62,8 +57,6 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     }
 
     const uploadedBy = req.body.uploadedBy || "ያልታወቀ ሰራተኛ";
-
-    // ኤክሴል ፋይሉን ማንበብ
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -74,14 +67,13 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     }
 
     let count = 0;
-    // ከሁለተኛው ረድፍ ጀምሮ ማንበብ (የመጀመሪያው ሄደር ስለሆነ)
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || row.length === 0) continue;
 
       const name = row[0] || "ስም የሌለው";
-      const businessType = row[2] || ""; // ኮለም C (የንግድ ዓይነት)
-      const address = row[3] || "";    // ኮለም D (አድራሻ)
+      const businessType = row[2] || ""; 
+      const address = row[3] || "";    
       
       let phone = "";
       let websiteInfo = "";
@@ -120,7 +112,6 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   }
 });
 
-// 2. የደንበኞችን ዝርዝር ማምጫ
 app.get("/api/sales/leads", async (req, res) => {
   try {
     const leads = await Lead.find().sort({ date: -1 });
@@ -130,7 +121,6 @@ app.get("/api/sales/leads", async (req, res) => {
   }
 });
 
-// 3. የጥሪ ሁኔታ (Status)፣ አስተያየት (Comment) እና ያዘመነው ሰራተኛ (updatedBy) ማሻሻያ
 app.put("/api/sales/leads/:id", async (req, res) => {
   try {
     const { status, comment, salesPerson, updatedBy } = req.body;
@@ -146,7 +136,6 @@ app.put("/api/sales/leads/:id", async (req, res) => {
   }
 });
 
-// 4. ሊድ ማጥፊያ
 app.delete("/api/sales/leads/:id", async (req, res) => {
   try {
     const { deletedBy } = req.body;
@@ -161,7 +150,6 @@ app.delete("/api/sales/leads/:id", async (req, res) => {
   }
 });
 
-// 🗑️ የተመረጡትን ደንበኞች በጅምላ (Bulk Delete) ማጥፊያ ሮውት
 app.delete("/api/sales/leads-bulk", async (req, res) => {
   try {
     const { ids, deletedBy } = req.body;
@@ -183,7 +171,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: "normal" }, // 'normal', 'admin', 'hr', 'sales'
+  role: { type: String, default: "normal" }, 
   isBlocked: { type: Boolean, default: false },
 });
 const User = mongoose.model("User", userSchema);
@@ -198,14 +186,14 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (የዩኒክ ኢሜይል ስህተት እንዳይፈጥር ተስተካክሏል)
+// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (dateOfIssue እና expireDate በግልጽ ተቀምጠዋል)
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
   age: { type: String, default: "" },
   faydaNumber: { type: String, required: true, unique: true },
-  dateOfIssue: { type: String, default: "" },
-  expireDate: { type: String, default: "" },
+  dateOfIssue: { type: String, default: "" }, // 👈 የተሰጠበት ቀን
+  expireDate: { type: String, default: "" },  // 👈 የሚያበቃበት ቀን
   addressAmh: { type: String, default: "" },
   addressEng: { type: String, default: "" },
   zone: { type: String, default: "" },
@@ -233,9 +221,6 @@ const projectSchema = new mongoose.Schema({
 });
 const Project = mongoose.model("Project", projectSchema);
 
-// ==========================================
-// 2. የመጀመሪያው አድሚን መፍጠሪያ (SEEDING)
-// ==========================================
 async function seedFirstAdmin() {
   try {
     const adminEmail = "mamaruanmaw@1925";
@@ -257,9 +242,6 @@ async function seedFirstAdmin() {
   }
 }
 
-// ==========================================
-// 3. ፖርትፎሊዮ / ፕሮጀክት መስመሮች (PROJECT ROUTES)
-// ==========================================
 app.post("/api/admin/projects", async (req, res) => {
   try {
     const newProject = new Project(req.body);
@@ -288,9 +270,6 @@ app.delete("/api/admin/projects/:id", async (req, res) => {
   }
 });
 
-// ==========================================
-// 4. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
-// ==========================================
 app.post("/api/auth/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -298,9 +277,7 @@ app.post("/api/auth/signup", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res
-        .status(400)
-        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -334,21 +311,15 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     if (!user)
-      return res
-        .status(400)
-        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     if (user.isBlocked) {
-      return res
-        .status(403)
-        .json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።" });
+      return res.status(403).json({ success: false, error: "አካውንትዎ በአድሚን ታግዷል! እባክዎ ባለሙያ ያነጋግሩ።" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res
-        .status(400)
-        .json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
+      return res.status(400).json({ success: false, error: "ኢሜይል/ዩዘርኔም ወይም ፓስወርድ ተሳስቷል!" });
 
     res.status(200).json({
       success: true,
@@ -364,9 +335,6 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// ==========================================
-// 5. የአድሚን መቆጣጠሪያ መስመሮች (ADMIN CONTROL ROUTES)
-// ==========================================
 app.post("/api/admin/add-admin", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -374,9 +342,7 @@ app.post("/api/admin/add-admin", async (req, res) => {
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser)
-      return res
-        .status(400)
-        .json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
+      return res.status(400).json({ success: false, error: "ይህ ኢሜይል/ዩዘርኔም ቀድሞ ተመዝግቧል!" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new User({
@@ -466,9 +432,6 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
   }
 });
 
-// ==========================================
-// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች
-// ==========================================
 app.post("/api/hr/employees", async (req, res) => {
   try {
     const { faydaNumber } = req.body;
@@ -595,9 +558,6 @@ app.get("/api/hr/search", async (req, res) => {
   }
 });
 
-// ==========================================
-// 7. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
-// ==========================================
 app.get("/api/admin/users", async (req, res) => {
   try {
     const registeredUsers = await User.find({ role: "normal" })
@@ -676,9 +636,6 @@ app.delete("/api/admin/users/delete/:id", async (req, res) => {
   }
 });
 
-// ==========================================
-// 8. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
-// ==========================================
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -686,9 +643,7 @@ app.post("/api/contact", async (req, res) => {
 
     const checkUser = await User.findOne({ email: cleanEmail });
     if (checkUser && checkUser.isBlocked) {
-      return res
-        .status(403)
-        .json({ success: false, error: "አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!" });
+      return res.status(403).json({ success: false, error: "አካውንትዎ የታገደ በመሆኑ መልዕክት መላክ አይችሉም!" });
     }
 
     const newContact = new Contact({ name, email: cleanEmail, message });
@@ -703,9 +658,7 @@ app.post("/api/admin/send-new-message", async (req, res) => {
   try {
     const { name, email, message } = req.body;
     if (!email || !message) {
-      return res
-        .status(400)
-        .json({ success: false, error: "እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!" });
+      return res.status(400).json({ success: false, error: "እባክዎ ኢሜይል እና መልዕክት በትክክል ያስገቡ!" });
     }
     const cleanEmail = email.toLowerCase().trim();
 
@@ -723,9 +676,6 @@ app.post("/api/admin/send-new-message", async (req, res) => {
   }
 });
 
-// ==========================================
-// 9. የሽያጭ ሰራተኞች ማስተዳደሪያ መስመሮች (Sales Routes)
-// ==========================================
 app.post("/api/admin/sales", async (req, res) => {
   try {
     const { name, email, password } = req.body;
