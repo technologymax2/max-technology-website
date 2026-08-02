@@ -38,25 +38,30 @@ mongoose
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
 // ==========================================
 
-// የደንበኞች/የሊድስ (Leads) ዳታቤዝ ሞዴል
+// የደንበኞች/የሊድስ (Leads) ዳታቤዝ ሞዴል (የጫነው፣ ያዘመነው እና ያጠፋው ሰራተኛ የሚመዘገብበት)
 const leadSchema = new mongoose.Schema({
   name: { type: String, required: true },
   businessType: { type: String, default: "" },
   address: { type: String, default: "" },
   phone: { type: String, required: true },
-  status: { type: String, default: "ያልተደወለ" }, // ያልተደወለ, ያልተነሳ, ጥሪው ያበቃ, ተስማምቷል
+  status: { type: String, default: "ያልተደወለ" }, // ያልተደወለ, በጥበቃ ላይ, ተስማምቷል, ጥሪው ያበቃ
   comment: { type: String, default: "" },
   salesPerson: { type: String, default: "" }, // ማን እንደደወለበት ለማወቅ
+  uploadedBy: { type: String, default: "" },   // ፋይሉን የጫነው ሰራተኛ ስም
+  updatedBy: { type: String, default: "" },   // መረጃውን ያዘመነው ሰራተኛ ስም
+  deletedBy: { type: String, default: "" },   // መረጃውን ያጠፋው ሰራተኛ ስም
   date: { type: Date, default: Date.now },
 });
 const Lead = mongoose.model("Lead", leadSchema);
 
-// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የተስተካከለ)
+// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የጫነውን ሰራተኛ ጨምሮ)
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: "እባክዎ የ Excel ፋይል ይምረጡ!" });
     }
+
+    const uploadedBy = req.body.uploadedBy || "ያልታወቀ ሰራተኛ";
 
     // ኤክሴል ፋይሉን ማንበብ
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
@@ -93,6 +98,7 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
           address: String(address || "").trim(),
           phone: String(phone).trim(),
           status: "ያልተደወለ",
+          uploadedBy: uploadedBy,
         });
         count++;
       }
@@ -119,14 +125,15 @@ app.get("/api/sales/leads", async (req, res) => {
   }
 });
 
-// 3. የጥሪ ሁኔታ (Status) እና አስተያየት (Comment) ማሻሻያ
+// 3. የጥሪ ሁኔታ (Status)፣ አስተያየት (Comment) እና ያዘመነው ሰራተኛ (updatedBy) ማሻሻያ
 app.put("/api/sales/leads/:id", async (req, res) => {
   try {
-    const { status, comment, salesPerson } = req.body;
+    const { status, comment, salesPerson, updatedBy } = req.body;
     await Lead.findByIdAndUpdate(req.params.id, {
       status,
       comment,
       salesPerson,
+      updatedBy: updatedBy || "ያልታወቀ ሰራተኛ",
     });
     res.status(200).json({ success: true, message: "መረጃው ተዘምኗል!" });
   } catch (error) {
@@ -134,11 +141,26 @@ app.put("/api/sales/leads/:id", async (req, res) => {
   }
 });
 
+// 4. ሊድ ማጥፊያ (ያጠፋውን ሰራተኛ ስም (deletedBy) የሚመዘግብ)
+app.delete("/api/sales/leads/:id", async (req, res) => {
+  try {
+    const { deletedBy } = req.body;
+    await Lead.findByIdAndUpdate(req.params.id, {
+      deletedBy: deletedBy || "ያልታወቀ ሰራተኛ"
+    });
+    await Lead.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ success: true, message: "መረጃው ተሰርዟል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ማጥፋት አልተቻለም" });
+  }
+});
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: "normal" }, // 'normal', 'admin', 'hr'
+  role: { type: String, default: "normal" }, // 'normal', 'admin', 'hr', 'sales'
   isBlocked: { type: Boolean, default: false },
 });
 const User = mongoose.model("User", userSchema);
@@ -153,7 +175,6 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// ከ HRDashboard ፎርም ጋር 100% የሚጣጣም የሰራተኛ ሞዴል
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
@@ -420,10 +441,8 @@ app.delete("/api/admin/messages/:id", async (req, res) => {
 });
 
 // ==========================================
-// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች (HRDashboard Compatible)
+// 6. የ HR / ሰራተኞች ማስተዳደሪያ መስመሮች
 // ==========================================
-
-// አዲስ ሰራተኛ መመዝገቢያ (POST)
 app.post("/api/hr/employees", async (req, res) => {
   try {
     const { faydaNumber } = req.body;
@@ -441,11 +460,10 @@ app.post("/api/hr/employees", async (req, res) => {
     res.status(201).json({ success: true, message: "ሰራተኛው በስኬት ተመዝግቧል!", employee: newEmployee });
   } catch (error) {
     console.error("Employee registration error:", error);
-    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል, መረጃውን ማስቀመጥ አልተቻለም!" });
+    res.status(500).json({ success: false, error: "ሰርቨር ላይ ስህተት ተፈጥሯል!" });
   }
 });
 
-// ሰራተኞችን ማምጫ (GET)
 app.get("/api/hr/employees", async (req, res) => {
   try {
     const employees = await Employee.find().sort({ date: -1 });
@@ -455,7 +473,6 @@ app.get("/api/hr/employees", async (req, res) => {
   }
 });
 
-// ሰራተኛ ማጥፊያ (DELETE)
 app.delete("/api/hr/employees/:id", async (req, res) => {
   try {
     await Employee.findByIdAndDelete(req.params.id);
@@ -465,7 +482,6 @@ app.delete("/api/hr/employees/:id", async (req, res) => {
   }
 });
 
-// አዲስ HR ለመመዝገብ
 app.post("/api/admin/hrs", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -491,7 +507,6 @@ app.post("/api/admin/hrs", async (req, res) => {
   }
 });
 
-// የ HR ዝርዝሮችን ለማምጣት
 app.get("/api/admin/hrs", async (req, res) => {
   try {
     const hrs = await User.find({ role: "hr" }).select("-password");
@@ -501,7 +516,6 @@ app.get("/api/admin/hrs", async (req, res) => {
   }
 });
 
-// HR ለማጥፋት
 app.delete("/api/admin/hrs/:id", async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -511,7 +525,6 @@ app.delete("/api/admin/hrs/:id", async (req, res) => {
   }
 });
 
-// የ HR ፓስወርድ ለመቀየር
 app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -523,7 +536,6 @@ app.put("/api/admin/hrs/reset-password/:id", async (req, res) => {
   }
 });
 
-// የሰራተኛውን መረጃ በID ፈልጎ ማምጫ
 app.get("/api/hr/verify/:id", async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
@@ -536,7 +548,6 @@ app.get("/api/hr/verify/:id", async (req, res) => {
   }
 });
 
-// ሰራተኞችን በፍለጋ (Search) ማምጫ
 app.get("/api/hr/search", async (req, res) => {
   try {
     const { query } = req.query;
@@ -589,9 +600,7 @@ app.get("/api/admin/users", async (req, res) => {
 
     res.status(200).json({ success: true, users: finalUsersList });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, error: "የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም" });
+    res.status(500).json({ success: false, error: "የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም" });
   }
 });
 
@@ -691,8 +700,6 @@ app.post("/api/admin/send-new-message", async (req, res) => {
 // ==========================================
 // 9. የሽያጭ ሰራተኞች ማስተዳደሪያ መስመሮች (Sales Routes)
 // ==========================================
-
-// አዲስ የሽያጭ ሰራተኛ መመዝገቢያ (POST)
 app.post("/api/admin/sales", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -719,7 +726,6 @@ app.post("/api/admin/sales", async (req, res) => {
   }
 });
 
-// የሽያጭ ሰራተኞችን ዝርዝር ለማምጣት (GET)
 app.get("/api/admin/sales", async (req, res) => {
   try {
     const sales = await User.find({ role: "sales" }).select("-password");
@@ -729,7 +735,6 @@ app.get("/api/admin/sales", async (req, res) => {
   }
 });
 
-// የሽያጭ ሰራተኛን ለማጥፋት (DELETE)
 app.delete("/api/admin/sales/:id", async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -739,7 +744,6 @@ app.delete("/api/admin/sales/:id", async (req, res) => {
   }
 });
 
-// የሽያጭ ሰራተኛ ፓስወርድ ለመቀየር (PUT)
 app.put("/api/admin/sales/reset-password/:id", async (req, res) => {
   try {
     const { newPassword } = req.body;
