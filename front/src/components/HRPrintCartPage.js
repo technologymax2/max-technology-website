@@ -218,12 +218,12 @@ function HRPrintCartPage({ handleLogout }) {
                     width: 100% !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    gap: 15mm !important;
+                    gap: 10mm !important;
                   }
                   .print-card-wrapper {
                     page-break-inside: avoid;
                     break-inside: avoid;
-                    margin-bottom: 10mm;
+                    margin-bottom: 5mm;
                   }
                   .print-card-box {
                     background-color: #0b192c !important;
@@ -232,13 +232,19 @@ function HRPrintCartPage({ handleLogout }) {
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
+                  /* በህትመት ጊዜ ትክክለኛ የመታወቂያ መጠን እንዲኖረው መለኪያ */
+                  .print-scale-container {
+                    transform: scale(0.75);
+                    transform-origin: top center;
+                    margin-bottom: -25% !important;
+                  }
                 }
               `}} />
 
               {/* የሚታተሙ መታወቂያዎች ዝርዝር */}
               <div id="printable-cart-container" className="space-y-8">
                 {printCart.map((emp) => (
-                  <div key={emp._id} className="relative bg-gray-900 p-3 sm:p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0 overflow-x-auto">
+                  <div key={emp._id} className="relative bg-gray-900 p-3 sm:p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0 overflow-x-auto print-scale-container">
                     
                     <button 
                       onClick={() => removeFromCart(emp._id)} 
