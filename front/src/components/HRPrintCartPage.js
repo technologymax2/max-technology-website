@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import Footer from './Footer';
 
 const API_BASE_URL = "https://max-tech-backend.onrender.com"; // Replace with your actual API base URL if needed
