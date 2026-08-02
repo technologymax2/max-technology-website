@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import Login from "./components/Login";
 import AdminDashboard from "./components/AdminDashboard";
 import HrDashboard from "./components/HrDashboard";
-import HRPrintCartPage from "./components/HRPrintCartPage"; // 1. Import Print Cart Page
+import HRPrintCartPage from "./components/HRPrintCartPage";
+import SalesDashboard from "./components/SalesDashboard"; // 👈 ተጨምሯል
 import OrderPage from "./components/OrderPage";
 import Footer from "./components/Footer";
 import logoImg from "./logo.jpg";
@@ -32,7 +33,6 @@ function App() {
   const [status, setStatus] = useState("");
   const [projects, setProjects] = useState([]);
 
-  // የ QR ኮዱ ሊንክ ሲከፈት ዩአርኤሉ ላይ /verify/ መኖሩን ማረጋገጥ
   useEffect(() => {
     const path = window.location.pathname;
     if (path.includes("/verify/")) {
@@ -93,6 +93,8 @@ function App() {
             setCurrentScreen("admin-dashboard");
           } else if (data.user.role === "hr") {
             setCurrentScreen("hr-dashboard");
+          } else if (data.user.role === "sales") {
+            setCurrentScreen("sales-dashboard"); // 👈 የሽያጭ ሰራተኛ ማረጋገጫ
           } else {
             setCurrentScreen("order-page");
           }
@@ -113,7 +115,6 @@ function App() {
     setCurrentScreen("home");
   };
 
-  // የ QR ሊንክ ሲከፈት ሰራተኛውን በቀጥታ ለማሳየት የሚያስችል የ HrDashboard ቅጂ ወይም ፖፕአፕ ማሳያ
   if (currentScreen === "verify-view") {
     return (
       <HrDashboard 
@@ -248,7 +249,6 @@ function App() {
     );
   }
 
-  // HR Dashboard with a toggle bar to switch to the Print Cart view
   if (currentScreen === "hr-dashboard" && user?.role === "hr") {
     return (
       <div className="flex flex-col min-h-screen bg-gray-900">
@@ -277,7 +277,6 @@ function App() {
     );
   }
 
-  // HR Print Cart Page with the same toggle bar
   if (currentScreen === "hr-print-cart" && user?.role === "hr") {
     return (
       <div className="flex flex-col min-h-screen bg-gray-900">
@@ -301,6 +300,17 @@ function App() {
           />
         </div>
       </div>
+    );
+  }
+
+  // 🛒 የሽያጭ ሰራተኛ ዳሽቦርድ ማሳያ (Sales Dashboard Screen)
+  if (currentScreen === "sales-dashboard" && user?.role === "sales") {
+    return (
+      <SalesDashboard 
+        user={user} 
+        handleLogout={handleLogout} 
+        API_BASE_URL={API_BASE_URL} 
+      />
     );
   }
 
