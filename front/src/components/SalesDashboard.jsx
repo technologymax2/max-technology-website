@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 function SalesDashboard({ user, API_BASE_URL }) {
   const [leads, setLeads] = useState([]);
@@ -7,7 +7,7 @@ function SalesDashboard({ user, API_BASE_URL }) {
   const [comments, setComments] = useState({});
   const [statuses, setStatuses] = useState({});
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/sales/leads`);
       const data = await res.json();
@@ -15,11 +15,11 @@ function SalesDashboard({ user, API_BASE_URL }) {
     } catch (err) {
       console.error("ሊንኮችን ማምጣት አልተቻለም");
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchLeads();
-  }, [API_BASE_URL]);
+  }, [fetchLeads]);
 
   // Excel ፋይል መጫኛ
   const handleUploadExcel = async (e) => {
