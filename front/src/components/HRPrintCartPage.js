@@ -11,21 +11,14 @@ function HRPrintCartPage({ handleLogout }) {
   const [printCart, setPrintCart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-
-  // ቋሚ የሆኑ የድርጅት መረጃዎች (ሎጎ፣ ስልክ እና ኢሜይል) ከ localStorage የሚነበቡ
-  const [companyLogoUrl] = useState(() => {
-    return localStorage.getItem('company_logo_url') || '';
-  });
   
-  const [companyPhone] = useState(() => {
-    return localStorage.getItem('company_phone') || '';
-  });
+  // የካርድ ዲዛይን ምርጫ: 'standard' ወይም 'chest'
+  const [cardStyle, setCardStyle] = useState('standard');
 
-  const [companyEmail] = useState(() => {
-    return localStorage.getItem('company_email') || '';
-  });
+  const [companyLogoUrl] = useState(() => localStorage.getItem('company_logo_url') || '');
+  const [companyPhone] = useState(() => localStorage.getItem('company_phone') || '');
+  const [companyEmail] = useState(() => localStorage.getItem('company_email') || '');
 
-  // Search employees handler
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
@@ -54,22 +47,20 @@ function HRPrintCartPage({ handleLogout }) {
     }
   };
 
-  // Add to Print Cart
   const addToCart = (employee) => {
     if (printCart.some((item) => item._id === employee._id)) {
       setStatusMessage('⚠️ ይህ ሰራተኛ አስቀድሞ ወደ ማተሚያ ዝርዝር (Cart) ገብቷል!');
       return;
     }
-    setPrintCart([...printCart, employee]);
+    // ሲጨመር የተመረጠውን የካርድ ስታይል አብሮ እንይዛለን
+    setPrintCart([...printCart, { ...employee, selectedStyle: cardStyle }]);
     setStatusMessage(`✅ ${employee.nameAmh} ወደ ማተሚያ ዝርዝር ተጨምሯል!`);
   };
 
-  // Remove from Print Cart
   const removeFromCart = (id) => {
     setPrintCart(printCart.filter((item) => item._id !== id));
   };
 
-  // Print all in Cart
   const handlePrint = () => {
     window.print();
   };
@@ -89,7 +80,36 @@ function HRPrintCartPage({ handleLogout }) {
 
       <div className="flex-1 w-full max-w-6xl mx-auto space-y-6 print:max-w-none print:m-0">
         
-        {/* ፍለጋ ផ្នែក (Search Section) */}
+        {/* የካርድ ዲዛይን መምረጫ (Select Card Design Style) */}
+        <div className="bg-gray-800 p-5 rounded-2xl shadow-lg border border-gray-700 print:hidden">
+          <label className="block text-sm font-bold text-yellow-400 mb-3">🎴 የካርድ ዲዛይን ቅርጸት ይምረጡ (Select Card Design Style)</label>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => setCardStyle('standard')}
+              className={`py-3 px-4 rounded-xl font-bold text-sm transition border ${
+                cardStyle === 'standard' 
+                  ? 'bg-blue-600 border-blue-400 text-white shadow-lg' 
+                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              መደበኛ መታወቂያ (Standard ID)
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardStyle('chest')}
+              className={`py-3 px-4 rounded-xl font-bold text-sm transition border ${
+                cardStyle === 'chest' 
+                  ? 'bg-blue-600 border-blue-400 text-white shadow-lg' 
+                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              የደረት ባጅ (Chest Badge)
+            </button>
+          </div>
+        </div>
+
+        {/* ፍለጋ ផ្នែក */}
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 print:hidden">
           <h3 className="text-xl font-bold mb-4 text-yellow-400">🔍 ሰራተኛ በስልክ ወይም በፋይዳ ቁጥር ፈልግ</h3>
           
@@ -172,7 +192,7 @@ function HRPrintCartPage({ handleLogout }) {
           ) : (
             <div className="space-y-6">
               
-              {/* CSS for Multi-ID Card Printing */}
+              {/* CSS for Printing Layout */}
               <style dangerouslySetInnerHTML={{__html: `
                 @page {
                   size: A4 portrait;
@@ -200,117 +220,161 @@ function HRPrintCartPage({ handleLogout }) {
                     width: 100% !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    gap: 15mm !important;
+                    gap: 10mm !important;
                   }
-                  .print-card-item {
-                    width: 85.6mm !important;
-                    height: 54mm !important;
-                    border: 1.5px solid #0f233c !important;
-                    border-radius: 8px !important;
-                    overflow: hidden !important;
+                  .print-card-wrapper {
                     page-break-inside: avoid;
-                    background: white !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                    margin: 0 auto;
+                    break-inside: avoid;
+                    margin-bottom: 10mm;
                   }
                 }
               `}} />
 
-              {/* የሚታተሙ መታወቂያዎች ግሪድ / ዝርዝር */}
-              <div id="printable-cart-container" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* የሚታተሙ መታወቂያዎች ዝርዝር */}
+              <div id="printable-cart-container" className="space-y-8">
                 {printCart.map((emp) => (
-                  <div key={emp._id} className="relative bg-white text-gray-900 rounded-2xl shadow-xl border-4 border-[#0f233c] overflow-hidden print-card-item">
+                  <div key={emp._id} className="relative bg-gray-900 p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0">
                     
-                    {/* ከጋሪ የማጥፊያ ቁልፍ (በፕሪንት ጊዜ ይጠፋል) */}
+                    {/* ከጋሪ የማጥፊያ ቁልፍ */}
                     <button 
                       onClick={() => removeFromCart(emp._id)} 
-                      className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-xs bg-red-600 w-6 h-6 rounded-full flex items-center justify-center z-10 print:hidden"
+                      className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-xs bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-20 print:hidden shadow-lg"
                       title="ከጋሪ አስወግድ"
                     >
                       ✕
                     </button>
 
-                    {/* ሄደር */}
-                    <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex items-center print:bg-[#0f233c] print:text-white print:py-1.5 relative">
-                      <div className="absolute left-3">
-                        <img 
-                          src={emp.logoUrl || companyLogoUrl || 'https://via.placeholder.com/30'} 
-                          alt="Logo" 
-                          className="w-7 h-7 rounded-full bg-white object-cover border border-[#d4af37]" 
-                        />
-                      </div>
-                      <div className="w-full text-center">
-                        <h2 className="text-xs sm:text-sm font-extrabold tracking-wider leading-tight text-white">MAX TECHNOLOGY</h2>
-                        <p className="text-[8px] sm:text-[9px] text-[#d4af37] font-medium">የሰራተኛ መታወቂያ ካርድ / Employee ID</p>
-                      </div>
-                    </div>
-
-                    {/* የካርዱ ዋና አካል */}
-                    <div className="p-3 sm:p-4 flex items-center justify-around gap-2 print:p-2.5">
-                      
-                      {/* ግራ በኩል፡ ፎቶ እና መረጃ */}
-                      <div className="flex flex-col items-center shrink-0 w-24 sm:w-28 print:w-20">
-                        <div className="w-20 h-24 sm:w-24 sm:h-28 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm">
-                          <img src={emp.imageUrl || 'https://via.placeholder.com/100'} alt={emp.nameEng} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="w-full text-center mt-1">
-                          <div className="text-[9px] sm:text-[10px] font-bold text-gray-900 truncate">
-                            {emp.nameEng}
+                    {/* 1. STANDARD ID DESIGN */}
+                    {emp.selectedStyle === 'standard' && (
+                      <div className="space-y-4">
+                        <div className="text-xs font-bold text-yellow-400 print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID)</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          
+                          {/* Front Side */}
+                          <div className="relative bg-white text-gray-900 rounded-2xl shadow-xl border-4 border-[#0f233c] overflow-hidden w-full max-w-[340px] mx-auto">
+                            <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex items-center relative">
+                              <div className="absolute left-3">
+                                <img src={emp.logoUrl || companyLogoUrl || 'https://via.placeholder.com/30'} alt="Logo" className="w-7 h-7 rounded-full bg-white object-cover border border-[#d4af37]" />
+                              </div>
+                              <div className="w-full text-center">
+                                <h2 className="text-xs font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
+                                <p className="text-[8px] text-[#d4af37] font-medium">EMPLOYEE ID CARD</p>
+                              </div>
+                            </div>
+                            <div className="p-3 flex items-center justify-around gap-2">
+                              <div className="flex flex-col items-center shrink-0 w-24">
+                                <div className="w-20 h-24 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shadow-sm">
+                                  <img src={emp.imageUrl || 'https://via.placeholder.com/100'} alt={emp.nameEng} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="w-full text-center mt-1">
+                                  <div className="text-[9px] font-bold text-gray-900 truncate">{emp.nameEng}</div>
+                                  <div className="text-[8px] text-gray-700 font-semibold">{emp.positionEng || emp.positionAmh}</div>
+                                </div>
+                              </div>
+                              <div className="flex-1 text-[11px] space-y-1 text-gray-800 px-1">
+                                <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">ሀገር:</span><span>{emp.nationality || 'Ethiopian'}</span></div>
+                                <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">ከተማ:</span><span>{emp.city || 'አዲስ አበባ'}</span></div>
+                                <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">አድራሻ:</span><span>{emp.addressEng || 'Addis Ababa'}</span></div>
+                                <div className="flex justify-between pb-0.5"><span className="font-bold text-gray-600">ስልክ:</span><span className="font-mono">{emp.phoneNumber}</span></div>
+                              </div>
+                            </div>
+                            <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1 px-4 text-center">
+                              <p className="text-[8px] text-[#d4af37] font-semibold">Max Technology Employee Card</p>
+                            </div>
                           </div>
-                          <div className="text-[8px] sm:text-[9px] text-gray-700 font-mono">
-                            📞 {emp.phoneNumber}
+
+                          {/* Back Side */}
+                          <div className="relative bg-white text-gray-900 rounded-2xl shadow-xl border-4 border-[#0f233c] overflow-hidden w-full max-w-[340px] mx-auto flex flex-col justify-between">
+                            <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 text-center">
+                              <h2 className="text-xs font-extrabold tracking-wider text-white">ማህደር መረጃ / ID Details</h2>
+                            </div>
+                            <div className="p-3 space-y-1.5 text-[11px] text-gray-800">
+                              <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">ድርጅት ስልክ:</span><span className="font-mono">{emp.orgPhoneNumber || companyPhone || 'N/A'}</span></div>
+                              <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">ኢሜይል:</span><span className="text-[10px]">{emp.orgEmail || companyEmail || 'technologymax2@gmail.com'}</span></div>
+                              <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">ፋይዳ ቁጥር:</span><span className="font-mono">{emp.faydaNumber}</span></div>
+                              <div className="flex justify-between border-b pb-0.5"><span className="font-bold text-gray-600">የተሰጠበት ቀን:</span><span>{emp.dateOfIssue}</span></div>
+                              <div className="flex justify-between pb-0.5"><span className="font-bold text-gray-600">የማብቂያ ቀን:</span><span className="text-red-600 font-bold">{emp.expireDate}</span></div>
+                            </div>
+                            <div className="p-2 flex flex-col items-center justify-center bg-gray-50 border-t">
+                              <div className="bg-white p-1 border rounded shadow-sm">
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR" className="w-14 h-14" />
+                              </div>
+                              <span className="text-[7px] text-gray-500 font-bold mt-0.5">SCAN TO VERIFY</span>
+                            </div>
                           </div>
-                          <div className="text-[8px] sm:text-[9px] text-gray-600 truncate">
-                            📍 {emp.city || emp.addressEng}
+
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2. CHEST BADGE DESIGN */}
+                    {emp.selectedStyle === 'chest' && (
+                      <div className="space-y-4">
+                        <div className="text-xs font-bold text-yellow-400 print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge)</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          
+                          {/* Badge Front */}
+                          <div className="relative bg-white text-gray-900 rounded-2xl shadow-xl border-4 border-[#0f233c] overflow-hidden w-full max-w-[340px] mx-auto">
+                            <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <img src={emp.logoUrl || companyLogoUrl || 'https://via.placeholder.com/30'} alt="Logo" className="w-6 h-6 rounded-full bg-white object-cover border border-[#d4af37]" />
+                                <div>
+                                  <h2 className="text-[10px] font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
+                                  <p className="text-[7px] text-[#d4af37]">EMPLOYEE BADGE</p>
+                                </div>
+                              </div>
+                              <div className="text-right text-[8px] text-gray-300">
+                                <div>ስልክ: {emp.phoneNumber}</div>
+                                <div>ኢሜይል: {emp.orgEmail || companyEmail || 'technologymax2@gmail.com'}</div>
+                              </div>
+                            </div>
+                            <div className="p-3 flex items-center justify-around gap-2">
+                              <div className="w-20 h-24 bg-gray-200 rounded-lg overflow-hidden border-2 border-[#0f233c] shrink-0">
+                                <img src={emp.imageUrl || 'https://via.placeholder.com/100'} alt={emp.nameEng} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 text-[11px] space-y-1">
+                                <div className="font-bold text-gray-900">{emp.nameAmh}</div>
+                                <div className="text-gray-600 text-[10px]">{emp.nameEng}</div>
+                                <div className="text-[#d4af37] font-bold text-[10px]">{emp.positionEng || emp.positionAmh}</div>
+                                <div className="text-gray-700 text-[9px]">አድራሻ: {emp.addressEng || 'Adiss Ababa'}</div>
+                                <div className="text-gray-700 text-[9px]">ስልክ: {emp.phoneNumber}</div>
+                              </div>
+                              <div className="flex flex-col items-center shrink-0">
+                                <div className="bg-white p-1 border rounded shadow-sm">
+                                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR" className="w-14 h-14" />
+                                </div>
+                                <span className="text-[7px] text-gray-500 font-bold mt-0.5">SCAN</span>
+                              </div>
+                            </div>
+                            <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1 text-center">
+                              <p className="text-[7px] text-[#d4af37]">Authorized Corporate Badge - Max Technology</p>
+                            </div>
                           </div>
+
+                          {/* Badge Back */}
+                          <div className="relative bg-white text-gray-900 rounded-2xl shadow-xl border-4 border-[#0f233c] overflow-hidden w-full max-w-[340px] mx-auto flex flex-col justify-between">
+                            <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-yellow-400">የባጅ ተጨማሪ መረጃ / Additional Details</span>
+                              <span className="text-[9px] font-mono text-gray-300">ፋይዳ: {emp.faydaNumber}</span>
+                            </div>
+                            <div className="p-4 bg-gray-50 m-3 rounded-xl border border-gray-200 space-y-2 text-[11px]">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div><span className="text-gray-500 text-[9px] block">የወጣበት ቀን:</span><span className="font-bold text-gray-900">{emp.dateOfIssue}</span></div>
+                                <div><span className="text-gray-500 text-[9px] block">የሚያልቅበት:</span><span className="font-bold text-red-600">{emp.expireDate}</span></div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 pt-1 border-t">
+                                <div><span className="text-gray-500 text-[9px] block">ዜግነት:</span><span className="font-bold text-gray-900">{emp.nationality || 'Ethiopian'}</span></div>
+                                <div><span className="text-gray-500 text-[9px] block">እድሜ:</span><span className="font-bold text-gray-900">{emp.age || '22'}</span></div>
+                              </div>
+                            </div>
+                            <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1 text-center">
+                              <p className="text-[7px] text-[#d4af37]">Max Technology - Official Badge Identification</p>
+                            </div>
+                          </div>
+
                         </div>
                       </div>
-
-                      {/* መሃል ላይ፡ የተቀሩት መረጃዎች */}
-                      <div className="flex-1 text-[11px] sm:text-xs space-y-1.5 text-gray-800 print:text-[8.5px] print:space-y-0.5 px-2">
-                        <div className="flex justify-between border-b pb-0.5">
-                          <span className="font-bold text-gray-600">ስራ መደብ:</span>
-                          <span className="font-semibold text-gray-900">{emp.positionEng || emp.positionAmh}</span>
-                        </div>
-                        <div className="flex justify-between border-b pb-0.5">
-                          <span className="font-bold text-gray-600">FAYDA No:</span>
-                          <span className="font-mono text-gray-900">{emp.faydaNumber}</span>
-                        </div>
-                        <div className="flex justify-between border-b pb-0.5">
-                          <span className="font-bold text-gray-600">ድርጅት ስልክ:</span>
-                          <span className="text-gray-900">{emp.orgPhoneNumber || companyPhone || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between border-b pb-0.5">
-                          <span className="font-bold text-gray-600">የተሰጠበት ቀን:</span>
-                          <span className="text-gray-900">{emp.dateOfIssue}</span>
-                        </div>
-                        <div className="flex justify-between pb-0.5">
-                          <span className="font-bold text-gray-600">የማብቂያ ጊዜ:</span>
-                          <span className="text-red-600 font-bold">{emp.expireDate}</span>
-                        </div>
-                      </div>
-
-                      {/* ቀኝ በኩል፡ QR Code */}
-                      <div className="flex flex-col items-center justify-center shrink-0">
-                        <div className="bg-white p-1 border rounded shadow-sm">
-                          <img 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} 
-                            alt="QR Code" 
-                            className="w-16 h-16 sm:w-20 sm:h-20 print:w-14 print:h-14" 
-                          />
-                        </div>
-                        <span className="text-[7px] sm:text-[8px] text-gray-500 mt-0.5 font-bold tracking-tight">SCAN TO VERIFY</span>
-                      </div>
-
-                    </div>
-
-                    {/* ፉተር */}
-                    <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1.5 px-4 text-center print:bg-[#0f233c] print:py-1">
-                      <p className="text-[9px] sm:text-[10px] text-[#d4af37] font-semibold print:text-[7px]">
-                        Email: {emp.orgEmail || companyEmail || 'technologymax2@gmail.com'}
-                      </p>
-                    </div>
+                    )}
 
                   </div>
                 ))}
