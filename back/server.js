@@ -55,6 +55,7 @@ const leadSchema = new mongoose.Schema({
 const Lead = mongoose.model("Lead", leadSchema);
 
 // 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የጫነውን ሰራተኛ ጨምሮ)
+// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (website መረጃን ጨምሮ)
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -67,37 +68,47 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet);
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // ረድፎቹን በሰንጠረዥ መልክ ለማንበብ
 
     if (!rows || rows.length === 0) {
       return res.status(400).json({ success: false, error: "የኤክሴል ፋይሉ ባዶ ነው!" });
     }
 
     let count = 0;
-    for (const row of rows) {
-      // ሄደሮቹ በትልቅም ሆነ በትንሽ ፊደል ቢጻፉ እንዲያነባቸው ማድረግ
-      const rowKeys = Object.keys(row);
-      const getVal = (possibleKeys) => {
-        for (const k of possibleKeys) {
-          const foundKey = rowKeys.find(rk => rk.toLowerCase().trim() === k.toLowerCase());
-          if (foundKey && row[foundKey] !== undefined) return row[foundKey];
+    // ሄደሩን (የመጀመሪያውን መስመር) እንተወውና ከሁለተኛው ጀምሮ እናንብብ
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.length === 0) continue;
+
+      // በምስሉ ላይ እንደሚታየው ኮለም F (ኢንዴክስ 5) ወይም ሌላ ቦታ ላይ "they have website" ሊኖር ይችላል
+      // ሙሉውን ረድፍ በመቃኘት "website" የሚል ቃል መኖሩን እንፈትሻለን
+      let hasWebsite = false;
+      let extraComment = "";
+
+      row.forEach((cellValue) => {
+        if (cellValue && typeof cellValue === "string") {
+          if (cellValue.toLowerCase().includes("website") || cellValue.toLowerCase().includes("have web")) {
+            hasWebsite = true;
+          }
         }
-        return "";
-      };
+      });
 
-      const name = getVal(["name", "ስም", "fullname", "full name", "ደንበኛ"]);
-      const phone = getVal(["phone", "telefon", "telephone", "mobile", "cell", "ስልክ", "ስልክ ቁጥር"]);
-      const address = getVal(["address", "location", "place", "አድራሻ", "ከተማ"]);
-      const businessType = getVal(["businesstype", "business", "type", "የስራ አይነት", "ድርጅት"]);
+      // ስም፣ ስልክ እና አድራሻ ከትክክለኛው የኮለም ቦታዎች እንወስዳለን (እንደ ኤክሴል አቀማመጥዎ ማስተካከል ይቻላል)
+      const name = row[0] || "ስም የሌለው";
+      const businessType = row[1] || "";
+      const address = row[2] || "";
+      const phone = row[4] || row[5] || ""; // ስልክ ቁጥር የሚገኝበት ኮለም
 
-      // ስልክ ቁጥር ካለ ብቻ ይመዝገብ
       if (phone) {
+        let finalComment = hasWebsite ? "Website አለው (They have website)" : "";
+
         await Lead.create({
-          name: String(name || "ስም የሌለው").trim(),
-          businessType: String(businessType || "").trim(),
-          address: String(address || "").trim(),
+          name: String(name).trim(),
+          businessType: String(businessType).trim(),
+          address: String(address).trim(),
           phone: String(phone).trim(),
           status: "ያልተደወለ",
+          comment: finalComment, // 👈 ዌብሳይት እንዳለው በኮሜንት መልክ ይመዘገባል
           uploadedBy: uploadedBy,
         });
         count++;
@@ -114,6 +125,7 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     res.status(500).json({ success: false, error: "ፋይሉን ማንበብ ወይም መመዝገብ አልተቻለም" });
   }
 });
+
 
 // 2. የደንበኞችን ዝርዝር ማምጫ
 app.get("/api/sales/leads", async (req, res) => {
