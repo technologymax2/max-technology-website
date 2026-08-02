@@ -524,7 +524,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
-                gap: 15px !important;
+                gap: 20px !important;
                 align-items: center !important;
                 justify-content: center !important;
                 transform: none !important;
@@ -536,7 +536,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 print-color-adjust: exact !important;
               }
               .printable-card {
-                transform: scale(0.85) !important;
+                transform: scale(0.78) !important;
                 transform-origin: center !important;
                 box-shadow: none !important;
                 border-radius: 10px !important;
