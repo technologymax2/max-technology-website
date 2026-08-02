@@ -8,6 +8,10 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [statuses, setStatuses] = useState({});
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
 
+  // 👈 አዳዲስ የፍለጋ እና የማጣሪያ (Search & Filter) ስቴቶች
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ሁሉም");
+
   const fetchLeads = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/sales/leads`);
@@ -52,7 +56,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የጥሪ ሁኔታ ማሻሻያ
   const handleUpdateLead = async (id) => {
     const status = statuses[id] || "ያልተደወለ";
     const comment = comments[id] || "";
@@ -78,7 +81,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // አንዱን ሊድ ብቻ ማጥፊያ
   const handleDeleteLead = async (id) => {
     const firstConfirm = window.confirm("እርግጠኛ ሆንክ ይህንን የደንበኛ መረጃ ማጥፋት ትፈልጋለህ?");
     if (!firstConfirm) return;
@@ -102,10 +104,9 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // ሁሉንም ቼክቦክስ መምረጫ
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      const allIds = leads.map((lead) => lead._id);
+      const allIds = filteredLeads.map((lead) => lead._id);
       setSelectedLeadIds(allIds);
     } else {
       setSelectedLeadIds([]);
@@ -120,7 +121,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የተመረጡትን በጅምላ ማጥፊያ (Bulk Delete)
   const handleDeleteSelected = async () => {
     if (selectedLeadIds.length === 0) {
       return alert("እባክዎ መጀመሪያ ሊጥፏቸው የሚፈልጓቸውን ደንበኞች ይምረጡ!");
@@ -156,9 +156,20 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
+  // 👈 ፍለጋውን እና ማጣሪያውን (Filtering logic) እዚህ ማስተካከል
+  const filteredLeads = leads.filter((lead) => {
+    const matchesSearch = 
+      lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone?.includes(searchTerm) ||
+      lead.address?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = filterStatus === "ሁሉም" || lead.status === filterStatus;
+
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      {/* የርዕስ ክፍል */}
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-yellow-400">🛒 የሽያጭ እና የጥሪ ማስተዳደሪያ (Sales CRM)</h1>
@@ -193,10 +204,10 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
           </form>
         </div>
 
-        {/* የደንበኞች ዝርዝር ማሳያ */}
+        {/* የደንበኞች ዝርዝር እና የፍለጋ/ማጣሪያ ክፍል */}
         <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md flex-grow">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-            <h3 className="text-base font-bold text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({leads.length})</h3>
+            <h3 className="text-base font-bold text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({filteredLeads.length} ከ {leads.length})</h3>
             
             {leads.length > 0 && (
               <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
@@ -204,10 +215,10 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                   <input
                     type="checkbox"
                     onChange={handleSelectAll}
-                    checked={leads.length > 0 && selectedLeadIds.length === leads.length}
+                    checked={filteredLeads.length > 0 && selectedLeadIds.length === filteredLeads.length}
                     className="w-4 h-4 accent-yellow-400 cursor-pointer"
                   />
-                  ሁሉንም ምረጥ (Select All)
+                  ሁሉንም ምረጥ
                 </label>
 
                 <button
@@ -215,14 +226,38 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                   disabled={selectedLeadIds.length === 0}
                   className="bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white px-4 py-1.5 rounded text-xs font-bold transition"
                 >
-                  🗑️ የተመረጡትን አጥፋ ({selectedLeadIds.length})
+                  🗑️ አጥፋ ({selectedLeadIds.length})
                 </button>
               </div>
             )}
           </div>
 
+          {/* 👈 የፍለጋ (Search Input) እና የሁኔታ ማጣሪያ (Status Filter Dropdown) መቆጣጠሪያ */}
+          <div className="flex flex-col md:flex-row gap-3 mb-4">
+            <input
+              type="text"
+              placeholder="🔍 በደንበኛ ስም፣ በስልክ ቁጥር ወይም በአድራሻ ይፈልጉ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-gray-900 border border-gray-700 text-white p-2.5 rounded text-xs flex-1"
+            />
+
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-gray-900 border border-gray-700 text-yellow-400 p-2.5 rounded text-xs font-semibold"
+            >
+              <option value="ሁሉም">ሁሉም ሁኔታዎች (All Statuses)</option>
+              <option value="ያልተደወለ">ያልተደወለ</option>
+              <option value="በጥበቃ ላይ">በጥበቃ ላይ</option>
+              <option value="ያልተነሳ">ያልተነሳ</option>
+              <option value="ጥሪው ያበቃ">ጥሪው ያበቃ</option>
+              <option value="ተስማምቷል">ተስማምቷል</option>
+            </select>
+          </div>
+
           <div className="flex flex-col gap-3">
-            {leads.map((lead, index) => (
+            {filteredLeads.map((lead, index) => (
               <div key={lead._id} className="bg-gray-900 border border-gray-700 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 
                 <div className="flex items-start gap-3">
@@ -233,9 +268,8 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                     className="mt-1 w-4 h-4 accent-yellow-400 cursor-pointer"
                   />
                   <div>
-                    {/* የደንበኛ ስም እና ቁጥር */}
                     <div className="flex items-center gap-2">
-                      <span className="text-xs bg-gray-800 text-yellow-400 px-2 py-0.5 rounded font-mono">#{leads.length - index}</span>
+                      <span className="text-xs bg-gray-800 text-yellow-400 px-2 py-0.5 rounded font-mono">#{index + 1}</span>
                       <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
                     </div>
 
@@ -245,7 +279,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                       የስራ ዓይነት: {lead.businessType || "አልተጠቀሰም"}
                     </p>
 
-                    {/* 👈 ዌብሳይት እና ሌሎች አስተያየቶች የሚታዩበት */}
                     <p className="text-xs text-gray-400 mt-1">
                       የቀድሞ ሁኔታ: <span className="text-yellow-200 font-semibold">{lead.status}</span> | 
                       አስተያየት/ሁኔታ: <span className="text-green-400 font-medium">{lead.comment || "ምንም የለም"}</span>
@@ -295,7 +328,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                 </div>
               </div>
             ))}
-            {leads.length === 0 && <p className="text-gray-400 text-sm text-center py-6">ምንም ደንበኛ አልተመዘገበም እባክዎ Excel ፋይል ይስቀሉ።</p>}
+            {filteredLeads.length === 0 && <p className="text-gray-400 text-sm text-center py-6">ምንም የሚዛመድ የደንበኛ መረጃ አልተገኘም።</p>}
           </div>
         </div>
       </main>
