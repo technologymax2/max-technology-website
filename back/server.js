@@ -5,6 +5,10 @@ const bcrypt = require("bcryptjs");
 const path = require("path"); // 👈 ፋይሎችን እና ፎልደሮችን ለማንበብ የሚያስችል
 require("dotenv").config();
 
+const multer = require("multer");
+const XLSX = require("xlsx");
+const upload = multer({ storage: multer.memoryStorage() }); // ፋይሉን በሜሞሪ ውስጥ ተቀብሎ ለማንበብ
+
 const app = express();
 app.use(express.json());
 
@@ -33,6 +37,80 @@ mongoose
 // ==========================================
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
 // ==========================================
+
+// የደንበኞች/የሊድስ (Leads) ዳታቤዝ ሞዴል
+const leadSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  businessType: { type: String, default: "" },
+  address: { type: String, default: "" },
+  phone: { type: String, required: true },
+  status: { type: String, default: "ያልተደወለ" }, // ያልተደወለ, ያልተነሳ, ጥሪው ያበቃ, ተስማምቷል
+  comment: { type: String, default: "" },
+  salesPerson: { type: String, default: "" }, // ማን እንደደወለበት ለማወቅ
+  date: { type: Date, default: Date.now },
+});
+const Lead = mongoose.model("Lead", leadSchema);
+
+// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት
+app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: "እባክዎ የ Excel ፋይል ይምረጡ!" });
+    }
+
+    // ኤክሴል ፋይሉን ማንበብ
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    // rows ውስጥ ያሉትን መረጃዎች ወደ ዳታቤዝ ማስገባት
+    // (በእርስዎ ኤክሴል ሄደር መሰረት ኪዎቹን ማስተካከል ይቻላል፣ ለምሳሌ: name, phone, address, businessType)
+    let count = 0;
+    for (const row of rows) {
+      if (row.Phone || row.phone) { // ስልክ ቁጥር ካለው ይመዝገብ
+        await Lead.create({
+          name: row.Name || row.name || "ስም የሌለው",
+          businessType: row.BusinessType || row.businessType || "",
+          address: row.Address || row.address || "",
+          phone: String(row.Phone || row.phone),
+          status: "ያልተደወለ",
+        });
+        count++;
+      }
+    }
+
+    res.status(200).json({ success: true, message: `${count} ደንበኞች በስኬት ተጭነዋል!` });
+  } catch (error) {
+    console.error("Excel upload error:", error);
+    res.status(500).json({ success: false, error: "ፋይሉን ማንበብ ወይም መመዝገብ አልተቻለም" });
+  }
+});
+
+// 2. የደንበኞችን ዝርዝር ማምጫ
+app.get("/api/sales/leads", async (req, res) => {
+  try {
+    const leads = await Lead.find().sort({ date: -1 });
+    res.status(200).json({ success: true, leads });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "መረጃዎችን ማምጣት አልተቻለም" });
+  }
+});
+
+// 3. የጥሪ ሁኔታ (Status) እና አስተያየት (Comment) ማሻሻያ
+app.put("/api/sales/leads/:id", async (req, res) => {
+  try {
+    const { status, comment, salesPerson } = req.body;
+    await Lead.findByIdAndUpdate(req.params.id, {
+      status,
+      comment,
+      salesPerson,
+    });
+    res.status(200).json({ success: true, message: "መረጃው ተዘምኗል!" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "ማዘመን አልተቻለም" });
+  }
+});
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
