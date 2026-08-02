@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Footer from './Footer';
 
-const API_BASE_URL = "https://max-tech-backend.onrender.com"; // Replace with your actual API base URL if needed
+const API_BASE_URL = "https://max-tech-backend.onrender.com";
+const FRONTEND_URL = "https://max-technology-website.vercel.app";
 
 function HRPrintCartPage({ handleLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,7 +12,20 @@ function HRPrintCartPage({ handleLogout }) {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  // Search employees handler (ከ backend /api/hr/search ራውት ጋር የተጣጣመ)
+  // ቋሚ የሆኑ የድርጅት መረጃዎች (ሎጎ፣ ስልክ እና ኢሜይል) ከ localStorage የሚነበቡ
+  const [companyLogoUrl] = useState(() => {
+    return localStorage.getItem('company_logo_url') || '';
+  });
+  
+  const [companyPhone] = useState(() => {
+    return localStorage.getItem('company_phone') || '';
+  });
+
+  const [companyEmail] = useState(() => {
+    return localStorage.getItem('company_email') || '';
+  });
+
+  // Search employees handler
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
@@ -221,7 +235,7 @@ function HRPrintCartPage({ handleLogout }) {
                     <div className="bg-[#0f233c] border-b-2 border-[#d4af37] text-white py-2 px-3 flex items-center print:bg-[#0f233c] print:text-white print:py-1.5 relative">
                       <div className="absolute left-3">
                         <img 
-                          src="https://via.placeholder.com/30" 
+                          src={emp.logoUrl || companyLogoUrl || 'https://via.placeholder.com/30'} 
                           alt="Logo" 
                           className="w-7 h-7 rounded-full bg-white object-cover border border-[#d4af37]" 
                         />
@@ -265,7 +279,7 @@ function HRPrintCartPage({ handleLogout }) {
                         </div>
                         <div className="flex justify-between border-b pb-0.5">
                           <span className="font-bold text-gray-600">ድርጅት ስልክ:</span>
-                          <span className="text-gray-900">{emp.orgPhoneNumber}</span>
+                          <span className="text-gray-900">{emp.orgPhoneNumber || companyPhone || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between border-b pb-0.5">
                           <span className="font-bold text-gray-600">የተሰጠበት ቀን:</span>
@@ -281,7 +295,7 @@ function HRPrintCartPage({ handleLogout }) {
                       <div className="flex flex-col items-center justify-center shrink-0">
                         <div className="bg-white p-1 border rounded shadow-sm">
                           <img 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${API_BASE_URL}/api/hr/verify/${emp._id}`)}`} 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} 
                             alt="QR Code" 
                             className="w-16 h-16 sm:w-20 sm:h-20 print:w-14 print:h-14" 
                           />
@@ -294,7 +308,7 @@ function HRPrintCartPage({ handleLogout }) {
                     {/* ፉተር */}
                     <div className="bg-[#0f233c] border-t-2 border-[#d4af37] text-white py-1.5 px-4 text-center print:bg-[#0f233c] print:py-1">
                       <p className="text-[9px] sm:text-[10px] text-[#d4af37] font-semibold print:text-[7px]">
-                        Email: technologymax2@gmail.com
+                        Email: {emp.orgEmail || companyEmail || 'technologymax2@gmail.com'}
                       </p>
                     </div>
 
