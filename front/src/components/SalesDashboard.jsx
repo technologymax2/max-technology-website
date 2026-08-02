@@ -14,7 +14,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       const data = await res.json();
       if (data.success) setLeads(data.leads);
     } catch (err) {
-      console.error("ሊንኮችን ማምጣት አልተቻለም");
+      console.error("መረጃዎችን ማምጣት አልተቻለም");
     }
   }, [API_BASE_URL]);
 
@@ -52,7 +52,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የጥሪ ሁኔታ፣ አስተያየት እና ያዘመነው ሰራተኛ ማሻሻያ
+  // የጥሪ ሁኔታ ማሻሻያ
   const handleUpdateLead = async (id) => {
     const status = statuses[id] || "ያልተደወለ";
     const comment = comments[id] || "";
@@ -102,7 +102,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // "ሁሉንም ምረጥ (Select All)" ቼክቦክስ ሲነካ የሚሰራ
+  // ሁሉንም ቼክቦክስ መምረጫ
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allIds = leads.map((lead) => lead._id);
@@ -112,7 +112,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // አንድን ሊድ በቼክቦክስ መምረጥ/አለምረጥ
   const handleSelectOne = (id) => {
     if (selectedLeadIds.includes(id)) {
       setSelectedLeadIds(selectedLeadIds.filter((item) => item !== id));
@@ -121,7 +120,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የተመረጡትን በጅምላ በአንድ ጊዜ ማጥፊያ (Bulk Delete)
+  // የተመረጡትን በጅምላ ማጥፊያ (Bulk Delete)
   const handleDeleteSelected = async () => {
     if (selectedLeadIds.length === 0) {
       return alert("እባክዎ መጀመሪያ ሊጥፏቸው የሚፈልጓቸውን ደንበኞች ይምረጡ!");
@@ -159,7 +158,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      {/* 🔝 የዳሽቦርድ ራስጌ (Header) */}
+      {/* የርዕስ ክፍል */}
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-yellow-400">🛒 የሽያጭ እና የጥሪ ማስተዳደሪያ (Sales CRM)</h1>
@@ -173,9 +172,8 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
         </button>
       </header>
 
-      {/* ዋናው ማስተካከያ አካል */}
       <main className="flex-grow p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
-        {/* ኤክሴል ፋይል መጫኛ ፎርም */}
+        {/* Excel ፋይል መጫኛ */}
         <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md">
           <h3 className="text-base font-bold mb-3 text-gray-200">📁 የደንበኞች Excel ፋይል ስቀል</h3>
           <form onSubmit={handleUploadExcel} className="flex flex-wrap gap-3 items-center">
@@ -195,10 +193,8 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
           </form>
         </div>
 
-        {/* የደንበኞች ዝርዝር እና የጥሪ ሁኔታ መቆጣጠሪያ */}
+        {/* የደንበኞች ዝርዝር ማሳያ */}
         <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md flex-grow">
-          
-          {/* የርዕስ ክፍል እና የጅምላ ማጥፊያ ቁልፍ */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
             <h3 className="text-base font-bold text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({leads.length})</h3>
             
@@ -226,7 +222,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
           </div>
 
           <div className="flex flex-col gap-3">
-            {leads.map((lead) => (
+            {leads.map((lead, index) => (
               <div key={lead._id} className="bg-gray-900 border border-gray-700 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 
                 <div className="flex items-start gap-3">
@@ -237,9 +233,23 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                     className="mt-1 w-4 h-4 accent-yellow-400 cursor-pointer"
                   />
                   <div>
-                    <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
-                    <p className="text-xs text-gray-300 mt-1">ስልክ: <a href={`tel:${lead.phone}`} className="text-blue-400 underline font-semibold">{lead.phone}</a> | አድራሻ: {lead.address || "አልተጠቀሰም"}</p>
-                    <p className="text-xs text-gray-400 mt-1">የቀድሞ ሁኔታ: <span className="text-yellow-200 font-semibold">{lead.status}</span> | አስተያየት: {lead.comment || "ምንም የለም"}</p>
+                    {/* የደንበኛ ስም እና ቁጥር */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-gray-800 text-yellow-400 px-2 py-0.5 rounded font-mono">#{leads.length - index}</span>
+                      <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
+                    </div>
+
+                    <p className="text-xs text-gray-300 mt-1">
+                      ስልክ: <a href={`tel:${lead.phone}`} className="text-blue-400 underline font-semibold">{lead.phone}</a> | 
+                      አድራሻ: {lead.address || "አልተጠቀሰም"} | 
+                      የስራ ዓይነት: {lead.businessType || "አልተጠቀሰም"}
+                    </p>
+
+                    {/* 👈 ዌብሳይት እና ሌሎች አስተያየቶች የሚታዩበት */}
+                    <p className="text-xs text-gray-400 mt-1">
+                      የቀድሞ ሁኔታ: <span className="text-yellow-200 font-semibold">{lead.status}</span> | 
+                      አስተያየት/ሁኔታ: <span className="text-green-400 font-medium">{lead.comment || "ምንም የለም"}</span>
+                    </p>
                     
                     <div className="text-[11px] text-gray-500 mt-1 flex gap-3">
                       {lead.uploadedBy && <span>የጫነው: {lead.uploadedBy}</span>}
