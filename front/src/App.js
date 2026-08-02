@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Login from "./components/Login";
 import AdminDashboard from "./components/AdminDashboard";
 import HrDashboard from "./components/HrDashboard";
+import HRPrintCartPage from "./components/HRPrintCartPage"; // 1. Import the Print Cart component
 import OrderPage from "./components/OrderPage";
 import Footer from "./components/Footer";
 import logoImg from "./logo.jpg";
@@ -249,11 +250,59 @@ function App() {
 
   if (currentScreen === "hr-dashboard" && user?.role === "hr") {
     return (
-      <HrDashboard 
-        user={user} 
-        handleLogout={handleLogout} 
-        API_BASE_URL={API_BASE_URL} 
-      />
+      <div className="flex flex-col min-h-screen">
+        {/* Navigation bar to toggle between HR Dashboard and Print Cart page */}
+        <div className="bg-gray-800 px-6 py-3 flex gap-4 border-b border-gray-700 print:hidden">
+          <button 
+            onClick={() => setCurrentScreen("hr-dashboard")}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${currentScreen === "hr-dashboard" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"}`}
+          >
+            🏢 ሰራተኛ መመዝገቢያ (Dashboard)
+          </button>
+          <button 
+            onClick={() => setCurrentScreen("hr-print-cart")}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${currentScreen === "hr-print-cart" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"}`}
+          >
+            🖨️ መታወቂያ ማተሚያ ጋሪ (Print Cart)
+          </button>
+        </div>
+
+        <div className="flex-grow">
+          <HrDashboard 
+            user={user} 
+            handleLogout={handleLogout} 
+            API_BASE_URL={API_BASE_URL} 
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (currentScreen === "hr-print-cart" && user?.role === "hr") {
+    return (
+      <div className="flex flex-col min-h-screen">
+        {/* Navigation bar to toggle back */}
+        <div className="bg-gray-800 px-6 py-3 flex gap-4 border-b border-gray-700 print:hidden">
+          <button 
+            onClick={() => setCurrentScreen("hr-dashboard")}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${currentScreen === "hr-dashboard" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"}`}
+          >
+            🏢 ሰራተኛ መመዝገቢያ (Dashboard)
+          </button>
+          <button 
+            onClick={() => setCurrentScreen("hr-print-cart")}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${currentScreen === "hr-print-cart" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"}`}
+          >
+            🖨️ መታወቂያ ማተሚያ ጋሪ (Print Cart)
+          </button>
+        </div>
+
+        <div className="flex-grow">
+          <HRPrintCartPage 
+            handleLogout={handleLogout} 
+          />
+        </div>
+      </div>
     );
   }
 
@@ -286,4 +335,5 @@ function App() {
   return null;
 }
 
+App exported default; // Note: standard export syntax below
 export default App;
