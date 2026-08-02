@@ -12,7 +12,6 @@ function HRPrintCartPage({ handleLogout }) {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   
-  // የካርድ ዲዛይን ምርጫ: 'standard' ወይም 'chest'
   const [cardStyle, setCardStyle] = useState('standard');
 
   const [companyLogoUrl] = useState(() => localStorage.getItem('company_logo_url') || '');
@@ -65,7 +64,7 @@ function HRPrintCartPage({ handleLogout }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative print:bg-white print:p-0">
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-3 sm:p-6 lg:p-8 relative print:bg-white print:p-0 overflow-x-hidden">
       
       {/* ሄደር */}
       <div className="flex flex-wrap justify-between items-center bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-md gap-4 mb-6 print:hidden">
@@ -80,13 +79,13 @@ function HRPrintCartPage({ handleLogout }) {
       <div className="flex-1 w-full max-w-6xl mx-auto space-y-6 print:max-w-none print:m-0">
         
         {/* የካርድ ዲዛይን መምረጫ */}
-        <div className="bg-gray-800 p-5 rounded-2xl shadow-lg border border-gray-700 print:hidden">
+        <div className="bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-lg border border-gray-700 print:hidden">
           <label className="block text-sm font-bold text-[#d4af37] mb-3">🎴 የካርድ ዲዛይን ቅርጸት ይምረጡ (Select Card Design Style)</label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setCardStyle('standard')}
-              className={`py-3 px-4 rounded-xl font-bold text-sm transition border ${
+              className={`py-3 px-2 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition border ${
                 cardStyle === 'standard' 
                   ? 'bg-[#0b192c] border-[#d4af37] text-white shadow-lg' 
                   : 'bg-gray-900 border-gray-700 text-gray-400 hover:bg-gray-700'
@@ -97,7 +96,7 @@ function HRPrintCartPage({ handleLogout }) {
             <button
               type="button"
               onClick={() => setCardStyle('chest')}
-              className={`py-3 px-4 rounded-xl font-bold text-sm transition border ${
+              className={`py-3 px-2 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition border ${
                 cardStyle === 'chest' 
                   ? 'bg-[#0b192c] border-[#d4af37] text-white shadow-lg' 
                   : 'bg-gray-900 border-gray-700 text-gray-400 hover:bg-gray-700'
@@ -109,8 +108,8 @@ function HRPrintCartPage({ handleLogout }) {
         </div>
 
         {/* ፍለጋ ផ្នែក */}
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 print:hidden">
-          <h3 className="text-xl font-bold mb-4 text-[#d4af37]">🔍 ሰራተኛ በስልክ ወይም በፋይዳ ቁጥር ፈልግ</h3>
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700 print:hidden">
+          <h3 className="text-lg sm:text-xl font-bold mb-4 text-[#d4af37]">🔍 ሰራተኛ በስልክ ወይም በፋይዳ ቁጥር ፈልግ</h3>
           
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <select 
@@ -145,7 +144,7 @@ function HRPrintCartPage({ handleLogout }) {
 
         {/* የፍለጋ ውጤቶች ዝርዝር */}
         {searchResults.length > 0 && (
-          <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 print:hidden">
+          <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700 print:hidden">
             <h3 className="text-lg font-bold mb-4 text-blue-300">📋 የፍለጋ ውጤቶች</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {searchResults.map((emp) => (
@@ -171,13 +170,13 @@ function HRPrintCartPage({ handleLogout }) {
         )}
 
         {/* የማተሚያ ጋሪ (Print Cart Section) */}
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 print:bg-white print:border-none print:p-0 print:shadow-none">
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700 print:bg-white print:border-none print:p-0 print:shadow-none">
           <div className="flex justify-between items-center mb-4 print:hidden">
-            <h3 className="text-xl font-bold text-[#d4af37]">🛒 ለማተም የተመረጡ መታወቂያዎች ({printCart.length})</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-[#d4af37]">🛒 ለማተም የተመረጡ መታወቂያዎች ({printCart.length})</h3>
             {printCart.length > 0 && (
               <button 
                 onClick={handlePrint}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center gap-2"
+                className="px-4 sm:px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center gap-2"
               >
                 🖨️ ሁሉንም አትም (Print All)
               </button>
@@ -185,13 +184,12 @@ function HRPrintCartPage({ handleLogout }) {
           </div>
 
           {printCart.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 print:hidden">
+            <div className="text-center py-8 text-gray-500 print:hidden text-sm">
               ማተሚያ ጋሪው ባዶ ነው። እባክዎ ከላይ ሰራተኞችን ፈልገው ይጨምሩ።
             </div>
           ) : (
             <div className="space-y-6">
               
-              {/* CSS for Printing Layout & Color Preservation */}
               <style dangerouslySetInnerHTML={{__html: `
                 @page {
                   size: A4 portrait;
@@ -227,7 +225,6 @@ function HRPrintCartPage({ handleLogout }) {
                     break-inside: avoid;
                     margin-bottom: 10mm;
                   }
-                  /* Ensure background colors and borders print accurately */
                   .print-card-box {
                     background-color: #0b192c !important;
                     color: white !important;
@@ -241,9 +238,8 @@ function HRPrintCartPage({ handleLogout }) {
               {/* የሚታተሙ መታወቂያዎች ዝርዝር */}
               <div id="printable-cart-container" className="space-y-8">
                 {printCart.map((emp) => (
-                  <div key={emp._id} className="relative bg-gray-900 p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0">
+                  <div key={emp._id} className="relative bg-gray-900 p-3 sm:p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0 overflow-x-auto">
                     
-                    {/* ከጋሪ የማጥፊያ ቁልፍ */}
                     <button 
                       onClick={() => removeFromCart(emp._id)} 
                       className="absolute top-2 right-2 text-white hover:text-gray-200 font-bold text-xs bg-red-600 w-7 h-7 rounded-full flex items-center justify-center z-20 print:hidden shadow-lg"
@@ -256,10 +252,10 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'standard' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID)</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
                           
                           {/* Front Side */}
-                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col mx-auto">
+                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col mx-auto shrink-0">
                             <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[80px]"></div>
                             <div className="pt-3 pb-1 px-2 text-center relative z-10">
                               <div className="w-8 h-8 mx-auto bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow mb-1 overflow-hidden">
@@ -307,7 +303,7 @@ function HRPrintCartPage({ handleLogout }) {
                           </div>
 
                           {/* Back Side */}
-                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 mx-auto">
+                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 mx-auto shrink-0">
                             <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
 
                             <div className="relative z-10">
@@ -362,10 +358,10 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'chest' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge)</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
                           
                           {/* Badge Front */}
-                          <div className="print-card-box relative w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-4 mx-auto">
+                          <div className="print-card-box relative w-full max-w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-4 mx-auto shrink-0">
                             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
 
                             <div className="flex items-center justify-between border-b border-white/10 pb-2 relative z-10">
@@ -418,7 +414,7 @@ function HRPrintCartPage({ handleLogout }) {
                           </div>
 
                           {/* Badge Back */}
-                          <div className="print-card-box relative w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-4 mx-auto">
+                          <div className="print-card-box relative w-full max-w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-4 mx-auto shrink-0">
                             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-[#d4af37]/10 to-transparent pointer-events-none rounded-tr-full"></div>
 
                             <div className="flex justify-between items-center border-b border-white/10 pb-2 relative z-10">
