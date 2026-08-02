@@ -31,7 +31,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  // ቋሚ የሆኑ የድርጅት መረጃዎች (ሎጎ፣ ስልክ እና ኢሜይል) ከ localStorage የሚነበቡ
   const [companyLogoUrl, setCompanyLogoUrl] = useState(() => {
     return localStorage.getItem('company_logo_url') || '';
   });
@@ -279,7 +278,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative print:bg-white print:p-0">
       
-      {/* ሄደር */}
       <div className="flex flex-wrap justify-between items-center bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-md gap-4 mb-6 print:hidden">
         <div className="flex items-center gap-3">
           <button 
@@ -310,7 +308,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         <div className="flex-1 w-full min-w-0 print:w-full">
           <div className="grid grid-cols-1 gap-8 print:block">
             
-            {/* መመዝገቢያ ፎርም */}
             {(activeTab === 'register' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''} print:hidden`}>
                 <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ</h3>
@@ -421,10 +418,18 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     <input type="text" name="woreda" placeholder="ወረዳ / Woreda" value={employeeForm.woreda} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                   </div>
 
+                  {/* 🛠️ እዚህጋ ቀኖቹ እንዳይለዋወጡ እና ግልጽ እንዲሆኑ በግልጽ ሌብል ተሰጥቷቸዋል */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="number" name="age" placeholder="እድሜ / Age" value={employeeForm.age} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
-                    <input type="date" name="dateOfIssue" value={employeeForm.dateOfIssue} onChange={handleChange} required className="p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                     <div>
+                      <label className="text-xs text-gray-400 mb-1 block">እድሜ / Age</label>
+                      <input type="number" name="age" placeholder="እድሜ" value={employeeForm.age} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-green-400 mb-1 block font-bold">📅 መታወቂያ የተሰጠበት ቀን (Issue Date)</label>
+                      <input type="date" name="dateOfIssue" value={employeeForm.dateOfIssue} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-red-400 mb-1 block font-bold">⏳ የሚያበቃበት ቀን (Expiry Date)</label>
                       <input type="date" name="expireDate" value={employeeForm.expireDate} onChange={handleChange} required className="w-full p-3 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm" />
                     </div>
                   </div>
@@ -438,7 +443,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
             )}
 
-            {/* ሰራተኞች ዝርዝር ታብ */}
             {(activeTab === 'employees' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 overflow-x-auto ${activeTab !== 'employees' ? 'hidden lg:block' : ''} print:hidden`}>
                 <h3 className="text-xl font-bold mb-4 text-blue-400">📋 የተመዘገቡ ሰራተኞች ዝርዝር</h3>
@@ -490,7 +494,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 🪪 ID Card / Badge Modal */}
       {selectedIdCard && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto print:fixed print:inset-0 print:bg-white print:p-0 print:flex print:items-center print:justify-center">
           
@@ -545,7 +548,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               ✕
             </button>
 
-            {/* የህትመት ዓይነት መቀየሪያ */}
             <div className="bg-gray-800 p-3 rounded-xl border border-gray-700 w-full max-w-md print:hidden flex flex-col gap-2">
               <label className="text-xs text-[#d4af37] font-bold">🪪 የካርድ ቅርጽ ይምረጡ (Select Card Design Style)</label>
               <div className="grid grid-cols-2 gap-2">
@@ -566,13 +568,10 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               </div>
             </div>
 
-            {/* Container for Cards */}
             <div className="print-container flex flex-col sm:flex-row gap-6 items-center justify-center">
               
-              {/* 1️⃣ STANDARD ID CARD DESIGN */}
               {printCardType === 'id-card' ? (
                 <>
-                  {/* FRONT SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የፊት ገጽ (Front Side)</span>
                     <div className="printable-card w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col">
@@ -623,7 +622,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     </div>
                   </div>
 
-                  {/* BACK SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የጀርባ ገጽ (Back Side)</span>
                     <div className="printable-card w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-3">
@@ -645,18 +643,19 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                           </div>
                         </div>
 
+                        {/* 🛠️ በመታወቂያ ካርዱ ጀርባ ላይ የተሰጠበት እና የሚያበቃበት ቀኖች ግልጽ በሆነ ርዕስ ተቀምጠዋል */}
                         <div className="text-[9px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20">
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
                             <span className="text-gray-400 font-medium">የፋይዳ ቁጥር:</span>
                             <span className="font-mono font-semibold text-white text-[8px]">{selectedIdCard.faydaNumber}</span>
                           </div>
                           <div className="flex justify-between border-b border-white/10 pb-0.5">
-                            <span className="text-gray-400 font-medium">የወጣበት ቀን:</span>
-                            <span className="text-white">{selectedIdCard.dateOfIssue}</span>
+                            <span className="text-green-400 font-medium">የተሰጠበት ቀን (Issue):</span>
+                            <span className="text-white font-bold">{selectedIdCard.dateOfIssue || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between pb-0.5">
-                            <span className="text-gray-400 font-medium">የሚያበቃበት:</span>
-                            <span className="text-red-400 font-bold">{selectedIdCard.expireDate}</span>
+                            <span className="text-red-400 font-medium">የሚያበቃበት (Expire):</span>
+                            <span className="text-red-400 font-bold">{selectedIdCard.expireDate || 'N/A'}</span>
                           </div>
                         </div>
                       </div>
@@ -675,9 +674,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                 </>
               ) : (
-                /* 2️⃣ WIDE CHEST BADGE DESIGN */
                 <>
-                  {/* FRONT SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ፊት (Badge Front)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
@@ -734,7 +731,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                     </div>
                   </div>
 
-                  {/* BACK SIDE */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-[#d4af37] font-bold mb-1 print:hidden">የደረት ባጅ ጀርባ (Badge Back)</span>
                     <div className="printable-card w-[360px] h-[250px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden relative flex flex-col justify-between p-4">
@@ -748,8 +744,8 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
                       <div className="flex flex-col justify-center my-auto px-2 space-y-2 relative z-10">
                         <div className="text-[10px] text-gray-200 grid grid-cols-2 gap-2 bg-black/25 p-3 rounded-xl border border-[#d4af37]/20">
-                          <div><span className="text-gray-400">የወጣበት ቀን:</span> <span className="text-white font-medium">{selectedIdCard.dateOfIssue}</span></div>
-                          <div><span className="text-gray-400">የሚያበቃበት:</span> <span className="text-red-400 font-bold">{selectedIdCard.expireDate}</span></div>
+                          <div><span className="text-green-400 font-semibold">የተሰጠበት (Issue):</span> <span className="text-white font-bold">{selectedIdCard.dateOfIssue || 'N/A'}</span></div>
+                          <div><span className="text-red-400 font-semibold">የሚያበቃበት (Expire):</span> <span className="text-red-400 font-bold">{selectedIdCard.expireDate || 'N/A'}</span></div>
                           <div><span className="text-gray-400">ዜግነት:</span> <span className="text-white font-medium">{selectedIdCard.nationality}</span></div>
                           <div><span className="text-gray-400">እድሜ:</span> <span className="text-white font-medium">{selectedIdCard.age}</span></div>
                         </div>
@@ -774,7 +770,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       )}
 
-      {/* 🟢 QR ኮዱ ሲቃኝ ሰራተኛውን የሚያሳይ ፖፕ-አፕ */}
       {verifiedEmployeeModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 border-2 border-green-500 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center relative animate-fade-in">
@@ -801,7 +796,8 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <div className="flex justify-between"><span className="text-gray-400">ፋይዳ ቁጥር:</span> <span className="font-mono text-white">{verifiedEmployeeModal.faydaNumber}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">ስልክ ቁጥር:</span> <span className="text-white">{verifiedEmployeeModal.phoneNumber}</span></div>
               <div className="flex justify-between"><span className="text-gray-400">የድርጅት ኢሜይል:</span> <span className="text-white">{verifiedEmployeeModal.orgEmail}</span></div>
-              <div className="flex justify-between"><span className="text-gray-400">የሚያበቃበት ቀን:</span> <span className="text-red-400 font-bold">{verifiedEmployeeModal.expireDate}</span></div>
+              <div className="flex justify-between"><span className="text-green-400 font-semibold">የተሰጠበት ቀን:</span> <span className="text-white font-bold">{verifiedEmployeeModal.dateOfIssue || 'N/A'}</span></div>
+              <div className="flex justify-between"><span className="text-red-400 font-semibold">የሚያበቃበት ቀን:</span> <span className="text-red-400 font-bold">{verifiedEmployeeModal.expireDate || 'N/A'}</span></div>
             </div>
 
             <button 
