@@ -20,6 +20,7 @@ function AdminDashboard({
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]);
   const [hrList, setHrList] = useState([]);
+  const [salesList, setSalesList] = useState([]); // ለሽያጭ ሰራተኞች ዝርዝር
 
   // ንቁ ታብ
   const [activeTab, setActiveTab] = useState("messages");
@@ -33,6 +34,9 @@ function AdminDashboard({
   // HR Form state
   const [hrForm, setHrForm] = useState({ name: "", email: "", password: "" });
 
+  // የሽያጭ ሰራተኛ (Sales) Form state
+  const [salesForm, setSalesForm] = useState({ name: "", email: "", password: "" });
+
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
   const [projectForm, setProjectForm] = useState({ title: "", link: "", imageUrl: "" });
   const [uploading, setUploading] = useState(false);
@@ -42,6 +46,7 @@ function AdminDashboard({
     fetchAdmins();
     fetchUsers();
     fetchHrs();
+    fetchSales(); // የሽያጭ ሰራተኞችን ለመጥራት
     const interval = setInterval(() => {
       fetchMessages();
     }, 5000);
@@ -98,6 +103,17 @@ function AdminDashboard({
       if (data.success) setHrList(data.hrs);
     } catch (err) {
       console.error("HR ማምጣት አልተቻለም");
+    }
+  };
+
+  // የሽያጭ ሰራተኞችን ከባክኤንድ ማምጫ
+  const fetchSales = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales`);
+      const data = await res.json();
+      if (data.success) setSalesList(data.sales);
+    } catch (err) {
+      console.error("የሽያጭ ሰራተኞችን ማምጣት አልተቻለም");
     }
   };
 
@@ -203,6 +219,65 @@ function AdminDashboard({
       const data = await res.json();
       if (data.success) {
         alert("የ HR ፓስወርድ ተቀይሯል!");
+      } else {
+        alert(data.error || "ፓስወርድ መቀየር አልተቻለም");
+      }
+    } catch (err) {
+      alert("ስህተት አጋጥሟል");
+    }
+  };
+
+  // የሽያጭ ሰራተኛ መመዝገቢያ ማስረከቢያ
+  const handleAddSalesSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(salesForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("የሽያጭ ሰራተኛው በስኬት ተመዝግቧል!");
+        setSalesForm({ name: "", email: "", password: "" });
+        fetchSales();
+      } else {
+        alert(data.error || "የሽያጭ ሰራተኛ መመዝገብ አልተቻለም");
+      }
+    } catch (err) {
+      alert("ስህተት ተፈጥሯል");
+    }
+  };
+
+  // የሽያጭ ሰራተኛን ማጥፊያ
+  const handleDeleteSales = async (id) => {
+    if (!window.confirm("ይህንን የሽያጭ ሰራተኛ ማጥፋት ይፈልጋሉ?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("የሽያጭ ሰራተኛው ተሰርዟል!");
+        fetchSales();
+      }
+    } catch (err) {
+      alert("ማጥፋት አልተቻለም");
+    }
+  };
+
+  // የሽያጭ ሰራተኛ ፓስወርድ መቀየሪያ
+  const handleResetSalesPassword = async (id) => {
+    const newPassword = prompt("ለዚህ የሽያጭ ሰራተኛ አዲስ ፓስወርድ ያስገቡ:");
+    if (!newPassword) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales/reset-password/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("የሽያጭ ሰራተኛው ፓስወርድ ተቀይሯል!");
       } else {
         alert(data.error || "ፓስወርድ መቀየር አልተቻለም");
       }
@@ -397,6 +472,15 @@ function AdminDashboard({
             }`}
           >
             👥 የሰው ሃብት (HR)
+          </button>
+          {/* ለሽያጭ ሰራተኞች የሚሆን አዲስ የሜኑ አዝራር */}
+          <button
+            onClick={() => { setActiveTab("sales"); setSidebarOpen(false); }}
+            className={`w-full text-left p-2.5 rounded-lg font-bold transition ${
+              activeTab === "sales" ? "bg-yellow-400 text-black" : "text-white hover:bg-gray-800"
+            }`}
+          >
+            🛒 የሽያጭ ሰራተኞች (Sales)
           </button>
           <button
             onClick={() => { setActiveTab("users"); setSidebarOpen(false); }}
@@ -602,7 +686,39 @@ function AdminDashboard({
             </div>
           )}
 
-          {/* 5. ደንበኞች */}
+          {/* 5. የሽያጭ ሰራተኞች (Sales) */}
+          {activeTab === "sales" && (
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
+                <h3 className="text-base font-bold mb-3">🛒 አዲስ የሽያጭ ሰራተኛ መመዝገቢያ</h3>
+                <form onSubmit={handleAddSalesSubmit} className="flex flex-col gap-3">
+                  <input type="text" placeholder="የሰራተኛው ስም" value={salesForm.name} onChange={(e) => setSalesForm({ ...salesForm, name: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
+                  <input type="email" placeholder="ኢሜይል አድራሻ" value={salesForm.email} onChange={(e) => setSalesForm({ ...salesForm, email: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
+                  <input type="password" placeholder="ፓስወርድ" value={salesForm.password} onChange={(e) => setSalesForm({ ...salesForm, password: e.target.value })} required className="bg-[#0d0f12] border border-[#30363d] text-white p-2.5 rounded-lg outline-none focus:border-yellow-400" />
+                  <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold p-2.5 rounded-lg transition">የሽያጭ ሰራተኛ መዝግብ</button>
+                </form>
+              </div>
+
+              <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
+                <h3 className="text-base font-bold mb-3">📋 የተመዘገቡ የሽያጭ ሰራተኞች ዝርዝር</h3>
+                <div className="flex flex-col gap-3">
+                  {salesList.map((s) => (
+                    <div key={s._id} className="bg-[#0d0f12] border border-[#30363d] p-3 rounded-lg flex flex-col gap-2">
+                      <div><strong>ስም:</strong> {s.name}</div>
+                      <div><strong>ኢሜይል:</strong> {s.email}</div>
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={() => handleResetSalesPassword(s._id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded text-xs">ፓስወርድ ቀይር</button>
+                        <button onClick={() => handleDeleteSales(s._id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white p-2 rounded text-xs">🗑️ አጥፋ</button>
+                      </div>
+                    </div>
+                  ))}
+                  {salesList.length === 0 && <p className="text-gray-400 text-sm">ምንም የሽያጭ ሰራተኛ አልተመዘገበም</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 6. ደንበኞች */}
           {activeTab === "users" && (
             <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
               <h3 className="text-base font-bold mb-3">👤 የተመዘገቡ ተጠቃሚዎች እና ደንበኞች</h3>
