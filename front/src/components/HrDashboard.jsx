@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Footer from './Footer';
 
@@ -126,7 +125,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የድርጅት ቋሚ ስልክ እና ኢሜይል መቀየሪያና ማስቀመጫ
   const handleCompanyInfoChange = (e) => {
     const { name, value } = e.target;
     if (name === 'companyPhone') {
@@ -213,7 +211,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
       const imgResult = await imgRes.json();
       if (!imgResult.success) throw new Error("የሰራተኛውን ፎቶ ወደ ማከማቻ መላክ አልተቻለም");
 
-      // ቋሚ የሆኑትን የድርጅት መረጃዎች አብሮ መላክ
       const finalData = {
         ...employeeForm,
         imageUrl: imgResult.data.url,
@@ -318,7 +315,6 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''} print:hidden`}>
                 <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ</h3>
                 
-                {/* ቋሚ የድርጅት መረጃዎች ማስተካከያ (ሎጎ፣ ስልክ እና ኢሜይል) */}
                 <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-xl flex flex-col gap-4">
                   <div className="text-sm font-bold text-yellow-400 border-b border-gray-700 pb-2">🏢 የድርጅት ቋሚ መረጃዎች (Company Settings)</div>
                   
