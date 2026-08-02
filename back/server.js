@@ -198,7 +198,7 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (logoUrl እና orgEmail ተጨምረዋል)
+// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (የዩኒክ ኢሜይል ስህተት እንዳይፈጥር ተስተካክሏል)
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
@@ -216,8 +216,8 @@ const employeeSchema = new mongoose.Schema({
   positionAmh: { type: String, default: "" },
   positionEng: { type: String, default: "" },
   orgPhoneNumber: { type: String, default: "" },
-  orgEmail: { type: String, default: "" },       // 👈 አዲስ የተጨመረ
-  logoUrl: { type: String, default: "" },          // 👈 አዲስ የተጨመረ
+  orgEmail: { type: String, default: "" },       
+  logoUrl: { type: String, default: "" },          
   imageUrl: { type: String, default: "" },
   status: { type: String, default: "approved" },
   approved: { type: Boolean, default: true },
