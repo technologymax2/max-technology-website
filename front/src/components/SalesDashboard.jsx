@@ -6,6 +6,9 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [uploading, setUploading] = useState(false);
   const [comments, setComments] = useState({});
   const [statuses, setStatuses] = useState({});
+  
+  // 👈 ሁሉንም የተመረጡ ሊዶች አይዲ ለመያዝ የሚያስችል ስቴት
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -21,7 +24,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     fetchLeads();
   }, [fetchLeads]);
 
-  // Excel ፋይል መጫኛ (የጫነውን ሰራተኛ ስም (uploadedBy) ጨምሮ መላክ)
+  // Excel ፋይል መጫኛ
   const handleUploadExcel = async (e) => {
     e.preventDefault();
     if (!file) return alert("እባክዎ ፋይል ይምረጡ!");
@@ -51,7 +54,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // የጥሪ ሁኔታ፣ አስተያየት እና ያዘመነው ሰራተኛ (updatedBy) ማሻሻያ
+  // የጥሪ ሁኔታ፣ አስተያየት ማሻሻያ
   const handleUpdateLead = async (id) => {
     const status = statuses[id] || "ያልተደወለ";
     const comment = comments[id] || "";
@@ -77,13 +80,11 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 🗑️ ሁለቱ የማረጋገጫ መልዕክቶች ያሉት ማጥፊያ ሎጂክ (Delete with double confirmation)
+  // አንዱን ሊድ ብቻ ማጥፊያ
   const handleDeleteLead = async (id) => {
-    // የመጀመሪያው ማረጋገጫ (First Confirmation)
     const firstConfirm = window.confirm("እርግጠኛ ሆንክ ይህንን የደንበኛ መረጃ ማጥፋት ትፈልጋለህ?");
     if (!firstConfirm) return;
 
-    // ሁለተኛው ማረጋገጫ (Second Confirmation)
     const secondConfirm = window.confirm("⚠️ አስጠንቀቅ! ይህ መረጃ ከዚህ በኃላ ይመለስ ዘንድ አይቻልም። በእርግጥ ይሰረዝ?");
     if (!secondConfirm) return;
 
@@ -97,11 +98,58 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       if (data.success) {
         alert("መረጃው በተሳካ ሁኔታ ተሰርዟል!");
         fetchLeads();
-      } else {
-        alert(data.error || "ማጥፋት አልተቻለም");
       }
     } catch (err) {
       alert("ስህተት ተፈጥሯል");
+    }
+  };
+
+  // 👈 "ሁሉንም ምረጥ (Select All)" ቼክቦክስ ሲነካ የሚሰራ
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allIds = leads.map((lead) => lead._id);
+      setSelectedLeadIds(allIds);
+    } else {
+      setSelectedLeadIds([]);
+    }
+  };
+
+  // 👈 አንድን ሊድ በቼክቦክስ መምረጥ/ አለመምረጥ
+  const handleSelectOne = (id) => {
+    if (selectedLeadIds.includes(id)) {
+      setSelectedLeadIds(selectedLeadIds.filter((item) => item !== id));
+    } else {
+      setSelectedLeadIds([...selectedLeadIds, id]);
+    }
+  };
+
+  // 👈 የተመረጡትን ሁሉ በጅምላ ማጥፊያ (Delete Selected)
+  const handleDeleteSelected = async () => {
+    if (selectedLeadIds.length === 0) {
+      return alert("እባክዎ መጀመሪያ ሊጥፏቸው የሚፈልጓቸውን ደንበኞች ይምረጡ!");
+    }
+
+    const firstConfirm = window.confirm(`እርግጠኛ ሆንክ የተመረጡትን ${selectedLeadIds.length} ደንበኞች ማጥፋት ትፈልጋለህ?`);
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm("⚠️ አስጠንቀቅ! እነዚህ መረጃዎች ሙሉ በሙሉ ይሰረዛሉ። መቀጠል ይፈልጋሉ?");
+    if (!secondConfirm) return;
+
+    try {
+      // በሉፕ ሁሉንም የተመረጡት ማጥፋት
+      for (const id of selectedLeadIds) {
+        await fetch(`${API_BASE_URL}/api/sales/leads/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deletedBy: user?.name || "የሽያጭ ሰራተኛ" }),
+        });
+      }
+
+      alert("የተመረጡት ደንበኞች በስኬት ተሰርዘዋል!");
+      setSelectedLeadIds([]);
+      fetchLeads();
+    } catch (err) {
+      alert("በማጥፋት ሂደት ላይ ስህተት ተፈጥሯል");
     }
   };
 
@@ -145,19 +193,57 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
 
         {/* የደንበኞች ዝርዝር እና የጥሪ ሁኔታ መቆጣጠሪያ */}
         <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md flex-grow">
-          <h3 className="text-base font-bold mb-4 text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({leads.length})</h3>
+          
+          {/* 👈 የርዕስ ክፍል እና የጅምላ ማጥፊያ ቁልፍ */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+            <h3 className="text-base font-bold text-gray-200">📞 የደንበኞች ጥሪ ዝርዝር ({leads.length})</h3>
+            
+            {leads.length > 0 && (
+              <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                {/* ሁሉንም መምረጫ ቼክቦክስ */}
+                <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer bg-gray-900 px-3 py-1.5 rounded border border-gray-700">
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectAll}
+                    checked={leads.length > 0 && selectedLeadIds.length === leads.length}
+                    className="w-4 h-4 accent-yellow-400 cursor-pointer"
+                  />
+                  ሁሉንም ምረጥ (Select All)
+                </label>
+
+                {/* የተመረጡትን በጅምላ ማጥፊያ ቁልፍ */}
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={selectedLeadIds.length === 0}
+                  className="bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white px-4 py-1.5 rounded text-xs font-bold transition"
+                >
+                  🗑️ የተመረጡትን አጥፋ ({selectedLeadIds.length})
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col gap-3">
             {leads.map((lead) => (
               <div key={lead._id} className="bg-gray-900 border border-gray-700 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
-                  <p className="text-xs text-gray-300 mt-1">ስልክ: <a href={`tel:${lead.phone}`} className="text-blue-400 underline font-semibold">{lead.phone}</a> | አድራሻ: {lead.address || "አልተጠቀሰም"}</p>
-                  <p className="text-xs text-gray-400 mt-1">የቀድሞ ሁኔታ: <span className="text-yellow-200 font-semibold">{lead.status}</span> | አስተያየት: {lead.comment || "ምንም የለም"}</p>
-                  
-                  {/* ተጨማሪ መረጃዎች (የጫነው እና ያዘመነው ሰራተኛ ማንነት) */}
-                  <div className="text-[11px] text-gray-500 mt-1 flex gap-3">
-                    {lead.uploadedBy && <span>የጫነው: {lead.uploadedBy}</span>}
-                    {lead.updatedBy && <span>ያዘመነው: {lead.updatedBy}</span>}
+                
+                {/* የደንበኛ መረጃ እና ቼክቦክስ */}
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedLeadIds.includes(lead._id)}
+                    onChange={() => handleSelectOne(lead._id)}
+                    className="mt-1 w-4 h-4 accent-yellow-400 cursor-pointer"
+                  />
+                  <div>
+                    <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
+                    <p className="text-xs text-gray-300 mt-1">ስልክ: <a href={`tel:${lead.phone}`} className="text-blue-400 underline font-semibold">{lead.phone}</a> | አድራሻ: {lead.address || "አልተጠቀሰም"}</p>
+                    <p className="text-xs text-gray-400 mt-1">የቀድሞ ሁኔታ: <span className="text-yellow-200 font-semibold">{lead.status}</span> | አስተያየት: {lead.comment || "ምንም የለም"}</p>
+                    
+                    <div className="text-[11px] text-gray-500 mt-1 flex gap-3">
+                      {lead.uploadedBy && <span>የጫነው: {lead.uploadedBy}</span>}
+                      {lead.updatedBy && <span>ያዘመነው: {lead.updatedBy}</span>}
+                    </div>
                   </div>
                 </div>
 
@@ -189,7 +275,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                     መዝግብ
                   </button>
 
-                  {/* የማጥፊያ ቁልፍ (Delete Button with double confirmation) */}
                   <button
                     onClick={() => handleDeleteLead(lead._id)}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs font-bold transition"
