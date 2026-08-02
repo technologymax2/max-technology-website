@@ -218,12 +218,12 @@ function HRPrintCartPage({ handleLogout }) {
                     width: 100% !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    gap: 8mm !important;
+                    gap: 6mm !important;
                   }
                   .print-card-wrapper {
                     page-break-inside: avoid;
                     break-inside: avoid;
-                    margin-bottom: 5mm;
+                    margin-bottom: 4mm;
                   }
                   .print-card-box {
                     background-color: #0b192c !important;
@@ -234,9 +234,9 @@ function HRPrintCartPage({ handleLogout }) {
                   }
                   /* በህትመት ጊዜ ትክክለኛ መጠን እንዲኖረው መለኪያ */
                   .print-scale-container {
-                    transform: scale(0.70);
+                    transform: scale(0.65);
                     transform-origin: top center;
-                    margin-bottom: -15% !important;
+                    margin-bottom: -20% !important;
                   }
                 }
               `}} />
@@ -364,10 +364,11 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'chest' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge)</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+                        {/* ፊትና ጀርባ ጎን ለጎን እንዲሆኑ flex እና flex-row ተሰጥቷል */}
+                        <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                           
                           {/* Badge Front */}
-                          <div className="print-card-box relative w-full max-w-[340px] h-[180px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 mx-auto shrink-0">
+                          <div className="print-card-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
 
                             <div className="flex items-center justify-between border-b border-white/10 pb-1.5 relative z-10">
@@ -407,7 +408,7 @@ function HRPrintCartPage({ handleLogout }) {
 
                               <div className="flex flex-col items-center bg-black/30 p-1 rounded-lg border border-[#d4af37]/20 shrink-0">
                                 <div className="bg-white p-0.5 rounded">
-                                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '42px', height: '42px', display: 'block' }} />
+                                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '40px', height: '40px', display: 'block' }} />
                                 </div>
                                 <span className="text-[6px] text-[#d4af37] font-bold mt-0.5">SCAN</span>
                               </div>
@@ -419,7 +420,7 @@ function HRPrintCartPage({ handleLogout }) {
                           </div>
 
                           {/* Badge Back */}
-                          <div className="print-card-box relative w-full max-w-[340px] h-[180px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 mx-auto shrink-0">
+                          <div className="print-card-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0">
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#d4af37]/10 to-transparent pointer-events-none rounded-tr-full"></div>
 
                             <div className="flex justify-between items-center border-b border-white/10 pb-1.5 relative z-10">
