@@ -258,7 +258,8 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'standard' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID)</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+                        {/* ፊትና ጀርባ ጎን ለጎን እንዲሆኑ flex እና flex-row ተሰጥቷል */}
+                        <div className="flex flex-row flex-wrap justify-center items-center gap-4">
                           
                           {/* Front Side */}
                           <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col mx-auto shrink-0">
@@ -364,7 +365,6 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'chest' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge)</div>
-                        {/* ፊትና ጀርባ ጎን ለጎን እንዲሆኑ flex እና flex-row ተሰጥቷል */}
                         <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                           
                           {/* Badge Front */}
