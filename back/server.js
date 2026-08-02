@@ -55,7 +55,6 @@ const leadSchema = new mongoose.Schema({
 const Lead = mongoose.model("Lead", leadSchema);
 
 // 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (የጫነውን ሰራተኛ ጨምሮ)
-// 1. Excel ፋይልን ሎድ አድርጎ ዳታቤዝ ውስጥ የሚመዘግብ ሮውት (Website መረጃን ጨምሮ)
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -84,13 +83,11 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
       const businessType = row[2] || ""; // ኮለም C (የንግድ ዓይነት)
       const address = row[3] || "";    // ኮለም D (አድራሻ)
       
-      // ስልክ እና ዌብሳይት መረጃ የሚገኝባቸውን ኮለሞች መቃኘት (ኮለም E እና F)
       let phone = "";
       let websiteInfo = "";
 
       for (let j = 4; j < row.length; j++) {
         const val = String(row[j] || "").trim();
-        // ቁጥር ከሆነ ወይም ስልክ የሚመስል ከሆነ
         if (val.match(/^[0-9+\-\s()]{7,}$/)) {
           phone = val;
         } else if (val.toLowerCase().includes("web") || val.toLowerCase().includes("site")) {
@@ -105,7 +102,7 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
           address: String(address).trim(),
           phone: String(phone).trim(),
           status: "ያልተደወለ",
-          comment: websiteInfo ? `ሁኔታ: ${websiteInfo}` : "", // 👈 ዌብሳይት ያለው/የሌለው መረጃ እዚህ ይቀመጣል
+          comment: websiteInfo ? `ሁኔታ: ${websiteInfo}` : "",
           uploadedBy: uploadedBy,
         });
         count++;
@@ -122,8 +119,6 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     res.status(500).json({ success: false, error: "ፋይሉን ማንበብ ወይም መመዝገብ አልተቻለም" });
   }
 });
-
-
 
 // 2. የደንበኞችን ዝርዝር ማምጫ
 app.get("/api/sales/leads", async (req, res) => {
@@ -151,7 +146,7 @@ app.put("/api/sales/leads/:id", async (req, res) => {
   }
 });
 
-// 4. ሊድ ማጥፊያ (ያጠፋውን ሰራተኛ ስም (deletedBy) የሚመዘግብ)
+// 4. ሊድ ማጥፊያ
 app.delete("/api/sales/leads/:id", async (req, res) => {
   try {
     const { deletedBy } = req.body;
@@ -175,7 +170,6 @@ app.delete("/api/sales/leads-bulk", async (req, res) => {
       return res.status(400).json({ success: false, error: "የሚጠፉ መረጃዎች አልተመረጡም!" });
     }
 
-    // በ Mongoose አማካኝነት የተመረጡትን መረጃዎች በሙሉ በአንድ ጊዜ ከዳታቤዝ ማጥፋት
     await Lead.deleteMany({ _id: { $in: ids } });
 
     res.status(200).json({ success: true, message: "የተመረጡት ደንበኞች በስኬት ተሰርዘዋል!" });
@@ -184,8 +178,6 @@ app.delete("/api/sales/leads-bulk", async (req, res) => {
     res.status(500).json({ success: false, error: "በጅምላ ማጥፋት ላይ ስህተት ተፈጥሯል" });
   }
 });
-
-
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -206,6 +198,7 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
+// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (logoUrl እና orgEmail ተጨምረዋል)
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
@@ -223,6 +216,8 @@ const employeeSchema = new mongoose.Schema({
   positionAmh: { type: String, default: "" },
   positionEng: { type: String, default: "" },
   orgPhoneNumber: { type: String, default: "" },
+  orgEmail: { type: String, default: "" },       // 👈 አዲስ የተጨመረ
+  logoUrl: { type: String, default: "" },          // 👈 አዲስ የተጨመረ
   imageUrl: { type: String, default: "" },
   status: { type: String, default: "approved" },
   approved: { type: Boolean, default: true },
