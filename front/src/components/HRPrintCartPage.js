@@ -218,25 +218,40 @@ function HRPrintCartPage({ handleLogout }) {
                     width: 100% !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    gap: 6mm !important;
+                    gap: 8mm !important;
                   }
                   .print-card-wrapper {
                     page-break-inside: avoid;
                     break-inside: avoid;
-                    margin-bottom: 4mm;
+                    margin-bottom: 6mm !important;
                   }
                   .print-card-box {
+                    width: 85.6mm !important;
+                    height: 54mm !important;
+                    max-width: 85.6mm !important;
+                    max-height: 54mm !important;
                     background-color: #0b192c !important;
                     color: white !important;
                     border-color: #d4af37 !important;
+                    box-shadow: none !important;
+                    border-radius: 4mm !important;
+                    overflow: hidden !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
-                  /* በህትመት ጊዜ ትክክለኛ መጠን እንዲኖረው መለኪያ */
-                  .print-scale-container {
-                    transform: scale(0.65);
-                    transform-origin: top center;
-                    margin-bottom: -20% !important;
+                  .print-badge-box {
+                    width: 85.6mm !important;
+                    height: 54mm !important;
+                    max-width: 85.6mm !important;
+                    max-height: 54mm !important;
+                    background-color: #0b192c !important;
+                    color: white !important;
+                    border-color: #d4af37 !important;
+                    box-shadow: none !important;
+                    border-radius: 4mm !important;
+                    overflow: hidden !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                   }
                 }
               `}} />
@@ -244,7 +259,7 @@ function HRPrintCartPage({ handleLogout }) {
               {/* የሚታተሙ መታወቂያዎች ዝርዝር */}
               <div id="printable-cart-container" className="space-y-8">
                 {printCart.map((emp) => (
-                  <div key={emp._id} className="relative bg-gray-900 p-3 sm:p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0 overflow-x-auto print-scale-container">
+                  <div key={emp._id} className="relative bg-gray-900 p-3 sm:p-4 rounded-2xl border border-gray-700 print-card-wrapper print:bg-white print:border-none print:p-0">
                     
                     <button 
                       onClick={() => removeFromCart(emp._id)} 
@@ -258,7 +273,6 @@ function HRPrintCartPage({ handleLogout }) {
                     {emp.selectedStyle === 'standard' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID)</div>
-                        {/* ፊትና ጀርባ ጎን ለጎን እንዲሆኑ flex እና flex-row ተሰጥቷል */}
                         <div className="flex flex-row flex-wrap justify-center items-center gap-4">
                           
                           {/* Front Side */}
@@ -368,7 +382,7 @@ function HRPrintCartPage({ handleLogout }) {
                         <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                           
                           {/* Badge Front */}
-                          <div className="print-card-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0">
+                          <div className="print-badge-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0 mx-auto">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
 
                             <div className="flex items-center justify-between border-b border-white/10 pb-1.5 relative z-10">
@@ -420,7 +434,7 @@ function HRPrintCartPage({ handleLogout }) {
                           </div>
 
                           {/* Badge Back */}
-                          <div className="print-card-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0">
+                          <div className="print-badge-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0 mx-auto">
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#d4af37]/10 to-transparent pointer-events-none rounded-tr-full"></div>
 
                             <div className="flex justify-between items-center border-b border-white/10 pb-1.5 relative z-10">
