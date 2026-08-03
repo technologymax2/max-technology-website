@@ -9,6 +9,9 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
   const [activeTab, setActiveTab] = useState('employees');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
+  // ሰራተኛን ለማስተካከል የሚያገለግል ID
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+  
   const [employeeForm, setEmployeeForm] = useState({
     nameAmh: '',
     nameEng: '',
@@ -179,10 +182,36 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     setValidationErrors(errors);
   };
 
+  // ሰራተኛን ለማስተካከል መረጃውን ወደ ፎርም ማምጫ
+  const handleEditClick = (emp) => {
+    setEditingEmployeeId(emp._id);
+    setEmployeeForm({
+      nameAmh: emp.nameAmh || '',
+      nameEng: emp.nameEng || '',
+      age: emp.age || '',
+      faydaNumber: emp.faydaNumber || '',
+      dateOfIssue: emp.dateOfIssue || '',
+      expireDate: emp.expireDate || '',
+      addressAmh: emp.addressAmh || '',
+      addressEng: emp.addressEng || '',
+      zone: emp.zone || '',
+      city: emp.city || '',
+      nationality: emp.nationality || '',
+      phoneNumber: emp.phoneNumber || '',
+      woreda: emp.woreda || '',
+      positionAmh: emp.positionAmh || '',
+      positionEng: emp.positionEng || ''
+    });
+    setImagePreview(emp.imageUrl || null);
+    setImage(null); // አዲስ ፎቶ ካልተመረጠ የድሮውን ፎቶ እንይዛለን
+    setActiveTab('register'); // ወደ መመዝገቢያ/ማስተካከያ ታብ ይወስዳል
+  };
+
+  // ማስተካከያን ወይም አዲስ ምዝገባን መላኪያ
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();
 
-    if (!image) {
+    if (!image && !imagePreview) {
       setEmployeeStatus("⚠️ እባክዎ የሰራተኛውን ፎቶ ይምረጡ!");
       return;
     }
@@ -198,21 +227,27 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
     }
 
     setLoading(true);
-    setEmployeeStatus("⏳ ፎቶ እና መረጃ በመጫን ላይ...");
+    setEmployeeStatus("⏳ መረጃ በመጫን ላይ...");
 
     try {
-      const imgData = new FormData();
-      imgData.append("image", image);
-      const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: imgData,
-      });
-      const imgResult = await imgRes.json();
-      if (!imgResult.success) throw new Error("የሰራተኛውን ፎቶ ወደ ማከማቻ መላክ አልተቻለም");
+      let finalImageUrl = imagePreview;
+
+      // አዲስ ፎቶ ከተመረጠ ወደ ImgBB እንልካለን
+      if (image) {
+        const imgData = new FormData();
+        imgData.append("image", image);
+        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: "POST",
+          body: imgData,
+        });
+        const imgResult = await imgRes.json();
+        if (!imgResult.success) throw new Error("የሰራተኛውን ፎቶ ወደ ማከማቻ መላክ አልተቻለም");
+        finalImageUrl = imgResult.data.url;
+      }
 
       const finalData = {
         ...employeeForm,
-        imageUrl: imgResult.data.url,
+        imageUrl: finalImageUrl,
         logoUrl: companyLogoUrl,
         orgPhoneNumber: companyPhone,
         orgEmail: companyEmail,
@@ -220,16 +255,26 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
         approved: true
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/hr/employees`, {
-        method: 'POST',
+      let url = `${API_BASE_URL}/api/hr/employees`;
+      let method = 'POST';
+
+      // አዲስ ከሌለ (Editing ከሆነ) PUT/PATCH ጥያቄ ይደረጋል
+      if (editingEmployeeId) {
+        url = `${API_BASE_URL}/api/hr/employees/${editingEmployeeId}`;
+        method = 'PUT'; // ወይም 'PATCH' እንደ ባክኤንድዎ ሁኔታ
+      }
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalData)
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setEmployeeStatus("✅ ሰራተኛው በስኬት ተመዝግቧል!");
+        setEmployeeStatus(editingEmployeeId ? "✅ ሰራተኛው መረጃ በስኬት ተስተካክሏል!" : "✅ ሰራተኛው በስኬት ተመዝግቧል!");
         setValidationErrors({});
+        setEditingEmployeeId(null);
         setEmployeeForm({
           nameAmh: '',
           nameEng: '',
@@ -302,7 +347,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
 
         <div className={`fixed lg:relative top-0 left-0 h-full lg:h-auto w-64 bg-gray-800 border-r lg:border border-gray-700 rounded-none lg:rounded-2xl p-4 flex flex-col gap-2 z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} print:hidden`}>
           <button onClick={() => { setActiveTab('employees'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'employees' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>📋 ሰራተኞች ዝርዝር</button>
-          <button onClick={() => { setActiveTab('register'); setSidebarOpen(false); }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>➕ አዲስ ሰራተኛ መመዝገቢያ</button>
+          <button onClick={() => { 
+            setActiveTab('register'); 
+            setEditingEmployeeId(null); 
+            setEmployeeForm({ nameAmh: '', nameEng: '', age: '', faydaNumber: '', dateOfIssue: '', expireDate: '', addressAmh: '', addressEng: '', zone: '', city: '', nationality: '', phoneNumber: '', woreda: '', positionAmh: '', positionEng: '' });
+            setImagePreview(null);
+            setSidebarOpen(false); 
+          }} className={`w-full text-left p-3 rounded-xl font-bold transition ${activeTab === 'register' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}>➕ አዲስ ሰራተኛ መመዝገቢያ</button>
         </div>
 
         <div className="flex-1 w-full min-w-0 print:w-full">
@@ -310,7 +361,9 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
             
             {(activeTab === 'register' || window.innerWidth >= 1024) && (
               <div className={`bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 ${activeTab !== 'register' ? 'hidden lg:block' : ''} print:hidden`}>
-                <h3 className="text-xl font-bold mb-4 text-blue-400">➕ አዲስ ሰራተኛ መመዝገቢያ</h3>
+                <h3 className="text-xl font-bold mb-4 text-blue-400">
+                  {editingEmployeeId ? "✏️ የሰራተኛ መረጃ ማስተካከያ (Edit Employee)" : "➕ አዲስ ሰራተኛ መመዝገቢያ"}
+                </h3>
                 
                 <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-xl flex flex-col gap-4">
                   <div className="text-sm font-bold text-yellow-400 border-b border-gray-700 pb-2">🏢 የድርጅት ቋሚ መረጃዎች (Company Settings)</div>
@@ -434,9 +487,24 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                   </div>
                   {validationErrors.expireDate && <span className="text-[11px] text-red-400 block">{validationErrors.expireDate}</span>}
 
-                  <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-2 disabled:opacity-50 transition">
-                    {loading ? "እየተመዘገበ ነው..." : "ሰራተኛውን መዝግብ"}
-                  </button>
+                  <div className="flex gap-3 mt-2">
+                    <button type="submit" disabled={loading} className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl disabled:opacity-50 transition">
+                      {loading ? "እየተቀመጠ ነው..." : (editingEmployeeId ? "ለውጦችን አስቀምጥ (Update)" : "ሰራተኛውን መዝግብ")}
+                    </button>
+                    {editingEmployeeId && (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setEditingEmployeeId(null);
+                          setEmployeeForm({ nameAmh: '', nameEng: '', age: '', faydaNumber: '', dateOfIssue: '', expireDate: '', addressAmh: '', addressEng: '', zone: '', city: '', nationality: '', phoneNumber: '', woreda: '', positionAmh: '', positionEng: '' });
+                          setImagePreview(null);
+                        }} 
+                        className="py-3.5 px-5 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl transition"
+                      >
+                        ሰርዝ (Cancel)
+                      </button>
+                    )}
+                  </div>
                 </form>
                 {employeeStatus && <p className="mt-4 text-center font-medium text-green-400 text-sm">{employeeStatus}</p>}
               </div>
@@ -471,10 +539,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                         <td className="p-3 font-mono text-xs text-blue-300">{emp.faydaNumber}</td>
                         <td className="p-3">
                           <div className="flex gap-2 items-center">
-                            <button onClick={() => { setSelectedIdCard(emp); setPrintCardType('id-card'); }} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition">
+                            <button onClick={() => { setSelectedIdCard(emp); setPrintCardType('id-card'); }} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition">
                               🪪 እይ/አትም
                             </button>
-                            <button onClick={() => handleDeleteEmployee(emp._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition">
+                            <button onClick={() => handleEditClick(emp)} className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold rounded-lg transition">
+                              ✏️ አስተካክል
+                            </button>
+                            <button onClick={() => handleDeleteEmployee(emp._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition">
                               🗑 አጥፋ
                             </button>
                           </div>
