@@ -192,14 +192,14 @@ function HRPrintCartPage({ handleLogout }) {
               
               <style dangerouslySetInnerHTML={{__html: `
                 @page {
-                  size: A4 portrait;
-                  margin: 10mm;
+                  size: auto;
+                  margin: 5mm;
                 }
                 @media print {
                   body, html {
                     background: white !important;
-                    width: 100%;
-                    height: auto;
+                    width: 100% !important;
+                    height: auto !important;
                     margin: 0 !important;
                     padding: 0 !important;
                     -webkit-print-color-adjust: exact !important;
@@ -218,38 +218,40 @@ function HRPrintCartPage({ handleLogout }) {
                     width: 100% !important;
                     display: flex !important;
                     flex-direction: column !important;
-                    gap: 8mm !important;
+                    gap: 5mm !important;
                   }
                   .print-card-wrapper {
                     page-break-inside: avoid;
                     break-inside: avoid;
-                    margin-bottom: 6mm !important;
+                    margin-bottom: 4mm !important;
                   }
                   .print-card-box {
                     width: 85.6mm !important;
                     height: 54mm !important;
-                    max-width: 85.6mm !important;
-                    max-height: 54mm !important;
+                    min-width: 85.6mm !important;
+                    min-height: 54mm !important;
                     background-color: #0b192c !important;
                     color: white !important;
-                    border-color: #d4af37 !important;
+                    border: 2px solid #d4af37 !important;
                     box-shadow: none !important;
                     border-radius: 4mm !important;
                     overflow: hidden !important;
+                    transform: none !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
                   .print-badge-box {
                     width: 85.6mm !important;
                     height: 54mm !important;
-                    max-width: 85.6mm !important;
-                    max-height: 54mm !important;
+                    min-width: 85.6mm !important;
+                    min-height: 54mm !important;
                     background-color: #0b192c !important;
                     color: white !important;
-                    border-color: #d4af37 !important;
+                    border: 2px solid #d4af37 !important;
                     box-shadow: none !important;
                     border-radius: 4mm !important;
                     overflow: hidden !important;
+                    transform: none !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
@@ -477,4 +479,4 @@ function HRPrintCartPage({ handleLogout }) {
   );
 }
 
-export default HRPrintCartPage;
+export `default HRPrintCartPage;
