@@ -192,14 +192,14 @@ function HRPrintCartPage({ handleLogout }) {
               
               <style dangerouslySetInnerHTML={{__html: `
                 @page {
-                  size: A4 portrait;
-                  margin: 10mm;
+                  size: 85.6mm 54mm;
+                  margin: 0mm;
                 }
                 @media print {
                   body, html {
                     background: white !important;
-                    width: 100%;
-                    height: auto;
+                    width: 85.6mm;
+                    height: 54mm;
                     margin: 0 !important;
                     padding: 0 !important;
                     -webkit-print-color-adjust: exact !important;
@@ -215,41 +215,28 @@ function HRPrintCartPage({ handleLogout }) {
                     position: absolute;
                     left: 0;
                     top: 0;
-                    width: 100% !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    gap: 8mm !important;
+                    width: 85.6mm !important;
                   }
                   .print-card-wrapper {
+                    page-break-after: always;
+                    break-after: page;
                     page-break-inside: avoid;
                     break-inside: avoid;
-                    margin-bottom: 6mm !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                   }
-                  .print-card-box {
+                  .print-card-box, .print-badge-box {
                     width: 85.6mm !important;
                     height: 54mm !important;
                     max-width: 85.6mm !important;
                     max-height: 54mm !important;
                     background-color: #0b192c !important;
                     color: white !important;
-                    border-color: #d4af37 !important;
+                    border: none !important;
                     box-shadow: none !important;
-                    border-radius: 4mm !important;
+                    border-radius: 0mm !important;
                     overflow: hidden !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                  }
-                  .print-badge-box {
-                    width: 85.6mm !important;
-                    height: 54mm !important;
-                    max-width: 85.6mm !important;
-                    max-height: 54mm !important;
-                    background-color: #0b192c !important;
-                    color: white !important;
-                    border-color: #d4af37 !important;
-                    box-shadow: none !important;
-                    border-radius: 4mm !important;
-                    overflow: hidden !important;
+                    margin: 0 !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
@@ -272,7 +259,7 @@ function HRPrintCartPage({ handleLogout }) {
                     {/* 1. STANDARD ID DESIGN */}
                     {emp.selectedStyle === 'standard' && (
                       <div className="space-y-4">
-                        <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID)</div>
+                        <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Standard ID) - እያንዳንዱ ገጽ በልዩ ሉህ ይታተማል</div>
                         <div className="flex flex-row flex-wrap justify-center items-center gap-4">
                           
                           {/* Front Side */}
@@ -378,7 +365,7 @@ function HRPrintCartPage({ handleLogout }) {
                     {/* 2. CHEST BADGE DESIGN */}
                     {emp.selectedStyle === 'chest' && (
                       <div className="space-y-4">
-                        <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge)</div>
+                        <div className="text-xs font-bold text-[#d4af37] print:hidden mb-1">የፊት እና የኋላ ገጽ (Chest Badge) - እያንዳንዱ ገጽ በልዩ ሉህ ይታተማል</div>
                         <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                           
                           {/* Badge Front */}
