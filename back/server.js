@@ -471,6 +471,30 @@ app.delete("/api/hr/employees/:id", async (req, res) => {
   }
 });
 
+app.put("/api/hr/employees/:id", async (req, res) => {
+  try {
+    const updatedEmployee = await Employee.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedEmployee) {
+      return res.status(404).json({ success: false, error: "ሰራተኛው አልተገኘም!" });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "የሰራተኛው መረጃ በተሳካ ሁኔታ ተዘምኗል!", 
+      employee: updatedEmployee 
+    });
+  } catch (error) {
+    console.error("Employee update error:", error);
+    res.status(500).json({ success: false, error: "ሰራተኛውን ማዘመን አልተቻለም" });
+  }
+});
+
+
 app.post("/api/admin/hrs", async (req, res) => {
   try {
     const { name, email, password } = req.body;
