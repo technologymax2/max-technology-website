@@ -499,7 +499,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
           <style dangerouslySetInnerHTML={{__html: `
             @page {
               size: landscape;
-              margin: 5mm;
+              margin: 0;
             }
             @media print {
               body, html {
@@ -524,7 +524,7 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
-                gap: 20px !important;
+                gap: 10px !important;
                 align-items: center !important;
                 justify-content: center !important;
                 transform: none !important;
@@ -536,10 +536,13 @@ function HRDashboard({ user, handleLogout, API_BASE_URL }) {
                 print-color-adjust: exact !important;
               }
               .printable-card {
-                transform: scale(0.78) !important;
-                transform-origin: center !important;
+                width: 85.6mm !important;
+                height: 54mm !important;
+                max-width: 85.6mm !important;
+                max-height: 54mm !important;
+                transform: none !important;
                 box-shadow: none !important;
-                border-radius: 10px !important;
+                border-radius: 4mm !important;
                 overflow: hidden !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
