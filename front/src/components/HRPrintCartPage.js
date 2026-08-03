@@ -225,33 +225,17 @@ function HRPrintCartPage({ handleLogout }) {
                     break-inside: avoid;
                     margin-bottom: 4mm !important;
                   }
-                  .print-card-box {
+                  .print-card-box, .print-badge-box {
                     width: 85.6mm !important;
                     height: 54mm !important;
                     min-width: 85.6mm !important;
                     min-height: 54mm !important;
                     background-color: #0b192c !important;
-                    color: white !important;
+                    color: #ffffff !important;
                     border: 2px solid #d4af37 !important;
                     box-shadow: none !important;
                     border-radius: 4mm !important;
                     overflow: hidden !important;
-                    transform: none !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                  }
-                  .print-badge-box {
-                    width: 85.6mm !important;
-                    height: 54mm !important;
-                    min-width: 85.6mm !important;
-                    min-height: 54mm !important;
-                    background-color: #0b192c !important;
-                    color: white !important;
-                    border: 2px solid #d4af37 !important;
-                    box-shadow: none !important;
-                    border-radius: 4mm !important;
-                    overflow: hidden !important;
-                    transform: none !important;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
@@ -278,98 +262,95 @@ function HRPrintCartPage({ handleLogout }) {
                         <div className="flex flex-row flex-wrap justify-center items-center gap-4">
                           
                           {/* Front Side */}
-                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col mx-auto shrink-0">
+                          <div className="print-card-box relative w-[280px] h-[430px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col mx-auto shrink-0 p-2.5 justify-between">
                             <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-[#d4af37]/20 to-transparent pointer-events-none rounded-tl-[80px]"></div>
-                            <div className="pt-3 pb-1 px-2 text-center relative z-10">
-                              <div className="w-8 h-8 mx-auto bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow mb-1 overflow-hidden">
+                            
+                            <div className="text-center relative z-10">
+                              <div className="w-10 h-10 mx-auto bg-white rounded-full flex items-center justify-center border-2 border-[#d4af37] shadow mb-1 overflow-hidden">
                                 {emp.logoUrl || companyLogoUrl ? (
                                   <img src={emp.logoUrl || companyLogoUrl} alt="Logo" className="w-full h-full object-cover" />
                                 ) : (
-                                  <span className="text-[9px] font-extrabold text-[#0b192c]">LOGO</span>
+                                  <span className="text-[10px] font-black text-[#0b192c]">LOGO</span>
                                 )}
                               </div>
-                              <h2 className="text-[11px] font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
-                              <p className="text-[8px] text-[#d4af37] font-medium tracking-wide">EMPLOYEE ID CARD</p>
+                              <h2 className="text-[13px] font-black tracking-widest text-white">MAX TECHNOLOGY</h2>
+                              <p className="text-[9px] text-[#d4af37] font-bold tracking-wider">EMPLOYEE ID CARD</p>
                             </div>
 
-                            <div className="flex flex-col items-center relative z-10 px-3 mt-0.5">
-                              <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md">
+                            <div className="flex flex-col items-center relative z-10 px-2 my-1">
+                              <div className="w-20 h-20 rounded-full p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md">
                                 <img src={emp.imageUrl || 'https://via.placeholder.com/100'} alt={emp.nameEng} className="w-full h-full object-cover rounded-full bg-white" />
                               </div>
-                              <h3 className="text-[11px] font-bold mt-1 text-center text-white leading-tight">{emp.nameAmh}</h3>
-                              <h3 className="text-[10px] font-semibold text-center text-gray-300 leading-tight">{emp.nameEng}</h3>
-                              <p className="text-[9px] text-[#d4af37] font-semibold text-center mt-0.5">{emp.positionAmh} / {emp.positionEng}</p>
+                              <h3 className="text-[14px] font-black mt-1.5 text-center text-white leading-tight">{emp.nameAmh}</h3>
+                              <h3 className="text-[12px] font-bold text-center text-gray-200 leading-tight">{emp.nameEng}</h3>
+                              <p className="text-[10px] text-[#d4af37] font-bold text-center mt-0.5">{emp.positionAmh} / {emp.positionEng}</p>
                             </div>
 
-                            <div className="px-2.5 py-1.5 text-[9px] space-y-1 text-gray-200 relative z-10 bg-black/25 backdrop-blur-xs mx-2 rounded-lg border border-[#d4af37]/20 mt-1">
-                              <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                <span className="text-gray-400 font-medium">ዜግነት:</span>
-                                <span className="text-white font-medium">{emp.nationality || '-'}</span>
+                            <div className="py-2 px-3 text-[11px] font-semibold space-y-1.5 text-white relative z-10 bg-black/40 rounded-xl border border-[#d4af37]/30">
+                              <div className="flex justify-between border-b border-white/20 pb-0.5">
+                                <span className="text-gray-300 font-bold">ዜግነት:</span>
+                                <span className="text-white font-bold">{emp.nationality || 'Ethiopian'}</span>
                               </div>
-                              <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                <span className="text-gray-400 font-medium">አድራሻ:</span>
-                                <span className="text-white text-right truncate max-w-[120px]">{emp.addressAmh || emp.addressEng || '-'}</span>
-                              </div>
-                              <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                <span className="text-gray-400 font-medium">ከተማ:</span>
-                                <span className="text-white">{emp.city || '-'}</span>
+                              <div className="flex justify-between border-b border-white/20 pb-0.5">
+                                <span className="text-gray-300 font-bold">አድራሻ:</span>
+                                <span className="text-white font-bold text-right truncate max-w-[140px]">{emp.addressAmh || emp.addressEng || 'Addis Ababa'}</span>
                               </div>
                               <div className="flex justify-between pb-0.5">
-                                <span className="text-gray-400 font-medium">ስልክ:</span>
-                                <span className="font-mono text-white">{emp.phoneNumber || '-'}</span>
+                                <span className="text-gray-300 font-bold">ስልክ:</span>
+                                <span className="font-mono text-white font-bold">{emp.phoneNumber || '-'}</span>
                               </div>
                             </div>
 
-                            <div className="absolute bottom-0 left-0 w-full py-1.5 text-center text-[8px] text-gray-400 bg-[#07101a] border-t border-[#d4af37]/30 z-10">
+                            <div className="text-center py-1 text-[9px] font-bold text-[#d4af37] bg-[#07101a] -mx-2.5 -mb-2.5 border-t border-[#d4af37]/30 z-10">
                               Max Technology Employee Card
                             </div>
                           </div>
 
                           {/* Back Side */}
-                          <div className="print-card-box relative w-[260px] h-[410px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 mx-auto shrink-0">
+                          <div className="print-card-box relative w-[280px] h-[430px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3.5 mx-auto shrink-0">
                             <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#d4af37]/10 to-transparent pointer-events-none"></div>
 
                             <div className="relative z-10">
-                              <h3 className="text-[10px] font-bold text-[#d4af37] border-b border-white/10 pb-1.5 mb-1.5 tracking-wider text-center">
+                              <h3 className="text-[11px] font-black text-[#d4af37] border-b border-white/20 pb-1.5 mb-2 tracking-wider text-center">
                                 የካርድ መረጃ / ID Details
                               </h3>
 
-                              <div className="text-[8.5px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20 mb-1.5">
-                                <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                  <span className="text-gray-400">ድርጅት ስልክ:</span>
-                                  <span className="font-mono text-white">{emp.orgPhoneNumber || companyPhone || 'N/A'}</span>
+                              <div className="text-[10px] font-semibold space-y-1.5 text-white bg-black/40 p-2.5 rounded-xl border border-[#d4af37]/30 mb-2">
+                                <div className="flex justify-between border-b border-white/20 pb-1">
+                                  <span className="text-gray-300 font-bold">ድርጅት ስልክ:</span>
+                                  <span className="font-mono text-white font-bold">{emp.orgPhoneNumber || companyPhone || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between pb-0.5">
-                                  <span className="text-gray-400">ኢሜይል:</span>
-                                  <span className="text-white truncate max-w-[130px]">{emp.orgEmail || companyEmail || 'N/A'}</span>
+                                  <span className="text-gray-300 font-bold">ኢሜይል:</span>
+                                  <span className="text-white font-bold truncate max-w-[140px]">{emp.orgEmail || companyEmail || 'N/A'}</span>
                                 </div>
                               </div>
 
-                              <div className="text-[9px] space-y-1 text-gray-200 bg-black/25 p-2 rounded-lg border border-[#d4af37]/20">
-                                <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                  <span className="text-gray-400 font-medium">የፋይዳ ቁጥር:</span>
-                                  <span className="font-mono font-semibold text-white text-[8px]">{emp.faydaNumber}</span>
+                              <div className="text-[10.5px] font-semibold space-y-1.5 text-white bg-black/40 p-2.5 rounded-xl border border-[#d4af37]/30">
+                                <div className="flex justify-between border-b border-white/20 pb-1">
+                                  <span className="text-gray-300 font-bold">የፋይዳ ቁጥር:</span>
+                                  <span className="font-mono font-black text-white text-[9.5px]">{emp.faydaNumber}</span>
                                 </div>
-                                <div className="flex justify-between border-b border-white/10 pb-0.5">
-                                  <span className="text-gray-400 font-medium">የወጣበት ቀን:</span>
-                                  <span className="text-white">{emp.dateOfIssue}</span>
+                                <div className="flex justify-between border-b border-white/20 pb-1">
+                                  <span className="text-gray-300 font-bold">የወጣበት ቀን:</span>
+                                  <span className="text-white font-bold">{emp.dateOfIssue}</span>
                                 </div>
                                 <div className="flex justify-between pb-0.5">
-                                  <span className="text-gray-400 font-medium">የሚያበቃበት:</span>
-                                  <span className="text-red-400 font-bold">{emp.expireDate}</span>
+                                  <span className="text-gray-300 font-bold">የሚያበቃበት:</span>
+                                  <span className="text-yellow-300 font-black">{emp.expireDate}</span>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/30 p-2 rounded-xl border border-[#d4af37]/20">
-                              <div className="bg-white p-1.5 rounded-lg shadow-md">
-                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '85px', height: '85px', display: 'block' }} />
+                            <div className="relative z-10 flex flex-col items-center justify-center my-auto bg-black/40 p-2.5 rounded-xl border border-[#d4af37]/30">
+                              <div className="bg-white p-2 rounded-lg shadow-md">
+                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '100px', height: '100px', display: 'block' }} />
                               </div>
-                              <span className="text-[8px] text-[#d4af37] font-bold mt-1 tracking-wide">SCAN TO VERIFY</span>
+                              <span className="text-[9px] text-[#d4af37] font-black mt-1.5 tracking-wider">SCAN TO VERIFY</span>
                             </div>
 
-                            <div className="relative z-10 bg-[#07101a] -mx-3 -mb-3 py-1.5 px-2 text-center border-t border-[#d4af37]/30">
-                              <p className="text-[7.5px] text-gray-400">Authorized Employee ID - Max Technology</p>
+                            <div className="relative z-10 bg-[#07101a] -mx-3.5 -mb-3.5 py-1.5 px-2 text-center border-t border-[#d4af37]/30">
+                              <p className="text-[8.5px] font-bold text-gray-300">Authorized Employee ID - Max Technology</p>
                             </div>
                           </div>
 
@@ -384,76 +365,76 @@ function HRPrintCartPage({ handleLogout }) {
                         <div className="flex flex-row flex-wrap justify-center items-center gap-3">
                           
                           {/* Badge Front */}
-                          <div className="print-badge-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0 mx-auto">
+                          <div className="print-badge-box relative w-[330px] h-[190px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3.5 shrink-0 mx-auto">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none rounded-bl-full"></div>
 
-                            <div className="flex items-center justify-between border-b border-white/10 pb-1.5 relative z-10">
+                            <div className="flex items-center justify-between border-b border-white/20 pb-2 relative z-10">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow overflow-hidden">
+                                <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center border border-[#d4af37] shadow overflow-hidden">
                                   {emp.logoUrl || companyLogoUrl ? (
                                     <img src={emp.logoUrl || companyLogoUrl} alt="Logo" className="w-full h-full object-cover" />
                                   ) : (
-                                    <span className="text-[7px] font-extrabold text-[#0b192c]">LOGO</span>
+                                    <span className="text-[8px] font-black text-[#0b192c]">LOGO</span>
                                   )}
                                 </div>
                                 <div>
-                                  <h2 className="text-[10px] font-extrabold tracking-wider text-white">MAX TECHNOLOGY</h2>
-                                  <p className="text-[7px] text-[#d4af37] font-medium">EMPLOYEE BADGE</p>
+                                  <h2 className="text-[11px] font-black tracking-wider text-white">MAX TECHNOLOGY</h2>
+                                  <p className="text-[8px] text-[#d4af37] font-bold">EMPLOYEE BADGE</p>
                                 </div>
                               </div>
-                              <div className="text-right text-[7px] text-gray-400">
+                              <div className="text-right text-[8px] font-semibold text-gray-200">
                                 <div>ስልክ: {emp.orgPhoneNumber || companyPhone}</div>
                                 <div>ኢሜይል: {emp.orgEmail || companyEmail}</div>
                               </div>
                             </div>
 
-                            <div className="flex items-center justify-between gap-2 my-auto relative z-10">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-12 h-12 rounded-xl p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md shrink-0">
+                            <div className="flex items-center justify-between gap-3 my-auto relative z-10">
+                              <div className="flex items-center gap-3">
+                                <div className="w-16 h-16 rounded-xl p-0.5 bg-gradient-to-tr from-[#d4af37] to-blue-400 shadow-md shrink-0">
                                   <img src={emp.imageUrl || 'https://via.placeholder.com/100'} alt={emp.nameEng} className="w-full h-full object-cover rounded-lg bg-white" />
                                 </div>
                                 <div className="space-y-0.5">
-                                  <h3 className="text-[11px] font-bold text-white leading-tight">{emp.nameAmh}</h3>
-                                  <h3 className="text-[9px] font-semibold text-gray-300 leading-tight">{emp.nameEng}</h3>
-                                  <p className="text-[8px] text-[#d4af37] font-bold">{emp.positionAmh}</p>
-                                  <div className="text-[7.5px] text-gray-300">
-                                    <div>አድራሻ: {emp.city} | ስልክ: {emp.phoneNumber}</div>
+                                  <h3 className="text-[13px] font-black text-white leading-tight">{emp.nameAmh}</h3>
+                                  <h3 className="text-[10.5px] font-bold text-gray-200 leading-tight">{emp.nameEng}</h3>
+                                  <p className="text-[9.5px] text-[#d4af37] font-bold">{emp.positionAmh}</p>
+                                  <div className="text-[9px] font-semibold text-gray-200 mt-0.5">
+                                    <div>ከተማ: {emp.city} | ስልክ: {emp.phoneNumber}</div>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="flex flex-col items-center bg-black/30 p-1 rounded-lg border border-[#d4af37]/20 shrink-0">
-                                <div className="bg-white p-0.5 rounded">
-                                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '40px', height: '40px', display: 'block' }} />
+                              <div className="flex flex-col items-center bg-black/40 p-1.5 rounded-xl border border-[#d4af37]/30 shrink-0">
+                                <div className="bg-white p-1 rounded">
+                                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${FRONTEND_URL}/verify/${emp._id}`)}`} alt="QR Code" style={{ width: '55px', height: '55px', display: 'block' }} />
                                 </div>
-                                <span className="text-[6px] text-[#d4af37] font-bold mt-0.5">SCAN</span>
+                                <span className="text-[7px] text-[#d4af37] font-black mt-1">SCAN</span>
                               </div>
                             </div>
 
-                            <div className="bg-[#07101a] -mx-3 -mb-3 py-1 px-2 text-center border-t border-[#d4af37]/30 text-[7px] text-gray-400 relative z-10">
+                            <div className="bg-[#07101a] -mx-3.5 -mb-3.5 py-1 px-2 text-center border-t border-[#d4af37]/30 text-[8px] font-bold text-gray-300 relative z-10">
                               Authorized Corporate Badge - Max Technology
                             </div>
                           </div>
 
                           {/* Badge Back */}
-                          <div className="print-badge-box relative w-[310px] h-[175px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3 shrink-0 mx-auto">
+                          <div className="print-badge-box relative w-[330px] h-[190px] bg-[#0b192c] text-white rounded-xl shadow-2xl border-2 border-[#d4af37] overflow-hidden flex flex-col justify-between p-3.5 shrink-0 mx-auto">
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#d4af37]/10 to-transparent pointer-events-none rounded-tr-full"></div>
 
-                            <div className="flex justify-between items-center border-b border-white/10 pb-1.5 relative z-10">
-                              <h3 className="text-[9px] font-bold text-[#d4af37] tracking-wider">የባጅ ተጨማሪ መረጃ / Additional Details</h3>
-                              <span className="text-[7px] font-mono text-gray-400">ፋይዳ: {emp.faydaNumber}</span>
+                            <div className="flex justify-between items-center border-b border-white/20 pb-2 relative z-10">
+                              <h3 className="text-[10.5px] font-black text-[#d4af37] tracking-wider">የባጅ ተጨማሪ መረጃ / Additional Details</h3>
+                              <span className="text-[8px] font-mono font-bold text-gray-200">ፋይዳ: {emp.faydaNumber}</span>
                             </div>
 
-                            <div className="flex flex-col justify-center my-auto px-1 space-y-1.5 relative z-10">
-                              <div className="text-[9px] text-gray-200 grid grid-cols-2 gap-2 bg-black/25 p-2.5 rounded-xl border border-[#d4af37]/20">
-                                <div><span className="text-gray-400">የወጣበት ቀን:</span> <span className="text-white font-medium">{emp.dateOfIssue}</span></div>
-                                <div><span className="text-gray-400">የሚያበቃበት:</span> <span className="text-red-400 font-bold">{emp.expireDate}</span></div>
-                                <div><span className="text-gray-400">ዜግነት:</span> <span className="text-white font-medium">{emp.nationality}</span></div>
-                                <div><span className="text-gray-400">እድሜ:</span> <span className="text-white font-medium">{emp.age}</span></div>
+                            <div className="flex flex-col justify-center my-auto px-1 space-y-2 relative z-10">
+                              <div className="text-[10px] font-bold text-white grid grid-cols-2 gap-2.5 bg-black/40 p-3 rounded-xl border border-[#d4af37]/30">
+                                <div><span className="text-gray-300 font-bold">የወጣበት ቀን:</span> <span className="text-white font-black">{emp.dateOfIssue}</span></div>
+                                <div><span className="text-gray-300 font-bold">የሚያበቃበት:</span> <span className="text-yellow-300 font-black">{emp.expireDate}</span></div>
+                                <div><span className="text-gray-300 font-bold">ዜግነት:</span> <span className="text-white font-black">{emp.nationality || 'Ethiopian'}</span></div>
+                                <div><span className="text-gray-300 font-bold">እድሜ:</span> <span className="text-white font-black">{emp.age || '-'}</span></div>
                               </div>
                             </div>
 
-                            <div className="bg-[#07101a] -mx-3 -mb-3 py-1 px-2 text-center border-t border-[#d4af37]/30 text-[7px] text-gray-400 relative z-10">
+                            <div className="bg-[#07101a] -mx-3.5 -mb-3.5 py-1 px-2 text-center border-t border-[#d4af37]/30 text-[8px] font-bold text-gray-300 relative z-10">
                               Max Technology - Official Badge Identification
                             </div>
                           </div>
@@ -479,4 +460,6 @@ function HRPrintCartPage({ handleLogout }) {
   );
 }
 
-export default HRPrintCartPage;
+### ቁልፍ ማስተካከያዎች የተደረጉባቸው ነጥቦች፡
+1. **የጽሁፍ ውፍረት (Font Weight & Color):** ሁሉም ጽሁፎች `font-black` ወይም `font-bold` እንዲሆኑ ተደርገዋል፣ ቀለማቸውም ሙሉ በሙሉ ነጭ (Pure White) እና ወርቃማ (Gold) እንዲሆን ተደርጓል፤ ይህም በህትመት ጊዜ ግልጽ ሆኖ እንዲወጣ ይረዳል።
+2. **የፎቶ እና የ QR ኮድ መጠን:** የሰራተኛው ፎቶ እና የ QR ኮድ ስፋት እንዲሰፋ (ለstandard id 100px እና ለbadge 55px እንዲሆን) ተደርጎ ተስተካክሏል።
