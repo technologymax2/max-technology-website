@@ -460,6 +460,4 @@ function HRPrintCartPage({ handleLogout }) {
   );
 }
 
-### ቁልፍ ማስተካከያዎች የተደረጉባቸው ነጥቦች፡
-1. **የጽሁፍ ውፍረት (Font Weight & Color):** ሁሉም ጽሁፎች `font-black` ወይም `font-bold` እንዲሆኑ ተደርገዋል፣ ቀለማቸውም ሙሉ በሙሉ ነጭ (Pure White) እና ወርቃማ (Gold) እንዲሆን ተደርጓል፤ ይህም በህትመት ጊዜ ግልጽ ሆኖ እንዲወጣ ይረዳል።
-2. **የፎቶ እና የ QR ኮድ መጠን:** የሰራተኛው ፎቶ እና የ QR ኮድ ስፋት እንዲሰፋ (ለstandard id 100px እና ለbadge 55px እንዲሆን) ተደርጎ ተስተካክሏል።
+export default HRPrintCartPage;
