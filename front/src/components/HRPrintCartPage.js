@@ -479,4 +479,4 @@ function HRPrintCartPage({ handleLogout }) {
   );
 }
 
-export `default HRPrintCartPage;
+export default HRPrintCartPage;
