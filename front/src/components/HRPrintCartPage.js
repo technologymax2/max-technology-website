@@ -224,6 +224,11 @@ function HRPrintCartPage({ handleLogout }) {
                     break-inside: avoid;
                     margin: 0 !important;
                     padding: 0 !important;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 85.6mm !important;
+                    height: 54mm !important;
                   }
                   .print-card-box, .print-badge-box {
                     width: 85.6mm !important;
@@ -237,6 +242,7 @@ function HRPrintCartPage({ handleLogout }) {
                     border-radius: 0mm !important;
                     overflow: hidden !important;
                     margin: 0 !important;
+                    transform: scale(1.02);
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
                   }
