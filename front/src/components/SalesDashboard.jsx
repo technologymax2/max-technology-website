@@ -12,6 +12,17 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ሁሉም");
 
+  // 👉 በቀጥታ (አንድ በአንድ) ለመመዝገብ የሚያስፈልጉ ስቴቶች
+  const [newLeadData, setNewLeadData] = useState({
+    name: "",
+    companyName: "",
+    businessType: "",
+    address: "",
+    phone: "",
+    comment: ""
+  });
+  const [loadingSingle, setLoadingSingle] = useState(false);
+
   const fetchLeads = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/sales/leads`);
@@ -43,7 +54,6 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       });
       const data = await res.json();
       if (data.success) {
-        // አጠቃላይ የተጫኑትን እና የተዘለሉትን (Duplicates) በውጤቱ ማሳየት ይቻላል
         alert(data.message || "ፋይሉ በተሳካ ሁኔታ ተጭኗል!");
         setFile(null);
         fetchLeads();
@@ -54,6 +64,40 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       alert("ስህተት ተፈጥሯል");
     } finally {
       setUploading(false);
+    }
+  };
+
+  // 👉 ቀጥታ (አንድ በአንድ) ደንበኛ የመመዝገቢያ ሎጂክ
+  const handleAddSingleLeadSubmit = async (e) => {
+    e.preventDefault();
+    if (!newLeadData.name || !newLeadData.phone) {
+      return alert("እባክዎ የደንበኛውን ስም እና ስልክ ቁጥር ያስገቡ!");
+    }
+
+    setLoadingSingle(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newLeadData,
+          uploadedBy: user?.name || "የሽያጭ ሰራተኛ"
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || "ደንበኛው በስኬት ተመዝግቧል!");
+        setNewLeadData({ name: "", companyName: "", businessType: "", address: "", phone: "", comment: "" });
+        fetchLeads();
+      } else {
+        alert(data.error || "መመዝገብ አልተቻለም");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("ስህተት ተፈጥሯል");
+    } finally {
+      setLoadingSingle(false);
     }
   };
 
@@ -186,24 +230,99 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       </header>
 
       <main className="flex-grow p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
-        {/* Excel ፋይል መጫኛ */}
-        <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md">
-          <h3 className="text-base font-bold mb-3 text-gray-200">📁 የደንበኞች Excel ፋይል ስቀል</h3>
-          <form onSubmit={handleUploadExcel} className="flex flex-wrap gap-3 items-center">
-            <input
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="bg-gray-900 border border-gray-700 p-2 rounded text-sm text-gray-300 flex-1 min-w-[240px]"
-            />
-            <button
-              type="submit"
-              disabled={uploading}
-              className="bg-yellow-400 text-black font-bold px-5 py-2.5 rounded text-sm hover:bg-yellow-500 transition disabled:opacity-50"
-            >
-              {uploading ? "በመጫን ላይ..." : "ፋይሉን ጫን"}
-            </button>
-          </form>
+        
+        {/* Excel ፋይል መጫኛ እና ቀጥታ የመመዝገቢያ ፎርም በጎንዮሽ (Grid) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* 1. Excel ፋይል መጫኛ */}
+          <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md flex flex-col justify-between">
+            <div>
+              <h3 className="text-base font-bold mb-3 text-gray-200">📁 የደንበኞች Excel ፋይል ስቀል</h3>
+              <form onSubmit={handleUploadExcel} className="flex flex-col gap-3">
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-sm text-gray-300 w-full"
+                />
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="bg-yellow-400 text-black font-bold px-5 py-2.5 rounded text-sm hover:bg-yellow-500 transition disabled:opacity-50 w-full"
+                >
+                  {uploading ? "በመጫን ላይ..." : "ፋይሉን ጫን"}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* 2. አዲስ ደንበኛ በቀጥታ መዝግብ (Single Lead Form) */}
+          <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md">
+            <h3 className="text-base font-bold mb-3 text-gray-200">⚡ አዲስ ደንበኛ በቀጥታ መዝግብ</h3>
+            <form onSubmit={handleAddSingleLeadSubmit} className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="የደንበኛ ስም *"
+                  value={newLeadData.name}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, name: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="የድርጅት ስም"
+                  value={newLeadData.companyName}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, companyName: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="ስልክ ቁጥር *"
+                  value={newLeadData.phone}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, phone: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="አድራሻ (ለምሳሌ፦ ቦሌ)"
+                  value={newLeadData.address}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, address: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="የስራ ዓይነት"
+                  value={newLeadData.businessType}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, businessType: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                />
+                <input
+                  type="text"
+                  placeholder="አስተያየት/ዌብሳይት"
+                  value={newLeadData.comment}
+                  onChange={(e) => setNewLeadData({ ...newLeadData, comment: e.target.value })}
+                  className="bg-gray-900 border border-gray-700 p-2 rounded text-xs text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loadingSingle}
+                className="bg-green-600 text-white font-bold px-5 py-2 rounded text-xs hover:bg-green-700 transition disabled:opacity-50 mt-1"
+              >
+                {loadingSingle ? "በመመዝገብ ላይ..." : "ደንበኛውን መዝግብ"}
+              </button>
+            </form>
+          </div>
+
         </div>
 
         {/* የደንበኞች ዝርዝር እና የፍለጋ/ማጣሪያ ክፍል */}
@@ -275,7 +394,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                       <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
                     </div>
 
-                    {/* 👈 የድርጅት ስም ማሳያ */}
+                    {/* የድርጅት ስም ማሳያ */}
                     <p className="text-xs text-yellow-200 mt-0.5 font-medium">
                       🏢 የድርጅት ስም: <span className="text-white">{lead.companyName || "አልተጠቀሰም"}</span>
                     </p>
