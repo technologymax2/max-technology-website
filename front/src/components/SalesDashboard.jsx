@@ -8,7 +8,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [statuses, setStatuses] = useState({});
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
 
-  // 👈 አዳዲስ የፍለጋ እና የማጣሪያ (Search & Filter) ስቴቶች
+  // የፍለጋ እና የማጣሪያ (Search & Filter) ስቴቶች
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ሁሉም");
 
@@ -26,7 +26,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     fetchLeads();
   }, [fetchLeads]);
 
-  // Excel ፋይል መጫኛ
+  // Excel ፋይል መጫኛ (የተባዙ ስልክ ቁጥሮችን ለመቆጣጠር የሚረዳ)
   const handleUploadExcel = async (e) => {
     e.preventDefault();
     if (!file) return alert("እባክዎ ፋይል ይምረጡ!");
@@ -43,7 +43,8 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       });
       const data = await res.json();
       if (data.success) {
-        alert(data.message);
+        // አጠቃላይ የተጫኑትን እና የተዘለሉትን (Duplicates) በውጤቱ ማሳየት ይቻላል
+        alert(data.message || "ፋይሉ በተሳካ ሁኔታ ተጭኗል!");
         setFile(null);
         fetchLeads();
       } else {
@@ -156,10 +157,11 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 👈 ፍለጋውን እና ማጣሪያውን (Filtering logic) እዚህ ማስተካከል
+  // ፍለጋ እና ማጣሪያ (የድርጅት ስምንም ጨምሮ መፈለግ እንዲያስችል ተደርጓል)
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch = 
       lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.phone?.includes(searchTerm) ||
       lead.address?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -232,11 +234,11 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
             )}
           </div>
 
-          {/* 👈 የፍለጋ (Search Input) እና የሁኔታ ማጣሪያ (Status Filter Dropdown) መቆጣጠሪያ */}
+          {/* የፍለጋ (Search Input) እና የሁኔታ ማጣሪያ (Status Filter Dropdown) */}
           <div className="flex flex-col md:flex-row gap-3 mb-4">
             <input
               type="text"
-              placeholder="🔍 በደንበኛ ስም፣ በስልክ ቁጥር ወይም በአድራሻ ይፈልጉ..."
+              placeholder="🔍 በደንበኛ ስም፣ በድርጅት ስም፣ በስልክ ቁጥር ወይም በአድራሻ ይፈልጉ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-gray-900 border border-gray-700 text-white p-2.5 rounded text-xs flex-1"
@@ -272,6 +274,11 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
                       <span className="text-xs bg-gray-800 text-yellow-400 px-2 py-0.5 rounded font-mono">#{index + 1}</span>
                       <h4 className="font-bold text-yellow-400 text-base">{lead.name}</h4>
                     </div>
+
+                    {/* 👈 የድርጅት ስም ማሳያ */}
+                    <p className="text-xs text-yellow-200 mt-0.5 font-medium">
+                      🏢 የድርጅት ስም: <span className="text-white">{lead.companyName || "አልተጠቀሰም"}</span>
+                    </p>
 
                     <p className="text-xs text-gray-300 mt-1">
                       ስልክ: <a href={`tel:${lead.phone}`} className="text-blue-400 underline font-semibold">{lead.phone}</a> | 
