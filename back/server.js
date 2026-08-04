@@ -37,9 +37,10 @@ mongoose
 
 const leadSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  companyName: { type: String, default: "" }, // 👈 1. የድርጅት ስም መስክ (Field) ተጨምሯል
   businessType: { type: String, default: "" },
   address: { type: String, default: "" },
-  phone: { type: String, required: true },
+  phone: { type: String, required: true, unique: true }, // 👈 ስልክ ቁጥር Unique እንዲሆን ተደርጓል (ድጋሚ እንዳይመዝገብ)
   status: { type: String, default: "ያልተደወለ" },
   comment: { type: String, default: "" },
   salesPerson: { type: String, default: "" },
@@ -50,6 +51,7 @@ const leadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model("Lead", leadSchema);
 
+// 👈 2. Excel ፋይል ሲጫን የድርጅት ስም መቀበል እና የተባዙ ስልክ ቁጥሮችን መዝለል (Skip) ማድረግ
 app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -67,11 +69,15 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
     }
 
     let count = 0;
+    let skippedCount = 0;
+
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || row.length === 0) continue;
 
+      // በኤክሴል ሰንጠረዥዎ ቅደም ተከተል መሰረት (ለምሳሌ፦ 0: ስም, 1: የድርጅት ስም, 2: የስራ ዓይነት, 3: አድራሻ...)
       const name = row[0] || "ስም የሌለው";
+      const companyName = row[1] || ""; // 👈 የድርጅት ስም ከኤክሴል (ከአምድ 2 / Index 1) ማንበብ
       const businessType = row[2] || ""; 
       const address = row[3] || "";    
       
@@ -88,11 +94,21 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
       }
 
       if (phone) {
+        const cleanPhone = String(phone).trim();
+        
+        // 👈 ስልክ ቁጥሩ ቀድሞ በዳታቤዝ ውስጥ መኖሩን ማረጋገጥ
+        const existingLead = await Lead.findOne({ phone: cleanPhone });
+        if (existingLead) {
+          skippedCount++;
+          continue; // የተመዘገበ ከሆነ ይለፈው (Skip)
+        }
+
         await Lead.create({
           name: String(name).trim(),
+          companyName: String(companyName).trim(), // 👈 የድርጅት ስም ማስቀመጥ
           businessType: String(businessType).trim(),
           address: String(address).trim(),
-          phone: String(phone).trim(),
+          phone: cleanPhone,
           status: "ያልተደወለ",
           comment: websiteInfo ? `ሁኔታ: ${websiteInfo}` : "",
           uploadedBy: uploadedBy,
@@ -101,11 +117,14 @@ app.post("/api/sales/upload-excel", upload.single("file"), async (req, res) => {
       }
     }
 
-    if (count === 0) {
+    if (count === 0 && skippedCount === 0) {
       return res.status(400).json({ success: false, error: "በፋይሉ ውስጥ የሚነበብ ስልክ ቁጥር ያለው መረጃ አልተገኘም!" });
     }
 
-    res.status(200).json({ success: true, message: `${count} ደንበኞች በስኬት ተጭነዋል!` });
+    res.status(200).json({ 
+      success: true, 
+      message: `ፋይሉ ተጭኗል! ${count} አዳዲስ ደንበኞች ተመዝገበዋል፣ ${skippedCount} የተባዙ (Duplicate) ስልክ ቁጥሮች ተዘለዋል።` 
+    });
   } catch (error) {
     console.error("Excel upload error:", error);
     res.status(500).json({ success: false, error: "ፋይሉን ማንበብ ወይም መመዝገብ አልተቻለም" });
@@ -186,14 +205,13 @@ const contactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model("Contact", contactSchema);
 
-// 🛠️ የተስተካከለ የሰራተኛ ስኪማ (dateOfIssue እና expireDate በግልጽ ተቀምጠዋል)
 const employeeSchema = new mongoose.Schema({
   nameAmh: { type: String, default: "" },
   nameEng: { type: String, default: "" },
   age: { type: String, default: "" },
   faydaNumber: { type: String, required: true, unique: true },
-  dateOfIssue: { type: String, default: "" }, // 👈 የተሰጠበት ቀን
-  expireDate: { type: String, default: "" },  // 👈 የሚያበቃበት ቀን
+  dateOfIssue: { type: String, default: "" },
+  expireDate: { type: String, default: "" },
   addressAmh: { type: String, default: "" },
   addressEng: { type: String, default: "" },
   zone: { type: String, default: "" },
@@ -493,7 +511,6 @@ app.put("/api/hr/employees/:id", async (req, res) => {
     res.status(500).json({ success: false, error: "ሰራተኛውን ማዘመን አልተቻለም" });
   }
 });
-
 
 app.post("/api/admin/hrs", async (req, res) => {
   try {
