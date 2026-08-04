@@ -772,6 +772,58 @@ app.put("/api/admin/sales/reset-password/:id", async (req, res) => {
   }
 });
 
+
+
+// ==========================================
+// 3. ቀጥታ (አንድ በአንድ) ደንበኛ የመመዝገቢያ Route
+// ==========================================
+app.post("/api/sales/leads", async (req, res) => {
+  try {
+    const { name, companyName, businessType, address, phone, comment, uploadedBy } = req.body;
+
+    // ስልክ ቁጥር መኖሩን ማረጋገጥ
+    if (!phone || !name) {
+      return res.status(400).json({ success: false, error: "እባክዎ ስም እና ስልክ ቁጥር በትክክል ያስገቡ!" });
+    }
+
+    const cleanPhone = String(phone).trim();
+
+    // ስልክ ቁጥሩ ቀድሞ በዳታቤዝ ውስጥ መኖሩን ማረጋገጥ (Duplicate Check)
+    const existingLead = await Lead.findOne({ phone: cleanPhone });
+    if (existingLead) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል! ድጋሚ መመዝገብ አይቻልም።" 
+      });
+    }
+
+    // አዲሱን ደንበኛ መመዝገብ
+    const newLead = new Lead({
+      name: String(name).trim(),
+      companyName: companyName ? String(companyName).trim() : "",
+      businessType: businessType ? String(businessType).trim() : "",
+      address: address ? String(address).trim() : "",
+      phone: cleanPhone,
+      status: "ያልተደወለ",
+      comment: comment ? String(comment).trim() : "",
+      uploadedBy: uploadedBy || "ያልታወቀ ሰራተኛ",
+    });
+
+    await newLead.save();
+
+    res.status(201).json({ 
+      success: true, 
+      message: "ደንበኛው በስኬት ተመዝግቧል!",
+      lead: newLead 
+    });
+
+  } catch (error) {
+    console.error("Direct lead creation error:", error);
+    res.status(500).json({ success: false, error: "ደንበኛውን መመዝገብ አልተቻለም" });
+  }
+});
+
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, message: "ሰርቨሩ ዝግጁ ነው!" });
 });
