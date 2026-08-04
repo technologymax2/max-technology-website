@@ -12,7 +12,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ሁሉም");
 
-  // 👉 በቀጥታ (አንድ በአንድ) ለመመዝገብ የሚያስፈልጉ ስቴቶች
+  // በቀጥታ (አንድ በአንድ) ለመመዝገብ የሚያስፈልጉ ስቴቶች
   const [newLeadData, setNewLeadData] = useState({
     name: "",
     companyName: "",
@@ -22,6 +22,9 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     comment: ""
   });
   const [loadingSingle, setLoadingSingle] = useState(false);
+
+  // 👉 ፊልዶች እንዳይጠፉ (እንዲያዙ) የሚቆጣጠር ስቴት (Default በ True ተደርጓል)
+  const [keepValues, setKeepValues] = useState(true);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -67,7 +70,7 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 👉 ቀጥታ (አንድ በአንድ) ደንበኛ የመመዝገቢያ ሎጂክ
+  // ቀጥታ (አንድ በአንድ) ደንበኛ የመመዝገቢያ ሎጂክ
   const handleAddSingleLeadSubmit = async (e) => {
     e.preventDefault();
     if (!newLeadData.name || !newLeadData.phone) {
@@ -88,7 +91,20 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
       const data = await res.json();
       if (data.success) {
         alert(data.message || "ደንበኛው በስኬት ተመዝግቧል!");
-        setNewLeadData({ name: "", companyName: "", businessType: "", address: "", phone: "", comment: "" });
+        
+        // 👉 ቺክቦክሱ ከተመረጠ (keepValues = true) አድራሻ፣ የሰዓት/ስራ ዓይነት እና አስተያየት እንዳሉ ይቆያሉ (ስም እና ስልክ ብቻ ባዶ ይሆናሉ)
+        if (keepValues) {
+          setNewLeadData((prev) => ({
+            ...prev,
+            name: "",
+            companyName: "",
+            phone: "",
+          }));
+        } else {
+          // ካልተመረጠ ሁሉም ባዶ ይሆናሉ
+          setNewLeadData({ name: "", companyName: "", businessType: "", address: "", phone: "", comment: "" });
+        }
+
         fetchLeads();
       } else {
         alert(data.error || "መመዝገብ አልተቻለም");
@@ -258,7 +274,21 @@ function SalesDashboard({ user, handleLogout, API_BASE_URL }) {
 
           {/* 2. አዲስ ደንበኛ በቀጥታ መዝግብ (Single Lead Form) */}
           <div className="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-md">
-            <h3 className="text-base font-bold mb-3 text-gray-200">⚡ አዲስ ደንበኛ በቀጥታ መዝግብ</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-bold text-gray-200">⚡ አዲስ ደንበኛ በቀጥታ መዝግብ</h3>
+              
+              {/* 👉 ፊልዶቹን እንዳሉ እንዲይዝ (Keep Values) የሚያደርግ ቺክቦክስ */}
+              <label className="flex items-center gap-1.5 text-[11px] text-gray-300 cursor-pointer bg-gray-900 px-2 py-1 rounded border border-gray-700">
+                <input
+                  type="checkbox"
+                  checked={keepValues}
+                  onChange={(e) => setKeepValues(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-yellow-400 cursor-pointer"
+                />
+                መረጃዎቹን ያዝ (Keep Values)
+              </label>
+            </div>
+
             <form onSubmit={handleAddSingleLeadSubmit} className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-2">
                 <input
